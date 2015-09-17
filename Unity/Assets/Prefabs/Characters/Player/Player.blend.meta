@@ -1,0 +1,385 @@
+fileFormatVersion: 2
+guid: 9e5a117271304874db19394d69eaae6f
+timeCreated: 1441666080
+licenseType: Free
+ModelImporter:
+  serializedVersion: 18
+  fileIDToRecycleName:
+    100000: Abdomen
+    100002: Armature
+    100004: Chest
+    100006: Fingers_L
+    100008: Fingers_R
+    100010: Foot_L
+    100012: Foot_R
+    100014: Head
+    100016: Hip_L
+    100018: Hip_R
+    100020: Humanoid_Base
+    100022: Lower_L
+    100024: Lower_R
+    100026: LowerLeg_L
+    100028: LowerLeg_R
+    100030: Neck
+    100032: Palm_L
+    100034: Palm_R
+    100036: Pelvis
+    100038: //RootNode
+    100040: Shoulder_L
+    100042: Shoulder_R
+    100044: Thumb_L
+    100046: Thumb_R
+    100048: Upper_L
+    100050: Upper_R
+    100052: UpperLeg_L
+    100054: UpperLeg_R
+    100056: Base_Edited_001
+    100058: Wrist_L
+    100060: Wrist_R
+    400000: Abdomen
+    400002: Armature
+    400004: Chest
+    400006: Fingers_L
+    400008: Fingers_R
+    400010: Foot_L
+    400012: Foot_R
+    400014: Head
+    400016: Hip_L
+    400018: Hip_R
+    400020: Humanoid_Base
+    400022: Lower_L
+    400024: Lower_R
+    400026: LowerLeg_L
+    400028: LowerLeg_R
+    400030: Neck
+    400032: Palm_L
+    400034: Palm_R
+    400036: Pelvis
+    400038: //RootNode
+    400040: Shoulder_L
+    400042: Shoulder_R
+    400044: Thumb_L
+    400046: Thumb_R
+    400048: Upper_L
+    400050: Upper_R
+    400052: UpperLeg_L
+    400054: UpperLeg_R
+    400056: Base_Edited_001
+    400058: Wrist_L
+    400060: Wrist_R
+    4300000: Humanoid_Base
+    4300002: Base_Edited_001
+    7400000: Default Take
+    7400002: Pose_Library_I
+    7400004: Run
+    9500000: //RootNode
+    13700000: Humanoid_Base
+    13700002: Base_Edited_001
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: Default Take
+      takeName: Default Take
+      firstFrame: 0
+      lastFrame: 14
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Pelvis
+        weight: 1
+      - path: Armature/Pelvis/Abdomen
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck/Head
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L/Foot_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
+        weight: 1
+      - path: Humanoid_Base
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    - serializedVersion: 16
+      name: Pose_Library_I
+      takeName: Pose_Library_I
+      firstFrame: 0
+      lastFrame: 1
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Pelvis
+        weight: 1
+      - path: Armature/Pelvis/Abdomen
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck/Head
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L/Foot_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
+        weight: 1
+      - path: Humanoid_Base
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    - serializedVersion: 16
+      name: Run
+      takeName: Run
+      firstFrame: 0
+      lastFrame: 15
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Pelvis
+        weight: 1
+      - path: Armature/Pelvis/Abdomen
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck/Head
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L/Foot_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
+        weight: 1
+      - path: Humanoid_Base
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: Pelvis
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
