@@ -6,6 +6,7 @@ public class Health : MonoBehaviour
 {
     public Slider m_HealthBar;      // UI healthbar
     private float m_MaxHealth = 100; // Max health
+    public float testHealth;
     private float m_CurrentHealth;   // The entity's current health
 
     public float m_Health
@@ -36,5 +37,8 @@ public class Health : MonoBehaviour
         m_Health = m_MaxHealth;
     }
 
-
+    void Update()
+    {
+        m_Health = testHealth;
+    }
 }

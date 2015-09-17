@@ -1,80 +1,90 @@
 fileFormatVersion: 2
 guid: 9e5a117271304874db19394d69eaae6f
-timeCreated: 1441666080
+timeCreated: 1442508405
 licenseType: Free
 ModelImporter:
   serializedVersion: 18
   fileIDToRecycleName:
     100000: Abdomen
     100002: Armature
-    100004: Chest
-    100006: Fingers_L
-    100008: Fingers_R
-    100010: Foot_L
-    100012: Foot_R
-    100014: Head
-    100016: Hip_L
-    100018: Hip_R
-    100020: Humanoid_Base
-    100022: Lower_L
-    100024: Lower_R
-    100026: LowerLeg_L
-    100028: LowerLeg_R
-    100030: Neck
-    100032: Palm_L
-    100034: Palm_R
-    100036: Pelvis
-    100038: //RootNode
-    100040: Shoulder_L
-    100042: Shoulder_R
-    100044: Thumb_L
-    100046: Thumb_R
-    100048: Upper_L
-    100050: Upper_R
-    100052: UpperLeg_L
-    100054: UpperLeg_R
-    100056: Base_Edited_001
-    100058: Wrist_L
-    100060: Wrist_R
+    100004: Base_Edited_001
+    100006: Chest
+    100008: Fingers_L
+    100010: Fingers_Lower_L
+    100012: Fingers_Lower_R
+    100014: Fingers_R
+    100016: Foot_L
+    100018: Foot_R
+    100020: Head
+    100022: Hip_L
+    100024: Hip_R
+    100026: Lower_L
+    100028: Lower_R
+    100030: LowerLeg_L
+    100032: LowerLeg_R
+    100034: Neck
+    100036: Palm_L
+    100038: Palm_R
+    100040: Pelvis
+    100042: //RootNode
+    100044: Shoulder_L
+    100046: Shoulder_R
+    100048: Thumb_L
+    100050: Thumb_Lower_L
+    100052: Thumb_Lower_R
+    100054: Thumb_R
+    100056: Upper_L
+    100058: Upper_R
+    100060: UpperLeg_L
+    100062: UpperLeg_R
+    100064: Wrist_L
+    100066: Wrist_R
     400000: Abdomen
     400002: Armature
-    400004: Chest
-    400006: Fingers_L
-    400008: Fingers_R
-    400010: Foot_L
-    400012: Foot_R
-    400014: Head
-    400016: Hip_L
-    400018: Hip_R
-    400020: Humanoid_Base
-    400022: Lower_L
-    400024: Lower_R
-    400026: LowerLeg_L
-    400028: LowerLeg_R
-    400030: Neck
-    400032: Palm_L
-    400034: Palm_R
-    400036: Pelvis
-    400038: //RootNode
-    400040: Shoulder_L
-    400042: Shoulder_R
-    400044: Thumb_L
-    400046: Thumb_R
-    400048: Upper_L
-    400050: Upper_R
-    400052: UpperLeg_L
-    400054: UpperLeg_R
-    400056: Base_Edited_001
-    400058: Wrist_L
-    400060: Wrist_R
-    4300000: Humanoid_Base
-    4300002: Base_Edited_001
+    400004: Base_Edited_001
+    400006: Chest
+    400008: Fingers_L
+    400010: Fingers_Lower_L
+    400012: Fingers_Lower_R
+    400014: Fingers_R
+    400016: Foot_L
+    400018: Foot_R
+    400020: Head
+    400022: Hip_L
+    400024: Hip_R
+    400026: Lower_L
+    400028: Lower_R
+    400030: LowerLeg_L
+    400032: LowerLeg_R
+    400034: Neck
+    400036: Palm_L
+    400038: Palm_R
+    400040: Pelvis
+    400042: //RootNode
+    400044: Shoulder_L
+    400046: Shoulder_R
+    400048: Thumb_L
+    400050: Thumb_Lower_L
+    400052: Thumb_Lower_R
+    400054: Thumb_R
+    400056: Upper_L
+    400058: Upper_R
+    400060: UpperLeg_L
+    400062: UpperLeg_R
+    400064: Wrist_L
+    400066: Wrist_R
+    4300000: Base_Edited_001
     7400000: Default Take
-    7400002: Pose_Library_I
-    7400004: Run
+    7400002: Empty-Handed
+    7400004: One-Handed
+    7400006: Run
+    7400008: Stances
+    7400010: Empty-Handed_Idle
+    7400012: Empty-Handed_IdletoForward
+    7400014: Empty-Handed_Forward
+    7400016: Empty-Handed_ForwardtoIdle
     9500000: //RootNode
-    13700000: Humanoid_Base
-    13700002: Base_Edited_001
+    13700000: Base_Edited_001
   materials:
     importMaterials: 1
     materialName: 0
@@ -99,7 +109,7 @@ ModelImporter:
       name: Default Take
       takeName: Default Take
       firstFrame: 0
-      lastFrame: 14
+      lastFrame: 37
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -139,11 +149,17 @@ ModelImporter:
         weight: 1
       - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L/Fingers_L
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Thumb_L
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L/Fingers_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L/Thumb_Lower_L
         weight: 1
       - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
         weight: 1
@@ -151,11 +167,17 @@ ModelImporter:
         weight: 1
       - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R/Fingers_R
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Thumb_R
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R/Fingers_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R/Thumb_Lower_R
         weight: 1
       - path: Armature/Pelvis/Hip_L
         weight: 1
@@ -173,15 +195,15 @@ ModelImporter:
         weight: 1
       - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
         weight: 1
-      - path: Humanoid_Base
+      - path: Base_Edited_001
         weight: 1
       maskType: 0
       maskSource: {instanceID: 0}
     - serializedVersion: 16
-      name: Pose_Library_I
-      takeName: Pose_Library_I
+      name: Empty-Handed
+      takeName: Empty-Handed
       firstFrame: 0
-      lastFrame: 1
+      lastFrame: 100
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -221,11 +243,17 @@ ModelImporter:
         weight: 1
       - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L/Fingers_L
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Thumb_L
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L/Fingers_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L/Thumb_Lower_L
         weight: 1
       - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
         weight: 1
@@ -233,11 +261,17 @@ ModelImporter:
         weight: 1
       - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R/Fingers_R
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Thumb_R
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R/Fingers_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R/Thumb_Lower_R
         weight: 1
       - path: Armature/Pelvis/Hip_L
         weight: 1
@@ -255,7 +289,101 @@ ModelImporter:
         weight: 1
       - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
         weight: 1
-      - path: Humanoid_Base
+      - path: Base_Edited_001
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    - serializedVersion: 16
+      name: One-Handed
+      takeName: One-Handed
+      firstFrame: 0
+      lastFrame: 34
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Pelvis
+        weight: 1
+      - path: Armature/Pelvis/Abdomen
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck/Head
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L/Fingers_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L/Thumb_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R/Fingers_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R/Thumb_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L/Foot_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
+        weight: 1
+      - path: Base_Edited_001
         weight: 1
       maskType: 0
       maskSource: {instanceID: 0}
@@ -264,6 +392,194 @@ ModelImporter:
       takeName: Run
       firstFrame: 0
       lastFrame: 15
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Pelvis
+        weight: 1
+      - path: Armature/Pelvis/Abdomen
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck/Head
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L/Fingers_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L/Thumb_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R/Fingers_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R/Thumb_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L/Foot_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
+        weight: 1
+      - path: Base_Edited_001
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    - serializedVersion: 16
+      name: Stances
+      takeName: Stances
+      firstFrame: 0
+      lastFrame: 3
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Pelvis
+        weight: 1
+      - path: Armature/Pelvis/Abdomen
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck/Head
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L/Fingers_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L/Thumb_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R/Fingers_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R/Thumb_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L/Foot_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
+        weight: 1
+      - path: Base_Edited_001
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    - serializedVersion: 16
+      name: Empty-Handed_Idle
+      takeName: Empty-Handed
+      firstFrame: 0
+      lastFrame: 38
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -303,11 +619,17 @@ ModelImporter:
         weight: 1
       - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Palm_L/Fingers_L
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Thumb_L
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L/Fingers_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L/Thumb_Lower_L
         weight: 1
       - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
         weight: 1
@@ -315,11 +637,17 @@ ModelImporter:
         weight: 1
       - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Palm_R/Fingers_R
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R
         weight: 1
-      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Thumb_R
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R/Fingers_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R/Thumb_Lower_R
         weight: 1
       - path: Armature/Pelvis/Hip_L
         weight: 1
@@ -337,7 +665,289 @@ ModelImporter:
         weight: 1
       - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
         weight: 1
-      - path: Humanoid_Base
+      - path: Base_Edited_001
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    - serializedVersion: 16
+      name: Empty-Handed_IdletoForward
+      takeName: Empty-Handed
+      firstFrame: 39
+      lastFrame: 56
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Pelvis
+        weight: 1
+      - path: Armature/Pelvis/Abdomen
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck/Head
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L/Fingers_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L/Thumb_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R/Fingers_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R/Thumb_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L/Foot_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
+        weight: 1
+      - path: Base_Edited_001
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    - serializedVersion: 16
+      name: Empty-Handed_Forward
+      takeName: Empty-Handed
+      firstFrame: 57
+      lastFrame: 81
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Pelvis
+        weight: 1
+      - path: Armature/Pelvis/Abdomen
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck/Head
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L/Fingers_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L/Thumb_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R/Fingers_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R/Thumb_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L/Foot_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
+        weight: 1
+      - path: Base_Edited_001
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    - serializedVersion: 16
+      name: Empty-Handed_ForwardtoIdle
+      takeName: Empty-Handed
+      firstFrame: 81
+      lastFrame: 100
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Pelvis
+        weight: 1
+      - path: Armature/Pelvis/Abdomen
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Neck/Head
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Palm_L/Fingers_L/Fingers_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_L/Upper_L/Lower_L/Wrist_L/Thumb_L/Thumb_Lower_L
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Palm_R/Fingers_R/Fingers_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R
+        weight: 1
+      - path: Armature/Pelvis/Abdomen/Chest/Shoulder_R/Upper_R/Lower_R/Wrist_R/Thumb_R/Thumb_Lower_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_L/UpperLeg_L/LowerLeg_L/Foot_L
+        weight: 1
+      - path: Armature/Pelvis/Hip_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R
+        weight: 1
+      - path: Armature/Pelvis/Hip_R/UpperLeg_R/LowerLeg_R/Foot_R
+        weight: 1
+      - path: Base_Edited_001
         weight: 1
       maskType: 0
       maskSource: {instanceID: 0}
@@ -376,7 +986,7 @@ ModelImporter:
     armStretch: .0500000007
     legStretch: .0500000007
     feetSpacing: 0
-    rootMotionBoneName: Pelvis
+    rootMotionBoneName: 
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   animationType: 2
   additionalBone: 0
