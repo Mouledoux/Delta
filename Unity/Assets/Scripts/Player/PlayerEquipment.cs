@@ -20,7 +20,7 @@ public class PlayerEquipment : MonoBehaviour
     {
         object1.transform.localPosition = new Vector3   (0, 0, 0);      // Sets Position relitave to Parent to 0
         object1.transform.localRotation = new Quaternion(0, 0, 0, 0);   // Sets Rotation relative to parent to 0
-        object1.transform.localScale = new Vector3(1, 1, 1);            // Makes sure GameObject has not been rescaled
+        object1.transform.localScale    = new Vector3   (1, 1, 1);      // Makes sure GameObject has not been rescaled
     }
 
     // Swaps Children of GameObjects
