@@ -5,11 +5,10 @@ using System.Collections;
 public class Health : MonoBehaviour
 {
     public Slider m_HealthBar;      // UI healthbar
-    private float m_MaxHealth = 100; // Max health
-    public float testHealth;
-    private float m_CurrentHealth;   // The entity's current health
+    private float m_MaxHealth;      // Max health
+    private float m_CurrentHealth;  // The entity's current health
 
-    public float m_Health
+    private float m_Health
     {
         get
         {
@@ -17,12 +16,18 @@ public class Health : MonoBehaviour
         }
         set
         {
-            m_CurrentHealth = value;                       // Sets current health to new value
+            m_CurrentHealth = value;                // Sets current health to new value
             m_HealthBar.value = m_CurrentHealth;    // Adjust health bar to new current health
         }
     }
 
-    void Heal(float a_heal)
+    public void SetHealth(float a_max)
+    {
+        m_MaxHealth = a_max;
+        m_Health = m_MaxHealth;
+    }
+
+    public void Heal(float a_heal)
     {
         m_Health += a_heal;             // Increases current health by amount healed
 
@@ -32,13 +37,19 @@ public class Health : MonoBehaviour
         }
     }
 
-    void Start()
+    public void TakeDamage(float a_damage)
     {
-        m_Health = m_MaxHealth;
+        m_Health -= a_damage;
+
+        if(m_Health <= 0)
+        {
+            Die();
+        }
     }
 
-    void Update()
+    public void Die()
     {
-        m_Health = testHealth;
+
     }
+
 }
