@@ -7,9 +7,9 @@ public class _Stats : MonoBehaviour
     public float m_RareMod;     // Number all stats are moded by
 
     public float m_Speed;       // Speed the entity moves
+    public float m_Attack;      // Ammount of damage the entity deals
     public float m_Defence;     // Ammount of damage the entity ignores
     public float m_Stealth;     // Chance of not being detected by enemies
-    public float m_Strength;    // Ammount of damage the entity deals
     public float m_Dextarity;   // Atticking Speed
 
     public int m_RuneSlots;     // Number of possible augmentations
@@ -106,15 +106,15 @@ public class _Stats : MonoBehaviour
         Rarity();                           // Sets item's m_Rarity
 
         m_Speed     += Random.Range(0, 5);  // Random buff to m_Speed
+        m_Attack    += Random.Range(0, 5);  // Random buff to m_Strength
         m_Defence   += Random.Range(0, 5);  // Random buff to m_Defence
         m_Stealth   += Random.Range(0, 5);  // Random buff to m_Stealth
-        m_Strength  += Random.Range(0, 5);  // Random buff to m_Strength
         m_Dextarity += Random.Range(0, 5);  // Random buff to m_Dextarity
 
         m_Speed     *= m_Level * m_RareMod; // Sets m_Speed to      (level 1 stat * m_Level * m_RareMod)
+        m_Attack    *= m_Level * m_RareMod; // Sets m_Strength to   (level 1 stat * m_Level * m_RareMod)
         m_Defence   *= m_Level * m_RareMod; // Sets m_Defence to    (level 1 stat * m_Level * m_RareMod)
         m_Stealth   *= m_Level * m_RareMod; // Sets m_Stealth to    (level 1 stat * m_Level * m_RareMod)
-        m_Strength  *= m_Level * m_RareMod; // Sets m_Strength to   (level 1 stat * m_Level * m_RareMod)
         m_Dextarity *= m_Level * m_RareMod; // Sets m_Dextarity to  (level 1 stat * m_Level * m_RareMod)
     }
 }
