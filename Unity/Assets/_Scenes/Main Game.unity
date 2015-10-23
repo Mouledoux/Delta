@@ -477,8 +477,8 @@ MonoBehaviour:
   cellSize: {x: .400000006, y: .400000006, z: .400000006}
   roomsPerQuadrant: 3
   seed: 
-  FLOOR: {fileID: 173932, guid: e8b91186e2264d74abffb7f1f88d142a, type: 2}
-  WALL: {fileID: 125328, guid: 7461fc438ca84cf429a89b53086b1726, type: 2}
+  FLOOR: {fileID: 102678, guid: e9078d9954935584a8f9f01faacc1f1c, type: 2}
+  WALL: {fileID: 188416, guid: 5706b5f6917248a46b58681b6705a63a, type: 2}
   cellWallHeight: 6
   cellWallWidth: .400000006
   roomsToGen: 3
