@@ -4,12 +4,14 @@ using System.Collections;
 public class PlayerController : MonoBehaviour
 {
     //Variables
+    public float speed;
     public static float MoveSpeed = 6.0F;   //speed player moves
     public float rotationSpeed = 20.0f;     //speed player rotates
     public float gravity = 100f;
 
     void FixedUpdate()
     {
+        s = speed;
         float HorizontalRotate = Input.GetAxis("Mouse X");
         float VerticalRotate = Input.GetAxis("Mouse Y");
         float rotation = 0.0f;
@@ -24,6 +26,16 @@ public class PlayerController : MonoBehaviour
             rotation = VerticalRotate * rotationSpeed * Time.deltaTime;
             gameObject.transform.Find("Camera").gameObject.transform.Rotate(new Vector3(-rotation, 0.0f, 0.0f));
         }
+
+        if (Input.GetKey(KeyCode.Space))
+        {
+            gameObject.transform.position += new Vector3(0.0f, 0.1f, 0.0f);
+        }
+
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            gameObject.transform.position -= new Vector3(0.0f, 0.1f, 0.0f);
+        }
     }
 
     void Start()
@@ -33,8 +45,7 @@ public class PlayerController : MonoBehaviour
     }
 
     private static void move(GameObject player, Vector3 move)
-    {
-        
+    {   
         move = player.transform.TransformDirection(move);
         move *= MoveSpeed;
         player.transform.position += move * Time.deltaTime;
@@ -54,13 +65,13 @@ public class PlayerController : MonoBehaviour
 
     public static void StrafeLeft(GameObject player)
     {
-        player.GetComponent<Animator>().SetBool("Strafing Left",true);
+        player.GetComponent<Animator>().SetBool("Moving Left",true);
         move(player, new Vector3(-0.6f, 0.0f, 0.0f));
     }
 
     public static void StrafeRight(GameObject player)
     {
-        player.GetComponent<Animator>().SetBool("Strafing Right", true);
+        player.GetComponent<Animator>().SetBool("Moving Right", true);
         move(player, new Vector3(0.6f, 0.0f, 0.0f));
     }
 
@@ -78,13 +89,20 @@ public class PlayerController : MonoBehaviour
 
     public static void StrafeLeftReset(GameObject player)
     {
-        player.GetComponent<Animator>().SetBool("Strafing Left", false);
+        player.GetComponent<Animator>().SetBool("Moving Left", false);
         move(player, new Vector3(-1.0f, 0.0f, 0.0f));
     }
 
     public static void StrafeRightReset(GameObject player)
     {
-        player.GetComponent<Animator>().SetBool("Strafing Right", false);
+        player.GetComponent<Animator>().SetBool("Moving Right", false);
         move(player, new Vector3(1.0f, 0.0f, 0.0f));
+    }
+
+    float s
+    {
+        get { return MoveSpeed; }
+
+        set { MoveSpeed = value; }
     }
 }
