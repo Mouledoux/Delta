@@ -76,8 +76,8 @@ public class PlayerController : MonoBehaviour
             movePosition += transform.right; //Subtract right transform from movePosition
         }
 
-        rb.MovePosition(movePosition * speed * Time.deltaTime); //Move player through rigidbody
         setMovementState(forward, back, left, right);           //Update animator based on movement
+        rb.MovePosition(movePosition * speed * Time.deltaTime); //Move player through rigidbody
     }
 
     void Start()
@@ -95,11 +95,6 @@ public class PlayerController : MonoBehaviour
 
     #region Animation Control
 
-    void changeLayer()
-    {
-
-    }
-
     //Make adjustments to animations based on layer (ex. Adding bounce)
     void layerAdjustments()
     {
@@ -113,10 +108,10 @@ public class PlayerController : MonoBehaviour
 
     void setMovementState(bool forward, bool back, bool left, bool right)
     {
-        anim.SetBool("Moving Forward", forward);
-        anim.SetBool("Moving Backward", back);
-        anim.SetBool("Moving Left", left);
-        anim.SetBool("Moving Right", right);
+        anim.SetBool("Forward Key", forward);
+        anim.SetBool("Backward Key", back);
+        anim.SetBool("Left Key", left);
+        anim.SetBool("Right Key", right);
     }
 
     #endregion
