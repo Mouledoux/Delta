@@ -4,105 +4,120 @@ using System.Collections;
 public class PlayerController : MonoBehaviour
 {
     //Variables
-    public float speed;
-    public static float MoveSpeed = 6.0F;   //speed player moves
-    public float rotationSpeed = 20.0f;     //speed player rotates
-    public float gravity = 100f;
+    public float speed;             //Speed player moves
+    public float rotationSpeed;     //Speed player rotates
+    public float gravity;           //Used to effect player falling
 
+    private InputManager inputs; //Used to create instance of Input Manager
+    private Rigidbody rb;        //Handles the rigidbody component
+    private Animator anim;       //Handles the animator component
+
+    private Vector3 movePosition;   //Tracks direction of player movement
+    private Vector3 moveRotation;   //Tracks direction of player rotation
+
+    //These bools tracks the state of the player:
+
+        //MOVEMENT:
+    private bool forward;   //Track state of forward key
+    private bool back;      //Track state of back key
+    private bool left;      //Track state of left key
+    private bool right;     //Track state of right key
+
+    private bool mode;      //Tracks state of combat/free modes
+
+    private bool roll;      //Track state of roll
+
+        //WEAPON USAGE:
+    private bool OneHand;   //Track state of one-handed weapon (no shield)
+    private bool TwoHand;   //Track state of two-handed weapon
+    
+    #region Updates and Start
     void FixedUpdate()
     {
-        s = speed;
-        float HorizontalRotate = Input.GetAxis("Mouse X");
-        float VerticalRotate = Input.GetAxis("Mouse Y");
-        float rotation = 0.0f;
-        if (HorizontalRotate < 0 || HorizontalRotate > 0)
-        {
-            rotation = 10 *  HorizontalRotate * rotationSpeed * Time.deltaTime;
-            gameObject.transform.Rotate(new Vector3(0.0f, rotation, 0.0f));
-        }//*/
+        forward = Input.GetKey(inputs.Forward);     //Get forward key state
+        back    = Input.GetKey(inputs.Backward);    //Get back key state
+        left    = Input.GetKey(inputs.Left);        //Get left key state
+        right   = Input.GetKey(inputs.Right);       //Get right key state
 
+        float HorizontalRotate  = Input.GetAxis("Mouse X");  //Get horizontal mouse movement
+        float VerticalRotate    = Input.GetAxis("Mouse Y");    //Get vertical mouse movement
+
+        //Rotate player based on horizontal mouse movement multiplied by rotationSpeed
+        moveRotation += new Vector3(0.0f, HorizontalRotate, 0.0f) * rotationSpeed * 10 * Time.deltaTime;
+
+        Quaternion rotate = Quaternion.Euler(moveRotation); //Convert moveRotation into a quaternion
+        rb.MoveRotation(rotate);                            //rotate player
+
+        //If player moves mouse up or down, rotate the camera instead of the player
+        //using vertical mouse movement multplied by rotation sped
         if (VerticalRotate < 0 || VerticalRotate > 0)
         {
-            rotation = VerticalRotate * rotationSpeed * Time.deltaTime;
+            float rotation = VerticalRotate * rotationSpeed * Time.deltaTime;
             gameObject.transform.Find("Camera").gameObject.transform.Rotate(new Vector3(-rotation, 0.0f, 0.0f));
         }
 
-        if (Input.GetKey(KeyCode.Space))
+        if (forward) //If forward key is being held
         {
-            gameObject.transform.position += new Vector3(0.0f, 0.1f, 0.0f);
+            movePosition += transform.forward; //Add forward transform to movePosition
         }
 
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (back)   //If back key is being held
         {
-            gameObject.transform.position -= new Vector3(0.0f, 0.1f, 0.0f);
+            movePosition -= transform.forward; //Subtract forward transform from movePosition
         }
+
+        if (left)   //If left key is being held    
+        {
+            movePosition -= transform.right; //Subtract right transform to movePosition
+        }
+
+        if (right)  //If right key is being held
+        {
+            movePosition += transform.right; //Subtract right transform from movePosition
+        }
+
+        rb.MovePosition(movePosition * speed * Time.deltaTime); //Move player through rigidbody
+        setMovementState(forward, back, left, right);           //Update animator based on movement
     }
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
+        Cursor.lockState = CursorLockMode.Locked;   //Lock cursor
+        Cursor.visible = false;                     //Turn off cursor
 
-    private static void move(GameObject player, Vector3 move)
-    {   
-        move = player.transform.TransformDirection(move);
-        move *= MoveSpeed;
-        player.transform.position += move * Time.deltaTime;
-    }
+        rb = GetComponent<Rigidbody>();     //Get rigidbody
+        inputs = new InputManager();        //Initialize input manager
+        anim = GetComponent<Animator>();    //Get animator
 
-    public static void MoveForward(GameObject player)
+        movePosition = transform.position; //Set movePosition to player's initial position
+    }
+    #endregion
+
+    #region Animation Control
+
+    void changeLayer()
     {
-        player.GetComponent<Animator>().SetBool("Moving Forward", true);
-        move(player, new Vector3(0.0f, 0.0f, 1.0f));
+
     }
 
-    public static void MoveBackward(GameObject player)
+    //Make adjustments to animations based on layer (ex. Adding bounce)
+    void layerAdjustments()
     {
-        player.GetComponent<Animator>().SetBool("Moving Backward", true);
-        move(player, new Vector3(0.0f, 0.0f, -0.5f));
+
     }
 
-    public static void StrafeLeft(GameObject player)
+    void AnimationStateController()
     {
-        player.GetComponent<Animator>().SetBool("Moving Left",true);
-        move(player, new Vector3(-0.6f, 0.0f, 0.0f));
+
     }
 
-    public static void StrafeRight(GameObject player)
+    void setMovementState(bool forward, bool back, bool left, bool right)
     {
-        player.GetComponent<Animator>().SetBool("Moving Right", true);
-        move(player, new Vector3(0.6f, 0.0f, 0.0f));
+        anim.SetBool("Moving Forward", forward);
+        anim.SetBool("Moving Backward", back);
+        anim.SetBool("Moving Left", left);
+        anim.SetBool("Moving Right", right);
     }
 
-    public static void MoveForwardReset(GameObject player)
-    {
-        player.GetComponent<Animator>().SetBool("Moving Forward", false);
-        move(player, new Vector3(0.0f, 0.0f, 1.0f));
-    }
-
-    public static void MoveBackwardReset(GameObject player)
-    {
-        player.GetComponent<Animator>().SetBool("Moving Backward", false);
-        move(player, new Vector3(0.0f, 0.0f, -1.0f));
-    }
-
-    public static void StrafeLeftReset(GameObject player)
-    {
-        player.GetComponent<Animator>().SetBool("Moving Left", false);
-        move(player, new Vector3(-1.0f, 0.0f, 0.0f));
-    }
-
-    public static void StrafeRightReset(GameObject player)
-    {
-        player.GetComponent<Animator>().SetBool("Moving Right", false);
-        move(player, new Vector3(1.0f, 0.0f, 0.0f));
-    }
-
-    float s
-    {
-        get { return MoveSpeed; }
-
-        set { MoveSpeed = value; }
-    }
+    #endregion
 }

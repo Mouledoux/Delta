@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: _Stone Floor IV
   m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
-  m_ShaderKeywords: _EMISSION _METALLICGLOSSMAP _NORMALMAP _PARALLAXMAP
+  m_ShaderKeywords: _EMISSION _NORMALMAP _PARALLAXMAP
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -40,7 +40,7 @@ Material:
         first:
           name: _MetallicGlossMap
         second:
-          m_Texture: {fileID: 2800000, guid: 58e555ac6892e8645aa1a60c4defaf25, type: 3}
+          m_Texture: {fileID: 0}
           m_Scale: {x: 1, y: 1}
           m_Offset: {x: 0, y: 0}
       data:
@@ -61,7 +61,7 @@ Material:
         first:
           name: _EmissionMap
         second:
-          m_Texture: {fileID: 2800000, guid: 73be95c3b329960498d9fd66be51b625, type: 3}
+          m_Texture: {fileID: 0}
           m_Scale: {x: 2, y: 2}
           m_Offset: {x: 0, y: 0}
       data:
@@ -98,11 +98,11 @@ Material:
       data:
         first:
           name: _Glossiness
-        second: .5
+        second: .717000008
       data:
         first:
           name: _Metallic
-        second: 0
+        second: .513000011
       data:
         first:
           name: _BumpScale
@@ -110,7 +110,7 @@ Material:
       data:
         first:
           name: _Parallax
-        second: .0304000005
+        second: .0799999982
       data:
         first:
           name: _OcclusionStrength
@@ -131,8 +131,8 @@ Material:
       data:
         first:
           name: _EmissionColor
-        second: {r: .0500000007, g: .0500000007, b: .0500000007, a: 1}
+        second: {r: .0199999996, g: .0199999996, b: .0199999996, a: 1}
       data:
         first:
           name: _Color
-        second: {r: .20588237, g: .20588237, b: .20588237, a: 1}
+        second: {r: 0, g: 0, b: 0, a: 1}
