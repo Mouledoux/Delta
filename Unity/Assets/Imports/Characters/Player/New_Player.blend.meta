@@ -928,6 +928,7 @@ ModelImporter:
     7400062: Combat_Backward
     7400064: Combat_Strafe
     7400066: Test
+    7400068: TwoHandedStance
     9500000: //RootNode
     13700000: Base_Edited
   materials:
@@ -10109,8 +10110,8 @@ ModelImporter:
     - serializedVersion: 16
       name: OneHandedStance
       takeName: Stances
-      firstFrame: 1.89999998
-      lastFrame: 2
+      firstFrame: 3.9000001
+      lastFrame: 4
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -20161,17 +20162,17 @@ ModelImporter:
       maskType: 0
       maskSource: {instanceID: 0}
     - serializedVersion: 16
-      name: Test
-      takeName: Test
-      firstFrame: 0
-      lastFrame: 12
+      name: TwoHandedStance
+      takeName: Stances
+      firstFrame: 5.9000001
+      lastFrame: 5.98999977
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       loopTime: 0
-      loopBlend: 1
+      loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0

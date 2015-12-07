@@ -1,12 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class PlayerController : MonoBehaviour
 {
     //Variables
     public float speed;             //Speed player moves
+    public float combatspeed;       //Speed player moves in combat mode
     public float rotationSpeed;     //Speed player rotates
     public float gravity;           //Used to effect player falling
+    private float movement;         //Actual value of speed that gets passed to rigidbody
 
     private InputManager inputs; //Used to create instance of Input Manager
     private Rigidbody rb;        //Handles the rigidbody component
@@ -23,13 +26,18 @@ public class PlayerController : MonoBehaviour
     private bool left;      //Track state of left key
     private bool right;     //Track state of right key
 
-    private bool mode;      //Tracks state of combat/free modes
-
-    private bool roll;      //Track state of roll
+    private bool mode;      //Tracks state of combat/free mode key
+    private bool roll;      //Track state of roll key
 
         //WEAPON USAGE:
-    private bool OneHand;   //Track state of one-handed weapon (no shield)
-    private bool TwoHand;   //Track state of two-handed weapon
+    private string Empty = "Empty";                 //Track state of empty hands
+    private string OneHand = "OneHand";             //Track state of one-handed weapon (no shield)
+    private string OneHandShield = "OneHandShield"; //Track state of one-handed weapon (shield)
+    private string DualWield = "DualWield";         //Track state of dual-wield
+    private string TwoHand = "TwoHand";             //Track state of two-handed weapon
+    private string Bow = "Bow";                     //Track state of bow
+    private string Crossbow = "Crossbow";           //Track state of crossbow
+    private string Polearm = "Polearm";             //Track state of polearm
     
     #region Updates and Start
     void FixedUpdate()
@@ -39,8 +47,8 @@ public class PlayerController : MonoBehaviour
         left    = Input.GetKey(inputs.Left);        //Get left key state
         right   = Input.GetKey(inputs.Right);       //Get right key state
 
-        float HorizontalRotate  = Input.GetAxis("Mouse X");  //Get horizontal mouse movement
-        float VerticalRotate    = Input.GetAxis("Mouse Y");    //Get vertical mouse movement
+        float HorizontalRotate  = Input.GetAxis("Mouse X");     //Get horizontal mouse movement
+        float VerticalRotate    = Input.GetAxis("Mouse Y");     //Get vertical mouse movement
 
         //Rotate player based on horizontal mouse movement multiplied by rotationSpeed
         moveRotation += new Vector3(0.0f, HorizontalRotate, 0.0f) * rotationSpeed * 10 * Time.deltaTime;
@@ -58,26 +66,40 @@ public class PlayerController : MonoBehaviour
 
         if (forward) //If forward key is being held
         {
-            movePosition += transform.forward; //Add forward transform to movePosition
+            movePosition += transform.forward * movement; //Add forward transform to movePosition
         }
 
         if (back)   //If back key is being held
         {
-            movePosition -= transform.forward; //Subtract forward transform from movePosition
+            movePosition -= transform.forward * movement; //Subtract forward transform from movePosition
         }
 
         if (left)   //If left key is being held    
         {
-            movePosition -= transform.right; //Subtract right transform to movePosition
+            movePosition -= transform.right * movement; //Subtract right transform from movePosition
         }
 
         if (right)  //If right key is being held
         {
-            movePosition += transform.right; //Subtract right transform from movePosition
+            movePosition += transform.right * movement; //Add right transform from movePosition
         }
 
-        setMovementState(forward, back, left, right);           //Update animator based on movement
-        rb.MovePosition(movePosition * speed * Time.deltaTime); //Move player through rigidbody
+        if (Input.GetKeyDown(inputs.Mode))  //If mode key is being held
+        {
+            changeMode(mode = !mode);       //Switch modes
+            if (!mode)
+                movement = speed;
+            else
+                movement = combatspeed;
+        }
+
+        setMovementState(forward, back, left, right);                       //Update animator based on movement
+
+        if (!mode)
+            rb.MovePosition(movePosition * Time.deltaTime);         //Move player through rigidbody(free)
+        else
+            rb.MovePosition(movePosition * Time.deltaTime);   //Move player through rigidbody(combat)
+
     }
 
     void Start()
@@ -89,23 +111,26 @@ public class PlayerController : MonoBehaviour
         inputs = new InputManager();        //Initialize input manager
         anim = GetComponent<Animator>();    //Get animator
 
-        movePosition = transform.position; //Set movePosition to player's initial position
+        movePosition = transform.position;  //Set movePosition to player's initial position
+        anim.SetBool("Empty", true);        //Player initially has no weapon
+
+        movement = speed;
     }
     #endregion
 
     #region Animation Control
+    ////////////////////////////////////////////////////////////////////////////////////////
+    //Region is used to make adjustments to animations (ex. Adding bounce, update movement)//
+    ////////////////////////////////////////////////////////////////////////////////////////
 
-    //Make adjustments to animations based on layer (ex. Adding bounce)
-    void layerAdjustments()
+        //Change weapon animations based on current weapon held
+    void changeWeaponAnimation(string currentstate, string newstate)
     {
-
+        anim.SetBool(currentstate, false);
+        anim.SetBool(newstate, true);
     }
 
-    void AnimationStateController()
-    {
-
-    }
-
+        //Plays appropriate animations
     void setMovementState(bool forward, bool back, bool left, bool right)
     {
         anim.SetBool("Forward Key", forward);
@@ -114,5 +139,10 @@ public class PlayerController : MonoBehaviour
         anim.SetBool("Right Key", right);
     }
 
+        //Change between combat and free modes
+    void changeMode(bool mode)
+    {
+        anim.SetBool("Mode", mode);
+    }
     #endregion
 }

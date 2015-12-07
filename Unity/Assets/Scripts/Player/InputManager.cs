@@ -4,12 +4,14 @@ using System.Collections;
 public class InputManager
 {
     // Movement
+    public KeyCode Mode = KeyCode.LeftControl; //Switches to combat/free mode (only for testing)
+
     public KeyCode Forward  = KeyCode.W;    // Move Forward
     public KeyCode Backward = KeyCode.S;    // Move Backward
     public KeyCode Left     = KeyCode.A;    // Move Left
     public KeyCode Right    = KeyCode.D;    // Move Right
 
-    public KeyCode Roll = KeyCode.LeftShift; //Roll
+    public KeyCode Roll = KeyCode.Space; //Roll
 
     // Attacking/Defending
     public KeyCode OnHand   = KeyCode.Mouse0;   // Attack/Defend with primary
