@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     private InputManager inputs; //Used to create instance of Input Manager
     private Rigidbody rb;        //Handles the rigidbody component
     private Animator anim;       //Handles the animator component
+    private Animation clip;
 
     private Vector3 movePosition;   //Tracks direction of player movement
     private Vector3 moveRotation;   //Tracks direction of player rotation
@@ -25,6 +26,7 @@ public class PlayerController : MonoBehaviour
     private bool back;      //Track state of back key
     private bool left;      //Track state of left key
     private bool right;     //Track state of right key
+    private bool ctrl;
 
     private bool mode;      //Tracks state of combat/free mode key
     private bool roll;      //Track state of roll key
@@ -38,7 +40,9 @@ public class PlayerController : MonoBehaviour
     private string Bow = "Bow";                     //Track state of bow
     private string Crossbow = "Crossbow";           //Track state of crossbow
     private string Polearm = "Polearm";             //Track state of polearm
-    
+
+    public float zoomspeed;
+
     #region Updates and Start
     void FixedUpdate()
     {
@@ -46,9 +50,12 @@ public class PlayerController : MonoBehaviour
         back    = Input.GetKey(inputs.Backward);    //Get back key state
         left    = Input.GetKey(inputs.Left);        //Get left key state
         right   = Input.GetKey(inputs.Right);       //Get right key state
+        ctrl    = Input.GetKeyDown(inputs.Mode);
+        roll    = Input.GetKeyDown(inputs.Roll);
 
         float HorizontalRotate  = Input.GetAxis("Mouse X");     //Get horizontal mouse movement
         float VerticalRotate    = Input.GetAxis("Mouse Y");     //Get vertical mouse movement
+        float zoom = Input.GetAxis("Mouse ScrollWheel");
 
         //Rotate player based on horizontal mouse movement multiplied by rotationSpeed
         moveRotation += new Vector3(0.0f, HorizontalRotate, 0.0f) * rotationSpeed * 10 * Time.deltaTime;
@@ -62,6 +69,11 @@ public class PlayerController : MonoBehaviour
         {
             float rotation = VerticalRotate * rotationSpeed * Time.deltaTime;
             gameObject.transform.Find("Camera").gameObject.transform.Rotate(new Vector3(-rotation, 0.0f, 0.0f));
+        }
+
+        if (zoom > 0 || zoom < 0)
+        {
+            gameObject.transform.Find("Camera").gameObject.transform.position += (new Vector3(0.0f, 0.0f, zoom * zoomspeed));
         }
 
         if (forward) //If forward key is being held
@@ -84,7 +96,13 @@ public class PlayerController : MonoBehaviour
             movePosition += transform.right * movement; //Add right transform from movePosition
         }
 
-        if (Input.GetKeyDown(inputs.Mode))  //If mode key is being held
+        if (roll)
+        {
+            setState("Rolling", true);
+            StartCoroutine(Roll());
+        }
+
+        if (ctrl)  //If mode key is being held
         {
             changeMode(mode = !mode);       //Switch modes
             if (!mode)
@@ -139,10 +157,21 @@ public class PlayerController : MonoBehaviour
         anim.SetBool("Right Key", right);
     }
 
+    void setState(string parameter, bool state)
+    {
+        anim.SetBool(parameter, state);
+    }
         //Change between combat and free modes
     void changeMode(bool mode)
     {
         anim.SetBool("Mode", mode);
+    }
+
+    IEnumerator Roll()
+    {
+        AnimatorStateInfo info = anim.GetCurrentAnimatorStateInfo(0);
+        yield return new WaitForSeconds(info.length);
+        setState("Rolling", false);
     }
     #endregion
 }

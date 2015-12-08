@@ -359,9 +359,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 4
-  combatspeed: 2
+  combatspeed: 1.20000005
   rotationSpeed: 5
   gravity: 100
+  zoomspeed: 1
 --- !u!54 &1162066662
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -418,19 +419,19 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 400596, guid: 1173633102074c141a6dbd3233654e03, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -.533635795
+      value: -.533635855
       objectReference: {fileID: 0}
     - target: {fileID: 400596, guid: 1173633102074c141a6dbd3233654e03, type: 3}
       propertyPath: m_LocalRotation.y
-      value: .155762538
+      value: .155762553
       objectReference: {fileID: 0}
     - target: {fileID: 400596, guid: 1173633102074c141a6dbd3233654e03, type: 3}
       propertyPath: m_LocalRotation.z
-      value: .579552829
+      value: .579552889
       objectReference: {fileID: 0}
     - target: {fileID: 400596, guid: 1173633102074c141a6dbd3233654e03, type: 3}
       propertyPath: m_LocalRotation.w
-      value: .595893741
+      value: .5958938
       objectReference: {fileID: 0}
     - target: {fileID: 400298, guid: 1173633102074c141a6dbd3233654e03, type: 3}
       propertyPath: m_LocalRotation.x
@@ -450,19 +451,19 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 400122, guid: 1173633102074c141a6dbd3233654e03, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -.547348678
+      value: -.547348738
       objectReference: {fileID: 0}
     - target: {fileID: 400122, guid: 1173633102074c141a6dbd3233654e03, type: 3}
       propertyPath: m_LocalRotation.y
-      value: .0829215571
+      value: .0829215646
       objectReference: {fileID: 0}
     - target: {fileID: 400122, guid: 1173633102074c141a6dbd3233654e03, type: 3}
       propertyPath: m_LocalRotation.z
-      value: .551231861
+      value: .551231921
       objectReference: {fileID: 0}
     - target: {fileID: 400122, guid: 1173633102074c141a6dbd3233654e03, type: 3}
       propertyPath: m_LocalRotation.w
-      value: .624240994
+      value: .624241054
       objectReference: {fileID: 0}
     - target: {fileID: 9500000, guid: 1173633102074c141a6dbd3233654e03, type: 3}
       propertyPath: m_Controller
