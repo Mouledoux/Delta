@@ -423,19 +423,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 782001bff398e7c4082b94878d3559d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Generate: 1
+  Generate: 0
   x_cells: 31
   z_cells: 31
-  cellSize: {x: .400000006, y: .400000006, z: .400000006}
   roomsPerQuadrant: 3
-  seed: 
-  FLOOR: {fileID: 102678, guid: e9078d9954935584a8f9f01faacc1f1c, type: 2}
-  WALL: {fileID: 188416, guid: 5706b5f6917248a46b58681b6705a63a, type: 2}
-  cellWallHeight: 6
-  cellWallWidth: .400000006
+  QuadrantsWanted: 9
   roomsToGen: 3
   hallsToGen: 1
-  minMaxRooms: 160000001b000000
+  cellSize: {x: .400000006, y: .400000006, z: .400000006}
+  cellWallHeight: 6
+  cellWallWidth: .400000006
+  seed: 
+  seeddisplay: 0
+  FLOOR: {fileID: 102678, guid: e9078d9954935584a8f9f01faacc1f1c, type: 2}
+  WALL: {fileID: 188416, guid: 5706b5f6917248a46b58681b6705a63a, type: 2}
 --- !u!1001 &1144167434
 Prefab:
   m_ObjectHideFlags: 0
@@ -698,14 +699,16 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2029934078}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fac6df0625ffbc14085d2ccda66f0154, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 0
+  combatspeed: 0
   rotationSpeed: 20
   gravity: 100
+  zoomspeed: 0
 --- !u!114 &2029934081
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -717,10 +720,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 457a0ab3bd62a824586306c941e13b52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Forward: 119
-  Backward: 115
-  Left: 97
-  Right: 100
-  OnHand: 323
-  OffHand: 324
-  Inventory: 105

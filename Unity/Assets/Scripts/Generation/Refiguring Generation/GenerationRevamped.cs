@@ -6,8 +6,24 @@ using System.Text;
 
 public class GenerationRevamped : MonoBehaviour
 {
-    /*Ignore this script for now.
-     * This is just so I can brainstorm with a few concepts as far as generation is concerned.
+    /*
+        This script is used to generate the structure of the dungeon.
+        This consists of the floor, walls, rooms, hallways, and ceiling.
+
+        How dungeon generation works:
+
+        First a little lingo:
+            Cell = a single rectangular FLOOR gameobject prefab (primitive plane with a texture for the floor)
+            Grid = A large rectangular plane made up of all cells. It is divided into 9 even quadrants.
+            Quadrant = A section of the grid made up of a group of cells.
+
+        Alright, now onto the steps.
+
+        Step 1: The script generates a grid
+        Step 2: Divide grid into even quadrants (specified as a variable)
+        Step 3: Generate four walls around each cell (primitive cube with a texture for walls)
+        Step 4: Use GenerationSeed to determine where rooms and hallways belong
+        Step 5: Generate the rooms and hallways
      * 
      * This script needs to:
      * Generate a grid
@@ -35,118 +51,126 @@ public class GenerationRevamped : MonoBehaviour
      * Secret halls and corridors
      * 
      */
-    //Scroll to Start to begin tracking code.
+    //After Global Variables, scroll to Start to begin tracking code.
 
     #region Global Variables
-    public bool Generate;
-    private static List<GameObject> cells; //Tracks all of the physical cells used in the game
-    public int x_cells, z_cells; //determines the size of the grid (testing only)
-    public Vector3 cellSize; //determines the size of individual cells (testing only)
-    public int roomsPerQuadrant;
-    private float[] boundaries = new float[] { 0, 0, 0, 0 }; //Tracks the farthest points of the grid
-    private float[][] QuadrantBoundaries; //Tracks furthest points of each quadrant
-    public string seed; //Stores seed
-    public GameObject FLOOR;
-    public GameObject WALL;
+
+    public bool Generate;           //Determines whether or not to generate past the grid
+
+    public int x_cells, z_cells;    //Number of cells generated along x and z axis
+    public int roomsPerQuadrant;    //Number of rooms allowed per quadrant
+    public int QuadrantsWanted;     //Number of quadrants to generate
+
+    public int roomsToGen;          //How many rooms the dungeon will gen
+    public int hallsToGen;          //How many halls the dungeon will gen
+
+    public Vector3 cellSize;        //Determines the size of individual cells (testing only)
+    
+    public float cellWallHeight;    //determines height of cell walls
+    public float cellWallWidth;     //determines width of cell walls
+
+    public int[] seed;              //stores seed
+    public int seeddisplay;         //displays seed (testing only)
+
+    public GameObject FLOOR;        //Floor gameobject
+    public GameObject WALL;         //Wall gameobject
+
+    private float[] boundaries = new float[] { 0, 0, 0, 0 };    //Tracks the furthest points of the grid
+    private List<float[]> QuadrantBoundaries;                   //Tracks furthest points of each quadrant
+
+    private static List<GameObject> cells;                      //Tracks all of the physical cells used in the game
+
+
     #endregion
 
     #region Generating Cells
 
-    public float cellWallHeight; //determines height of cell walls
-    public float cellWallWidth; //determines width of cell walls
-
-    //This function generates a grid and returns all of its cells in a list of game objects
     private List<GameObject> generateGrid() 
     {
+        //Function generates the grid
+
+
         List<GameObject> cells = new List<GameObject>(); //used for keeping track of individual cells
 
-        int x_halfcells = x_cells / 2; //determines the distance from the center of the grid to a side edge.
-        int z_halfcells = z_cells / 2; //determines the distance from the center of the grid to a top/bottom edge
-        Vector3 startingGridPosition = new Vector3(0.0f, 0.0f, 0.0f); //The grid's bottom edge cells will center on the origin
-        Vector3 cellSpace = cellSize * 10; //calculation for how many spaces a single cell takes up
-        int cellName = 0;
-        for (int i = 0; i < z_cells; i++)
-        {
-            Vector3 currentGridPosition = startingGridPosition; //keeps track of the current position being occupied
-            currentGridPosition.x += (x_halfcells * cellSpace.x); //starting from the bottom right corner of the grid
+        int x_halfcells = x_cells / 2; //determines the distance from the center of the grid to the side edge.
+        int z_halfcells = z_cells / 2; //determines the distance from the center of the grid to the top/bottom edge
 
-            if (i != 0)
+        Vector3 startingGridPosition = new Vector3(0.0f, 0.0f, 0.0f); //The grid's bottom edge cells will center on the origin
+        Vector3 cellSpace = cellSize * 10; //calculate how much world space a single cell takes up
+
+        int cellName = 0;   //Initialize cell names
+
+        for (int i = 0; i < z_cells; i++)       //Row
+        {
+            Vector3 currentGridPosition = startingGridPosition;     //keeps track of the current world position
+            currentGridPosition.x += (x_halfcells * cellSpace.x);   //starting from the bottom right corner of the grid
+
+            if (i != 0) //If it isn't the first row
             {
-                currentGridPosition.z += cellSpace.z * i; //move the grid position up by z-axis
+                currentGridPosition.z += cellSpace.z * i; //move the grid position up along z-axis
             }
 
-            for (int x = 0; x < x_cells; x++)
+            for (int x = 0; x < x_cells; x++)   //Column
             {
-                GameObject cell = Instantiate(FLOOR); //Create new cell
-                cell.name = "cell " + cellName; //name the cell for easier reference
-                cellName++;
-                cell.transform.position = currentGridPosition; //bring cell to correct place on grid
-                cell.transform.localScale = cellSize; //set cell to the size determined
-                cells.Add(cell); //add cell to cells List
-                currentGridPosition.x -= cellSpace.x; //update currentGridPosition to next empty spot
+                GameObject cell = Instantiate(FLOOR);           //Create new cell
+                cell.name = "cell " + cellName;                 //name the cell for easier reference
+                cellName++;                                     //Increment cellName  
+                cell.transform.position = currentGridPosition;  //bring cell to current position
+                cell.transform.localScale = cellSize;           //set cell to the size determined
+                cells.Add(cell);                                //add cell to cells List
+                currentGridPosition.x -= cellSpace.x;           //update currentGridPosition to next empty spot
             }
 
         }
 
-        return cells;
+        return cells;   //Return list of cells
     }
 
-    //This function Generates Cell Walls
-    List<List<GameObject>> generateCellWalls(List<GameObject> a_cells)
+    void generateCellWalls(List<GameObject> a_cells)
     {
+        //Function correctly positions cell walls
+
+
         //calculate the final size of the north/south walls of a cell
-        Vector3 nsCellWallSize = new Vector3(0.0f, cellWallHeight, cellWallWidth);
- 
-        nsCellWallSize.x = cellSize.x * 10; //sets the north/south wall to the length of the edge of the cell
+        Vector3 nsCellWallSize = new Vector3(returnCellSizex, cellWallHeight, cellWallWidth);
 
         //calculate the final size of the east/west walls of a cell
-        Vector3 ewCellWallSize = new Vector3(cellWallWidth, cellWallHeight, 0.0f);
-        ewCellWallSize.z = cellSize.z * 10; //sets the east/west wall to the length of the edge of the cell
+        Vector3 ewCellWallSize = new Vector3(cellWallWidth, cellWallHeight, returnCellSizez);
 
-        float nsCellWallMovePosition = 10 * (cellSize.z / 2); //tracks the space required to move to the n/s edge of a cell
-        float ewCellWallMovePosition = 10 * (cellSize.x / 2); //tracks the space required to move to the e/w edge of a cell
+        float nsMovePosition = 10 * (cellSize.z / 2); //tracks the space required to move to the n/s edge of a cell
+        float ewMovePosition = 10 * (cellSize.x / 2); //tracks the space required to move to the e/w edge of a cell
 
-        List<List<GameObject>> allCellWalls = new List<List<GameObject>>(); //create list of the list of cell walls for cells
         for (int i = 0; i <= a_cells.Count - 1; i++)
         {
-            Vector3 currentCellPosition = a_cells[i].transform.position; //Sets current position to center of cell
-            List<GameObject> l_cellWall = new List<GameObject>();
-            /*
-             * Four cell walls will be generated for each cell
-             * Each list will contain 4 walls in order from north, east, south, west
-             * translating to positions 0, 1, 2, 3 inside the list.
-             * This list is added to the cellsWalls list of list.
-             * This makes it easier to track the location of walls within individual cells
-             * rather than trying to decipher exactly where all walls are using only a single list
-             */
+            //Set current position to center of cell in world space
+            Vector3 currentCellPosition = a_cells[i].transform.position; 
 
-            GameObject[] wall = cellWallGenerator(i, currentCellPosition, nsCellWallMovePosition, ewCellWallMovePosition,
+            GameObject[] wall = cellWallGenerator(currentCellPosition, nsMovePosition, ewMovePosition,
                                                     nsCellWallSize, ewCellWallSize);
             for (int x = 0; x < wall.Length; x++)
             {
-                wall[x].transform.parent = a_cells[i].transform;
-                l_cellWall.Add(wall[x]);
+                wall[x].transform.parent = a_cells[i].transform;    //Set parent of walls to appropriate cell
             }
 
-            allCellWalls.Add(l_cellWall);
+
             //GameObject cellWallParent = new GameObject(); cellWallParent.name = "Cell Walls";
             //parentingGameObjects(l_cellWall, a_cells[i].name + "_walls").transform.parent = cellWallParent.transform;
-            //uncomment this ^ if you want to put cell walls in a seperate game object
+            //UNCOMMENT THIS ^ IF YOU WANT TO PUT CELL WALLS IN A SEPARATE GAME OBJECT FOR SOME REASON
         }
-
-            return allCellWalls;
     }
 
-    //This function helps generateCellWalls generate walls. Argument i is from the for loop
-    private GameObject[] cellWallGenerator(int i, Vector3 cellPosition, float nsCellWallMovePosition,
+
+    private GameObject[] cellWallGenerator(Vector3 cellPosition, float nsCellWallMovePosition,
                                           float ewCellWallMovePosition, Vector3 nsCellWallSize, Vector3 ewCellWallSize)
     {
+        //Function generates cell walls
+
         GameObject[] wall = new GameObject[] {Instantiate(WALL), Instantiate(WALL), Instantiate(WALL), Instantiate(WALL)};
 
-        wall[0].name = "north_wall"; //identifies north wall
-        wall[1].name = "east_wall"; //identifies east wall
-        wall[2].name = "south_wall"; //identifies south wall
-        wall[3].name = "west_wall"; //identifies west wall
+        wall[0].name = "north_wall";    //identifies north wall
+        wall[1].name = "east_wall";     //identifies east wall
+        wall[2].name = "south_wall";    //identifies south wall
+        wall[3].name = "west_wall";     //identifies west wall
 
         wall[0].transform.localScale = nsCellWallSize; //adjust scale for north wall
         wall[1].transform.localScale = ewCellWallSize; //adjust scale for east wall
@@ -155,127 +179,135 @@ public class GenerationRevamped : MonoBehaviour
 
         for (int x = 0; x < wall.Length; x++ )
         {
-            //moves wall to the top of the plane (cell)
+            //moves wall so that the base rests on top of the plane
             wall[x].transform.position = cellPosition + new Vector3(0.0f, wall[x].transform.localScale.y / 2, 0.0f);
         }
 
-        wall[0].transform.position += new Vector3(0.0f, 0.0f, nsCellWallMovePosition); //Move to the north wall position
-        wall[1].transform.position += new Vector3(ewCellWallMovePosition, 0.0f, 0.0f); //Move to the east wall position
-        wall[2].transform.position -= new Vector3(0.0f, 0.0f, nsCellWallMovePosition); //Move to the south wall position
-        wall[3].transform.position -= new Vector3(ewCellWallMovePosition, 0.0f, 0.0f); //Move to the west wall position
+        wall[0].transform.position += new Vector3(0.0f, 0.0f, nsCellWallMovePosition); //Move north wall to top of cell
+        wall[1].transform.position += new Vector3(ewCellWallMovePosition, 0.0f, 0.0f); //Move east wall to right of cell
+        wall[2].transform.position -= new Vector3(0.0f, 0.0f, nsCellWallMovePosition); //Move south wall to bottom of cell
+        wall[3].transform.position -= new Vector3(ewCellWallMovePosition, 0.0f, 0.0f); //Move west wall to left of cell
 
-        return wall;
+        return wall;    //return walls
     }
 
-    //This function returns the furthest points in all directions
-    private float[] farthestDirections(List<GameObject> a_cells)
+    private float[] furthestDirections(List<GameObject> a_cells)
     {
+        //Function returns the furthest points in all directions
+        //0 = north, 1 = south, 2 = east, 3 = west
 
-        float[] farthestPoints = new float[] { -500.0f, 500.0f, -500.0f, 500.0f }; //0 = north, 1 = south, 2 = east, 3 = west
+
+        float[] furthestPoints = new float[] { -500.0f, 500.0f, -500.0f, 500.0f };  //Initialize to something ridiculous
 
         for (int i = 0; i < a_cells.Count; i++)
         {
-            if (a_cells[i].transform.position.x > farthestPoints[2])
+            if (a_cells[i].transform.position.x > furthestPoints[2])    //If the cell is furthest east
             {
-                farthestPoints[2] = a_cells[i].transform.position.x;
+                furthestPoints[2] = a_cells[i].transform.position.x;        //set furthest east to cell position
             }
 
-            if (a_cells[i].transform.position.x < farthestPoints[3])
+            if (a_cells[i].transform.position.x < furthestPoints[3])    //If the cell is furthest west
             {
-                farthestPoints[3] = a_cells[i].transform.position.x;
+                furthestPoints[3] = a_cells[i].transform.position.x;        //set furthest west to cell position
             }
 
-            if (a_cells[i].transform.position.z > farthestPoints[0])
+            if (a_cells[i].transform.position.z > furthestPoints[0])    //If the cell is furthest north
             {
-                farthestPoints[0] = a_cells[i].transform.position.z;
+                furthestPoints[0] = a_cells[i].transform.position.z;        //set furthest north to cell position
             }
 
-            if (a_cells[i].transform.position.z < farthestPoints[1])
+            if (a_cells[i].transform.position.z < furthestPoints[1])    //If the cell is furthest south
             {
-                farthestPoints[1] = a_cells[i].transform.position.z;
+                furthestPoints[1] = a_cells[i].transform.position.z;        //set furthest south to cell position
             }
         }
 
-            return farthestPoints;
+            return furthestPoints;  //return furthest points
     }
 
     private void generateQuadrants()
     {
-        float totalWidth = (Mathf.Abs(boundaries[3]) + boundaries[2]) / 3;
-        float totalHeight = boundaries[0] / 3;
+        //Function divides grid into quadrants
 
-        List<List<GameObject>> quadrants = DrawQuadrant(totalWidth, totalHeight);
-        QuadrantBoundaries = new float[quadrants.Count][];
-        for (int i = 0; i < quadrants.Count; i++ )
+        float sqrtQuadWanted = Mathf.Sqrt(QuadrantsWanted);
+        int x_quads = 0;
+        int z_quads = 0;
+        float totalWidth = (Mathf.Abs(boundaries[3]) + boundaries[2]);
+
+        if (sqrtQuadWanted % 1 == 0)
         {
-            QuadrantBoundaries[i] = farthestDirections(quadrants[i]);
+            x_quads = z_quads = (int)sqrtQuadWanted;
         }
+
+        else
+        {
+            throw new Exception("Generation only handles a square number of quadrants");
+        }
+
+        float quadrantHeight = boundaries[0] / sqrtQuadWanted;
+
+        DrawQuadrant(totalWidth, boundaries[0], x_quads, z_quads);
     }
 
-    private List<List<GameObject>> DrawQuadrant(float totalWidth, float totalHeight)
+    private List<List<GameObject>> DrawQuadrant(float gridWidth, float gridHeight, int x_quads, int z_quads)
     {
-        List<List<GameObject>> Quadrants = new List<List<GameObject>>();
-        Quadrants.Add(new List<GameObject>());
-        Quadrants.Add(new List<GameObject>());
-        Quadrants.Add(new List<GameObject>());
-        Quadrants.Add(new List<GameObject>());
-        Quadrants.Add(new List<GameObject>());
-        Quadrants.Add(new List<GameObject>());
-        Quadrants.Add(new List<GameObject>());
-        Quadrants.Add(new List<GameObject>());
-        Quadrants.Add(new List<GameObject>());
+
+        List<List<GameObject>> Quadrants = new List<List<GameObject>>();    //List for Quadrant Gameobjects
+        List<float[]> Zones = new List<float[]>();
+
+        int H_movement = Convert.ToInt32(gridWidth / x_quads);
+        int V_movement = Convert.ToInt32(gridHeight / z_quads);
+        Debug.Log(H_movement);
+
+        for (int i = 0; i < QuadrantsWanted; i++)
+        {
+            Quadrants.Add(new List<GameObject>());
+            Zones.Add(new float[] {0,0,0,0 });
+        }
+
+        int zone = 0;
+        for (int i = 0; i < z_quads; i++)
+        {
+            float northbase = V_movement + (V_movement * i);
+            float southbase = V_movement * i;
+
+            for (int x = 0; x < x_quads; x++)
+            {
+                Zones[zone][0] = northbase;
+                Zones[zone][1] = boundaries[3] + (H_movement + (H_movement * x));
+                Zones[zone][2] = southbase;
+                Zones[zone][3] = boundaries[3] + (H_movement * x);
+                zone += 1;
+            }
+        }
+
+        getQuadrantBoundaries = Zones;
         
         for (int i = 0; i < cells.Count; i++)
         {
-            //Q0
-            if (cells[i].transform.position.x <= totalWidth + boundaries[3] && cells[i].transform.position.z <= totalHeight)
-            {
-                Quadrants[0].Add(cells[i]);
-            }
-            //Q1
-            else if (cells[i].transform.position.x >= totalWidth + boundaries[3] && cells[i].transform.position.x <= totalWidth * 2 + boundaries[3] && cells[i].transform.position.z <= totalHeight)
-            {
-                Quadrants[1].Add(cells[i]);
-            }
-            //Q2
-            else if (cells[i].transform.position.x >= totalWidth * 2 + boundaries[3] && cells[i].transform.position.z <= totalHeight)
-            {
-                Quadrants[2].Add(cells[i]);
-            }
+            Vector3 position = cells[i].transform.position;
 
-            //Q3
-            else if (cells[i].transform.position.x <= totalWidth + boundaries[3] && cells[i].transform.position.z >= totalHeight && cells[i].transform.position.z <= totalHeight * 2)
+            for (int x = 0; x < Zones.Count; x++)
             {
-                Quadrants[3].Add(cells[i]);
-            }
+                if (position.z > Zones[x][0])
+                {
+                    continue;
+                }
 
-            //Q4
-            else if (cells[i].transform.position.x >= totalWidth + boundaries[3] && cells[i].transform.position.x <= totalWidth * 2 + boundaries[3] && cells[i].transform.position.z >= totalHeight && cells[i].transform.position.z <= totalHeight * 2)
-            {
-                Quadrants[4].Add(cells[i]);
-            }
+                else if (position.z < Zones[x][2])
+                    continue;
 
-            //Q5
-            else if (cells[i].transform.position.x >= totalWidth * 2 + boundaries[3] && cells[i].transform.position.z >= totalHeight && cells[i].transform.position.z <= totalHeight * 2)
-            {
-                Quadrants[5].Add(cells[i]);
-            }
+                else if (position.x > Zones[x][1])
+                    continue;
 
-            //Q6
-            else if (cells[i].transform.position.x <= totalWidth + boundaries[3] && cells[i].transform.position.z >= totalHeight * 2)
-            {
-                Quadrants[6].Add(cells[i]);
-            }
-            //Q7
-            else if (cells[i].transform.position.x >= totalWidth + boundaries[3] && cells[i].transform.position.x <= totalWidth * 2 + boundaries[3] && cells[i].transform.position.z >= totalHeight * 2)
-            {
-                Quadrants[7].Add(cells[i]);
-            }
+                else if (position.x < Zones[x][3])
+                    continue;
 
-            //Q8
-            else if (cells[i].transform.position.x >= totalWidth * 2 + boundaries[3] && cells[i].transform.position.z >= totalHeight * 2)
-            {
-                Quadrants[8].Add(cells[i]);
+                else
+                {
+                    Quadrants[x].Add(cells[i]);
+                    break;
+                }
             }
         }
 
@@ -286,49 +318,66 @@ public class GenerationRevamped : MonoBehaviour
 
         return Quadrants;
     }
+
+    void determineQuadPosition()
+    {
+
+    }
     #endregion
 
     #region Generate Rooms
 
-    //This function generates any room. Room center is center of room, roomSize is dimension of room
     private List<GameObject> generateRoom(Vector3 roomCenter, int roomSizex, int roomSizez, int Quadrant, out Vector3 returnCenter)
     {
-        bool mergeRoom = false;
-        Vector3 roomToMergePosition = Vector3.zero;
-        int roomSizezCheck = ((roomSizez) / 2) * returnCellSizez; //Used for checking size of room from center along z
-        int roomSizexCheck = ((roomSizex) / 2) * returnCellSizex; //Used for checking size of room from center along x
-        List<GameObject> cellsInRoom = new List<GameObject>(); //Used to store positions of the room
-       
-        //Confines room to grid and to boundaries of the quadrant it's in
-        roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck , boundaries[2], boundaries[3]);
-        roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck, QuadrantBoundaries[Quadrant][2], QuadrantBoundaries[Quadrant][3]);
-        roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, boundaries[0], boundaries[1]);
-        roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, QuadrantBoundaries[Quadrant][0], QuadrantBoundaries[Quadrant][1]);
-        returnCenter = roomCenter;
+        //Function marks cells for rooms.
+        //Parameters: 
+        //a position in world space for the center
+        //size of the room (cells along x and z)
+        //quadrant of room,
+        //Vector3 variable to save the position of the center if it changes
 
+
+        bool mergeRoom = false;                                     //Determines if rooms need to be merged
+        Vector3 roomToMergePosition = Vector3.zero;                 //Gets room that needs to be merged
+        int roomSizezCheck = ((roomSizez) / 2) * returnCellSizez;   //Used for checking size of room from center along z
+        int roomSizexCheck = ((roomSizex) / 2) * returnCellSizex;   //Used for checking size of room from center along x
+        List<GameObject> cellsInRoom = new List<GameObject>();      //Used to store cells of the room
+       
+        //If the center is not in a valid position on the grid...
+        //  (ex. Is not on the grid, exceeds boundaries of grid or quadrant)
+        //...it will be shifted to the nearest valid position
+        roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck , boundaries[2], boundaries[3]);    //check against grid east and west boundaries
+        roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck, QuadrantBoundaries[Quadrant][2], QuadrantBoundaries[Quadrant][3]); //check against quadrant east and west boundaries
+        roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, boundaries[0], boundaries[1]);     //check against grid north and south boundaries
+        roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, QuadrantBoundaries[Quadrant][0], QuadrantBoundaries[Quadrant][1]); //check against quadrant north and south boundaries
+        returnCenter = roomCenter;  //store the new room center
+
+        //The following generates a null exception
+        //BEGIN
         if (findCell(roomCenter).transform.parent.name == "Main Room" 
-            || findCell(roomCenter).transform.parent.name == "Boss Room"
-            || findCell(roomCenter).name.Contains("Center"))
+        || findCell(roomCenter).transform.parent.name == "Boss Room"
+        || findCell(roomCenter).name.Contains("Center"))
         {
             return null;
         }
-        //Returns new position for center of room
-        findCell(returnCenter).name += " Center";
-        cellsInRoom.Add(findCell(roomCenter));
+        //END
+
+        findCell(returnCenter).name += " Center";   //Name room
+        cellsInRoom.Add(findCell(roomCenter));      //Add room to list of cells in room
 
         //calculates starting position (bottom left corner of room)
         Vector3 startingPosition = roomCenter + new Vector3(-roomSizex / 2  * returnCellSizex, 0.0f, -roomSizez / 2 * returnCellSizez);
 
         for (int i = 0; i < roomSizez; i++)
         {
-            Vector3 curPosition = startingPosition; //set current position to starting position
-            curPosition = moveCellPosition(0, curPosition, i); //moves between cells of the room on z axis
+            Vector3 curPosition = startingPosition;             //set current position to starting position
+            curPosition = moveCellPosition(0, curPosition, i);  //moves between cells of the room on z axis
 
             for (int v = 0; v < roomSizex; v++)
             {
                 //Don't affect Main Room and Boss Room
-                string nameTest = findCell(curPosition).transform.parent.name;
-                if (nameTest != "Main Room" && nameTest != "Boss Room" && !nameTest.Contains("Center"))
+                string nameTest = findCell(curPosition).transform.parent.name;  //get name of cell's parent at the current position
+                if (nameTest != "Main Room" && nameTest != "Boss Room" && !nameTest.Contains("Center")) //If it is not a main room or the center for another room
                 {
                     cellsInRoom.Add(findCell(curPosition)); //Add cell to List of gameobjects of room
 
@@ -341,7 +390,7 @@ public class GenerationRevamped : MonoBehaviour
                 curPosition = moveCellPosition(1, curPosition); //move between cells of room on x axis
             }  
         }
-        float[] roomBoundaries = farthestDirections(cellsInRoom); //gets the boundaries of the rooms
+        float[] roomBoundaries = furthestDirections(cellsInRoom); //gets the boundaries of the rooms
 
         foreach (GameObject cell in cellsInRoom)
         {
@@ -699,310 +748,125 @@ public class GenerationRevamped : MonoBehaviour
     #endregion
 
     #region Start
-    public int roomsToGen; //How many rooms the dungeon will gen
-    public int hallsToGen; //How many halls the dungeon will gen
+
 
     void Start()
     {
         //Generating Cells
-        cells = generateGrid(); //generates grid (A very large plane made up of smaller planes(cells) )
+        cells = generateGrid();                 //generates grid
+        parentObject(cells, "Cells");           //Parents every cell generated under a game object named "Cells"
 
-        parentObject(cells, "Cells"); //Parents every cell generated under cell
+        boundaries = furthestDirections(cells); //Gets the furthest positions of the grid (n,s,e,w)
+        generateQuadrants();                    //Breaks the grid into 9 quadrants
 
-        if (Generate) //generate more than just grids
+        if (Generate) //If we want to generate walls, rooms, and hallways
         {
-            List<List<GameObject>> cellWalls = generateCellWalls(cells); //Generates walls around each cell
-            boundaries = farthestDirections(cells); //Gets the furthest positions of the grid (n,s,e,w)
-            generateQuadrants(); //Breaks the grid into 9 quadrants
-        
-            if (string.IsNullOrEmpty(seed)) //Generate seed if seed one isn't input
-            {
-                roomsToGen = GenerationSeed.randomGenerator(minMaxRooms[0], minMaxRooms[1]); //Get how many rooms to generate (At least 2)
-                hallsToGen = roomsToGen - 2;//GenerationSeed.randomGenerator(roomToGen, roomToGen + (roomToGen / 2)); //Get how many halls to generate (Based on roomsToGen)
-                seed += roomsToGen; seed += hallsToGen; //add rooms to gen and halls to gen to seed
-                GenerateSeed(roomsToGen, hallsToGen); //Generate rest of seed
-            }
-            //Generate dungeon
-            GenerateDungeon();
-            Destroy(GameObject.Find("Cells")); //Destroy whatever isn't used
+            generateCellWalls(cells); //Generates walls around each cell
+
+            //GenerateDungeon();                  //Generate Dungeon
+            //Destroy(GameObject.Find("Cells")); //Destroy whatever isn't used
         }
     }
     #endregion
 
-    #region Generate Seed
-    public int[] minMaxRooms = new int[] { 0, 0 };
-    private List<int> generatedRooms = new List<int>(); //tracks cells that are centers of rooms
-
-    private void GenerateSeed(int roomsToGen, int hallstoGen)
-    {
-        int maxCells = x_cells * z_cells;
-        int[] roomsInQuadrants = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-        GenerateRoomSeed(roomsToGen, roomsInQuadrants);
-      
-    }
-
-    private void GenerateRoomSeed(int roomsToGen, int[] roomsInQuadrants)
-    {
-        //Track quadrants currently available
-        List<int> availableQuadrants = new List<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
-
-        for (int i = 0; i < roomsToGen; i++)
-        {
-            //Gets a random quadrant
-            int quadrantToGet = availableQuadrants[GenerationSeed.randomGenerator(0, availableQuadrants.Count)];
-
-            ///////////////////////////////////////////////////////////////////////////////
-            if (i == 1) //Prevents main room and boss rooms from being in the same quadrant
-            {                                                                           ///
-                while (roomsInQuadrants[quadrantToGet] > 0)                             ///
-                    quadrantToGet = GenerationSeed.randomGenerator(0, 9);               ///
-            }                                                                           ///
-            ///////////////////////////////////////////////////////////////////////////////
-
-            roomsInQuadrants[quadrantToGet] += 1;   //Increments number of rooms in quadrant
-
-            int roomToGet = -1; //Initialize variable
-
-            
-            GameObject quads = GameObject.Find("Quadrant " + quadrantToGet); //Used for room positioning test |
-             //                                                                                               V
-            while (!GenerationSeed.checkGeneratedRoomPosition(roomToGet, generatedRooms))
-            {
-                int chances = 2; //If after two tries the selected cell is in main room or boss room, select another quad
-
-                roomToGet = GenerationSeed.randomGenerator(0, quads.transform.childCount); //Get a random room in quad
-
-                //If the cell to get is apart of the main room or boss room, then select another cell
-                if (quads.transform.GetChild(roomToGet).transform.parent.name == "Main Room" 
-                    || quads.transform.GetChild(roomToGet).transform.parent.name == "Boss Room")
-                {
-                    roomToGet = -1; //Reset variable so that it fails the check
-                    chances -= 1;   //Takes away chances cause it's fed up with this shit
-                }
-
-                if (chances == 0) //It's tired of fucking around
-                {//                                                                                               |
-                    roomsInQuadrants[quadrantToGet] -= 1; //Taking the fucking quadrant out and getting a new one V
-                    quadrantToGet = availableQuadrants[GenerationSeed.randomGenerator(0, availableQuadrants.Count)];
-                    roomsInQuadrants[quadrantToGet] += 1; //New quadrant gets incremented
-                    chances = 0; //Now don't fuck up
-                    Debug.Log("Taking too long");
-                }
-            }
-
-            if (roomsInQuadrants[quadrantToGet] == roomsPerQuadrant) //No more than the specified number of rooms per quadrant
-            {
-                availableQuadrants.Remove(quadrantToGet); //If the quadrant is filled, remove it from possibility
-            }
-
-            //Get the index of the cell chosen and add it to seed and generated rooms
-            int cellindex = getCellIndex(quads.transform.GetChild(roomToGet).gameObject);
-            seed += GenerationSeed.generateRoomSeed(cellindex);
-            generatedRooms.Add(cellindex);
-        }
-    }
-
-    private bool checkRoomsinQuadrant(int[] Quadrants, int quadNum)
-    {
-        if (Quadrants[quadNum] >= 3)
-            return false;
-
-            return true;
-    }
-
-    private void GenerateHallSeed()
-    {
-        
-        GameObject Rooms = GameObject.Find("Rooms");
-        hallsToGen = Rooms.transform.childCount;
-        //Seed needs to generate at least one hall for each room, skipping the main rooms since its covered already
-        for (int i = 2; i < Rooms.transform.childCount; i++ )
-        {
-            int relation; //gets relational location of two cells
-            //get a random hall and a random cell on the hall
-            int hall = GenerationSeed.randomGenerator(0, GameObject.Find("Halls").transform.childCount);
-            int hallSpot = GenerationSeed.randomGenerator(0, GameObject.Find("Halls").transform.GetChild(hall).transform.childCount);
-
-            //detect the location of the room and hall and their relation to each other
-            detectCellLocation(Rooms.transform.GetChild(i).transform.GetChild(0).transform.position,
-                getRoomOrHall("Halls").transform.GetChild(hall).transform.GetChild(hallSpot).transform.position,
-                out relation);
-
-            //Get cell index of room entrance and hall and add it to the seed
-            int entranceIndex = getCellIndex(getMedianWall(getRoomCells(Rooms.transform.GetChild(i).gameObject, "wall"), relation).transform.parent.gameObject);
-            int hallIndex = getCellIndex(getRoomOrHall("Hall " + hall).transform.GetChild(hallSpot).gameObject);
-            seed += entranceIndex;
-            seed += "w";
-            seed += hallIndex;
-            seed += "w";
-        }
-    }
-
-    //Returns correct wall to connect
-    private GameObject getMedianWall(List<GameObject> roomWalls, int relation)
-    {
-        GameObject medianWall;
-
-        if (relation == 0 || relation == 1)
-            medianWall = getZWalls(roomWalls, relation);
-
-        else
-            medianWall = getXWalls(roomWalls, relation);
-
-
-        return medianWall;
-    }
-
-    private GameObject getXWalls(List<GameObject> roomWalls, int xRelation)
-    {
-        List<GameObject> walls = new List<GameObject>();
-        foreach (GameObject wall in roomWalls)
-        {
-            if (xRelation == 2)
-            {
-                if (wall.name.Contains("east"))
-                {
-                    walls.Add(wall);
-                }
-            }
-
-            else
-            {
-                if (wall.name.Contains("west"))
-                {
-                    walls.Add(wall);
-                }
-            }
-        }
-
-        return (walls[walls.Count / 2]);
-    }
-
-    private GameObject getZWalls(List<GameObject> roomWalls, int zRelation)
-    {
-        List<GameObject> walls = new List<GameObject>();
-
-        foreach (GameObject wall in roomWalls)
-        {
-            if (zRelation == 0)
-            {
-                if (wall.name.Contains("north"))
-                {
-                    walls.Add(wall);
-                }
-            }
-
-            else
-            {
-                if (wall.name.Contains("south"))
-                {
-                    walls.Add(wall);
-                }
-            }
-        }
-        return walls[walls.Count / 2];
-    }
-
-    
-#endregion
-
     #region GenerateDungeon
     private void GenerateDungeon()
     {
-        List<int> cellNames = new List<int>(); //Used to store the index name of cells used for rooms in seed
-        List<char> cellTypesTemp = new List<char>(); //Used to pull the letter of the room size from the seed
-        List<char> cellTypes = new List<char>(); //Used to pull the dimensions from the letter
-        List<int> hallCellNames = new List<int>(); //Stores index name of cells used for halls in seed
-        int toSkip = roomsToGen.ToString().Length + hallsToGen.ToString().Length;
-        int stopped = GenerationSeed.breakDownSeed(seed, out cellNames, out cellTypesTemp, roomsToGen, toSkip); //Breaks down seed for generation
 
-        //Pulls dimensions of rooms from each room size stored in cellTypesTemp
-        for (int i = 0; i < cellTypesTemp.Count; i++)
+    }
+
+    private void defaultDungeon()
+    {
+        List<List<Vector3>> rooms = new List<List<Vector3>>();
+        List<Vector3> roomPositions = new List<Vector3>();
+        roomPositions.Add(new Vector3());   //Top Middle    0
+        roomPositions.Add(new Vector3());   //Bottom Middle 1
+        roomPositions.Add(new Vector3());   //Right Middle  2
+        roomPositions.Add(new Vector3());   //Left Middle   3
+        roomPositions.Add(new Vector3());   //Top Left      4
+        roomPositions.Add(new Vector3());   //Top Right     5
+        roomPositions.Add(new Vector3());   //Bottom Left   6
+        roomPositions.Add(new Vector3());   //Bottom Right  7
+        roomPositions.Add(new Vector3());   //Center        8
+
+        List<float> QuadrantDimensions = new List<float>();
+
+        for (int i = 0; i < QuadrantsWanted; i++)
         {
-            int e = GenerationSeed.findRoomSize(cellTypesTemp[i]);
-            cellTypes.Add(e.ToString().ToCharArray()[0]);
-            cellTypes.Add(e.ToString().ToCharArray()[1]);
-        }
+            float dimension = getQuadrantDimensions(QuadrantBoundaries[i]);
+            int d = -1;
+            if (!checkForDimension(QuadrantDimensions, dimension, out d))
+            {
+                QuadrantDimensions.Add(dimension);
+                roomPositions = findRoomPositions(QuadrantBoundaries[i]);
+                rooms.Add(roomPositions);
+            }
 
-        createMainRooms(cellNames, cellTypes); //Creates the main room and the boss room
-        createMainHall(); //Creates the hall to connect the main rooms
+            int room = 0;
+            while (room < roomsPerQuadrant)
+            {
 
-        createRooms(cellNames, cellTypes, roomsToGen); //Generates other rooms
-        GenerateHallSeed();
-        GenerationSeed.breakDownHallSeed(stopped, seed, out hallCellNames, hallsToGen);
-        createHalls(hallCellNames, hallsToGen);
-
-    }
-
-    private void createMainRooms(List<int> cellNames, List<char> cellTypes)
-    {
-        Vector3 finalRoomPosition; //Needed to place player at the center of main room
-
-        //Generate main room and parent it inside Rooms under Main Room
-        parentObject(generateRoom(cells[cellNames[0]].transform.position, 5, 
-            5, getQuadrant(cells[cellNames[0]]), out finalRoomPosition), "Rooms", "Main Room");
-
-        //Set player position to main room center
-        GameObject.Find("Player").transform.position = finalRoomPosition + new Vector3(0.0f, 0.93f, 0.0f); 
-
-        //Generate boss room and parent it inside Rooms under Boss Room
-        parentObject(generateRoom(cells[cellNames[1]].transform.position, 5,
-            5, getQuadrant(cells[cellNames[1]]), out finalRoomPosition), "Rooms", "Boss Room");
-    }
-
-    //Creates the main hall. Every hall is either connected to this hall or one that connects to this hall
-    private void createMainHall()
-    {
-        int MainRelation; //Needed for detecting cell location
-        int BossRelation; //Also needed
-
-        //Scroll to universal functions and find detect cell location for info
-        detectCellLocation(getRoomOrHall("Main Room").transform.GetChild(0).transform.position,
-                getRoomOrHall("Boss Room").transform.GetChild(0).transform.position,
-                out MainRelation);
-
-        //Scroll to universal functions and find detect cell location for info
-        detectCellLocation(getRoomOrHall("Boss Room").transform.GetChild(0).transform.position,
-                getRoomOrHall("Main Room").transform.GetChild(0).transform.position,
-                out BossRelation);
-
-        //Gets the cell index of the center of the rooms
-        int MainIndex = getCellIndex(getMedianWall(getRoomCells(getRoomOrHall("Main Room"), "wall"), MainRelation).transform.parent.gameObject);
-        int BossIndex = getCellIndex(getMedianWall(getRoomCells(getRoomOrHall("Boss Room"), "wall"), BossRelation).transform.parent.gameObject);
-
-        //Creates the main hall and parents the containing cells to Halls under Hall 0
-        parentObject(createHall(cells[MainIndex].transform.position, cells[BossIndex].transform.position, 0), "Halls", "Hall 0");
-    }
-
-    private void createRooms(List<int> cellNames, List<char> cellTypes, int roomsToGen)
-    {
-        int x = 4; //Used to get the correct position in cellTypes (0-3) was used in createMainHall()
-
-        Vector3 needed; //Not actually necessary for anything in this function
-
-        for (int i = 2; i < roomsToGen; i++)
-        {
-            //Creates rooms generated in the seed and parents them to Rooms and their respective room #
-            parentObject(generateRoom(cells[cellNames[i]].transform.position, int.Parse(cellTypes[x].ToString()), 
-                int.Parse(cellTypes[x + 1].ToString()), getQuadrant(cells[cellNames[i]]), out needed), "Rooms", "Room " + i);
-
-            x += 2;
+            }
         }
     }
 
-    private void createHalls(List<int> hallNames, int hallsToGen)
+    private List<Vector3> findRoomPositions(float[] quadrant)
     {
-        for (int i = 0; i < hallNames.Count; i++)
-        {
-            parentObject(createHall(cells[hallNames[i]].transform.position, cells[hallNames[i + 1]].transform.position, 0), 
-                "Halls", "Hall " + (i + 1));
-            i++;
-        }
+        List<Vector3> roomPositions = new List<Vector3>();
+
+        float north = quadrant[0];
+        float south = quadrant[2];
+        float east  = quadrant[1];
+        float west  = quadrant[3];
+        float totalHeight = north - south;
+        float totalWidth = Mathf.Abs(east - west);
+        int xcells = Convert.ToInt32(totalWidth / returnCellSizex);
+        int zcells = Convert.ToInt32(totalHeight / returnCellSizez);
+        float xmid = (returnCellSizex * (xcells / 2));
+        float zmid = (returnCellSizez * (zcells / 2));
+
+        roomPositions.Add(new Vector3(xmid, 0.0f, north));  //Top Middle
+        roomPositions.Add(new Vector3(xmid, 0.0f, south));  //Bottom Middle
+        roomPositions.Add(new Vector3(east, 0.0f, zmid));   //Right Middle
+        roomPositions.Add(new Vector3(west, 0.0f, zmid));   //Left Middle
+        roomPositions.Add(new Vector3(west, 0.0f, north));  //Top Left
+        roomPositions.Add(new Vector3(east, 0.0f, north));  //Top Right
+        roomPositions.Add(new Vector3(west, 0.0f, south));  //Bottom Left
+        roomPositions.Add(new Vector3(east, 0.0f, south));  //Bottom Right
+        roomPositions.Add(new Vector3(xmid, 0.0f, zmid));   //Center
+
+        return roomPositions;
     }
 
-    
+    private float getQuadrantDimensions(float[] quadrant)
+    {
+        float north = quadrant[0];
+        float south = quadrant[2];
+        float east = quadrant[1];
+        float west = quadrant[3];
+        float totalHeight = north - south;
+        float totalWidth = Mathf.Abs(east - west);
+        float totalDimension = totalHeight * totalWidth;
 
+        return totalDimension;
+    }
+
+    private bool checkForDimension(List<float> QuadrantDimensions, float dimension, out int d)
+    {
+        d = -1;
+        if (QuadrantDimensions.Count > 0)
+        {
+            for (int x = 0; x < QuadrantDimensions.Count; x++)
+            {
+                if (dimension == QuadrantDimensions[x])
+                {
+                    d = x;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     #endregion
 
     #region Properties
@@ -1013,6 +877,19 @@ public class GenerationRevamped : MonoBehaviour
         get
         {
             return boundaries;
+        }
+    }
+
+    public List<float[]> getQuadrantBoundaries
+    {
+        get
+        {
+            return QuadrantBoundaries;
+        }
+
+        set
+        {
+            QuadrantBoundaries = value;
         }
     }
 

@@ -1,43 +1,83 @@
 ﻿using System.Collections;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public static class GenerationSeed
 {
-    //Checks for generated seed
-    private static bool checkForSeed(string seed)
+    /*
+    How the seed works
+    
+        The GenerationRevamped class builds the quadrants of the grid
+        It then sends the room center position for a 3x3 room for the top center, bottom right, and bottom left
+        of each quadrant to this class
+        This setup is considered the "Default" dungeon (000000000000). Boring yes, but that's the point.
+        From here, this script executes a series of transformations and exchanges based on numbers 0-9.
+        The seed is currently an int array with length 12.
+        The first nine numbers are used to transform the dungeon
+        The tenth and eleventh numbers determine which rooms (0-26 since there are 27 rooms in the dungeon)
+        will be considered the main rooms
+        The twelfth number determines the boss that spawns
+        This array may be expanded to help with object generation if wanted (more details when I get to that)
+
+        Every room is numbered from 0-26. To see what room number is where by default, see GenerationRevamped
+
+        As stated previously, numbers 0-9 are used for transformations and whatnot.
+        They are used in the following manner:
+        0 - shifts every room up in their quadrant by room number (if it reaches the top, it goes to bottom)
+        1 - shifts every number right in their quadrant room number (if it reaches side, it goes to other side)
+        2 - shifts every room up on the entire grid by room number (same rules as 0)
+        3 - shifts every room right on the entire grid by room number (same rules as 1)
+        4 - switches room numbers within quadrant
+        5 - switches room numbers among the grid
+        6 - increases the scale of every room by its number / 3
+        7 - increases the scale of every room by its number * 3
+        8 - swaps room sizes among quadrant
+        9 - swaps room sizes among grid 
+
+        Adding a negative to these numbers processes the command in the opposite manner
+
+        One seed is used for the entire dungeon.
+
+        1st level uses original seed.
+        2nd level uses the inverse
+        3-10 adds 1 (going past 9 resets to 0)
+        11 uses the inverse
+        12-19 subtracts 1 (going below 0 resets to 9)
+
+        20 changes the default top middle to bottom middle, and bottom left and right to upper left and right
+            and then uses the original seed
+        21 uses inverse
+        22-29 adds 1
+        30 uses inverse
+        31-38 subtracts 1
+
+        39 changes bottom middle to right middle, upper left and right to upper and bottom middle
+            and then uses original seed
+        40 uses the inverse
+        41-48 adds 1
+        49 uses inverse
+        50-57 subtracts 1
+
+        58 changes right middle to middle and then uses original seed
+        59 uses inverse
+        60-67 adds 1
+        68 uses inverse
+        69-76 subtracts 1
+        77 changes bottom and upper middle to left and right middle and uses original
+        78 uses inverse
+        79-86 adds 1
+        87 uses inverse
+        88-95 subtracts 1
+
+        95-100 uses custom dungeon based on difficulty ( one idea)
+        95-100 uses a slightly different algorithm (another idea)
+        */
+    static int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+    public static void defaultSeed(Vector3 top, Vector3 b_Right, Vector3 b_Left)
     {
-        if (string.IsNullOrEmpty(seed))
-            return false;
 
-        return true;
-    }
-
-    //Generates a room from a random cell on the grid
-    public static string generateRoomSeed(int cellNumber)
-    {
-        int roomSize = (int)randomGenerator(0, Enum.GetNames(typeof(RoomSizes)).Length);
-
-        string room = cellNumber.ToString() + Enum.GetName(typeof(RoomSizes), roomSize);
-
-        return room;
-    }
-
-    //Used to check if a cell position is already the center of a room
-    public static bool checkGeneratedRoomPosition(int roomPosition, List<int> generatedRooms)
-    {
-        if (roomPosition == -1)
-            return false;
-
-        foreach (int room in generatedRooms)
-        {
-            if (roomPosition == room)
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     //generates random number between max and min
@@ -48,70 +88,6 @@ public static class GenerationSeed
         int result = rand.Next(minValue, maxValue);
 
         return result;
-    }
-
-    public static int breakDownSeed(string seed, out List<int> cell, out List<char> cellSizes, int roomsToGen, int toSkip)
-    {
-        cell = new List<int>();
-        cellSizes = new List<char>();
-        string cellNumber = "";
-        int stopped = 0;
-        int roomsgen = 0;
-
-        for (int i = toSkip; i < seed.Length; i++)
-        {
-            int g = 0;
-
-            if (int.TryParse(seed[i].ToString(), out g))
-            {
-                cellNumber += seed[i].ToString();
-            }
-
-            else
-            {
-                cell.Add(int.Parse(cellNumber));
-                cellNumber = "";
-                roomsgen += 1;
-                cellSizes.Add(seed[i]);
-            }
-
-            if (roomsgen == roomsToGen)
-            {
-                i++;
-                stopped = i;
-                break;
-            }
-
-        }
-
-        return stopped;
-    }
-
-    public static void breakDownHallSeed(int begin, string seed, out List<int> hallCells, int hallsToGen)
-    {
-        hallCells = new List<int>();
-        string hallNumber = "";
-        int hallsgen = 0;
-
-        for (int i = begin; i < seed.Length; i++)
-        {
-            int h = 0;
-
-            if (int.TryParse(seed[i].ToString(), out h))
-            {
-                hallNumber += seed[i].ToString();
-            }
-
-            else
-            {
-                hallCells.Add(int.Parse(hallNumber));
-                hallNumber = "";
-                hallsgen += 1;
-            }
-
-            if (hallsgen == hallsToGen * 2)
-                break;
-        }
     }
 
     //returns room size from RoomSizes
