@@ -14,7 +14,7 @@ public class GenerationRevamped : MonoBehaviour
 
         First a little lingo:
             Cell = a single rectangular FLOOR gameobject prefab (primitive plane with a texture for the floor)
-            Grid = A large rectangular plane made up of all cells. It is divided into 9 even quadrants.
+            Grid = A large rectangular plane made up of all cells. It is divided into even quadrants.
             Quadrant = A section of the grid made up of a group of cells.
 
         Alright, now onto the steps.
@@ -40,15 +40,15 @@ public class GenerationRevamped : MonoBehaviour
      * Generate the grid.
      * Generate basic cells
      * Generate walls around cells
-     * Generate the main room
-     * Place player in main room
-     * Generate boss room
+     * Generate rooms
      * Generate hallways
-     * Generate based on seed
      * 
-     * This script needs to add:
-     * Deformity to halls and rooms
-     * Secret halls and corridors
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
      * 
      */
     //After Global Variables, scroll to Start to begin tracking code.
@@ -83,7 +83,7 @@ public class GenerationRevamped : MonoBehaviour
 
     #endregion
 
-    #region Generating Cells
+    #region Generate Grid
 
     private List<GameObject> generateGrid() 
     {
@@ -95,8 +95,8 @@ public class GenerationRevamped : MonoBehaviour
         int x_halfcells = x_cells / 2; //determines the distance from the center of the grid to the side edge.
         int z_halfcells = z_cells / 2; //determines the distance from the center of the grid to the top/bottom edge
 
-        Vector3 startingGridPosition = new Vector3(0.0f, 0.0f, 0.0f); //The grid's bottom edge cells will center on the origin
-        Vector3 cellSpace = cellSize * 10; //calculate how much world space a single cell takes up
+        Vector3 startingGridPosition = Vector3.zero;    //The grid's bottom edge cells will center on the origin
+        Vector3 cellSpace = cellSize * 10;              //calculate how much world space a single cell takes up
 
         int cellName = 0;   //Initialize cell names
 
@@ -131,10 +131,10 @@ public class GenerationRevamped : MonoBehaviour
         //Function correctly positions cell walls
 
 
-        //calculate the final size of the north/south walls of a cell
+        //calculate the size of the north/south walls of a cell
         Vector3 nsCellWallSize = new Vector3(returnCellSizex, cellWallHeight, cellWallWidth);
 
-        //calculate the final size of the east/west walls of a cell
+        //calculate the size of the east/west walls of a cell
         Vector3 ewCellWallSize = new Vector3(cellWallWidth, cellWallHeight, returnCellSizez);
 
         float nsMovePosition = 10 * (cellSize.z / 2); //tracks the space required to move to the n/s edge of a cell
@@ -145,6 +145,7 @@ public class GenerationRevamped : MonoBehaviour
             //Set current position to center of cell in world space
             Vector3 currentCellPosition = a_cells[i].transform.position; 
 
+            //Generates walls
             GameObject[] wall = cellWallGenerator(currentCellPosition, nsMovePosition, ewMovePosition,
                                                     nsCellWallSize, ewCellWallSize);
             for (int x = 0; x < wall.Length; x++)
@@ -152,10 +153,12 @@ public class GenerationRevamped : MonoBehaviour
                 wall[x].transform.parent = a_cells[i].transform;    //Set parent of walls to appropriate cell
             }
 
+            #region UNCOMMENT THIS IF YOU WANT TO PUT CELL WALLS IN A SEPARATE GAME OBJECT FOR SOME REASON
 
             //GameObject cellWallParent = new GameObject(); cellWallParent.name = "Cell Walls";
             //parentingGameObjects(l_cellWall, a_cells[i].name + "_walls").transform.parent = cellWallParent.transform;
-            //UNCOMMENT THIS ^ IF YOU WANT TO PUT CELL WALLS IN A SEPARATE GAME OBJECT FOR SOME REASON
+
+            #endregion
         }
     }
 
@@ -165,6 +168,7 @@ public class GenerationRevamped : MonoBehaviour
     {
         //Function generates cell walls
 
+        //Instantiate 4 wall prefabs
         GameObject[] wall = new GameObject[] {Instantiate(WALL), Instantiate(WALL), Instantiate(WALL), Instantiate(WALL)};
 
         wall[0].name = "north_wall";    //identifies north wall
@@ -183,9 +187,9 @@ public class GenerationRevamped : MonoBehaviour
             wall[x].transform.position = cellPosition + new Vector3(0.0f, wall[x].transform.localScale.y / 2, 0.0f);
         }
 
-        wall[0].transform.position += new Vector3(0.0f, 0.0f, nsCellWallMovePosition); //Move north wall to top of cell
+        wall[0].transform.position += new Vector3(0.0f, 0.0f, nsCellWallMovePosition); //Move north wall to front of cell
         wall[1].transform.position += new Vector3(ewCellWallMovePosition, 0.0f, 0.0f); //Move east wall to right of cell
-        wall[2].transform.position -= new Vector3(0.0f, 0.0f, nsCellWallMovePosition); //Move south wall to bottom of cell
+        wall[2].transform.position -= new Vector3(0.0f, 0.0f, nsCellWallMovePosition); //Move south wall to back of cell
         wall[3].transform.position -= new Vector3(ewCellWallMovePosition, 0.0f, 0.0f); //Move west wall to left of cell
 
         return wall;    //return walls
@@ -193,7 +197,7 @@ public class GenerationRevamped : MonoBehaviour
 
     private float[] furthestDirections(List<GameObject> a_cells)
     {
-        //Function returns the furthest points in all directions
+        //Function returns the furthest world positions in all directions
         //0 = north, 1 = south, 2 = east, 3 = west
 
 
@@ -224,19 +228,23 @@ public class GenerationRevamped : MonoBehaviour
 
             return furthestPoints;  //return furthest points
     }
+    #endregion
+
+    #region Generate Quadrants
 
     private void generateQuadrants()
     {
         //Function divides grid into quadrants
+        //Only handles a square number of quadrants for now
 
-        float sqrtQuadWanted = Mathf.Sqrt(QuadrantsWanted);
-        int x_quads = 0;
-        int z_quads = 0;
-        float totalWidth = (Mathf.Abs(boundaries[3]) + boundaries[2]);
+        float sqrtQuadWanted = Mathf.Sqrt(QuadrantsWanted); //Take the square root of quadrants wanted
+        int x_quads = 0;                                                //determine quads along x
+        int z_quads = 0;                                                //determine quads along z
+        float totalWidth = (Mathf.Abs(boundaries[3]) + boundaries[2]);  //get total width of the grid
 
-        if (sqrtQuadWanted % 1 == 0)
+        if (sqrtQuadWanted % 1 == 0)    //If quads wanted is square
         {
-            x_quads = z_quads = (int)sqrtQuadWanted;
+            x_quads = z_quads = (int)sqrtQuadWanted;    //x and z quads = square root
         }
 
         else
@@ -244,68 +252,73 @@ public class GenerationRevamped : MonoBehaviour
             throw new Exception("Generation only handles a square number of quadrants");
         }
 
-        float quadrantHeight = boundaries[0] / sqrtQuadWanted;
-
-        DrawQuadrant(totalWidth, boundaries[0], x_quads, z_quads);
+        DrawQuadrant(totalWidth, boundaries[0], x_quads, z_quads);  //Create quadrants
     }
 
     private List<List<GameObject>> DrawQuadrant(float gridWidth, float gridHeight, int x_quads, int z_quads)
     {
 
         List<List<GameObject>> Quadrants = new List<List<GameObject>>();    //List for Quadrant Gameobjects
-        List<float[]> Zones = new List<float[]>();
+        List<float[]> Zones = new List<float[]>();                          //List for quadrant boundaries
 
-        int H_movement = Convert.ToInt32(gridWidth / x_quads);
-        int V_movement = Convert.ToInt32(gridHeight / z_quads);
-        Debug.Log(H_movement);
+        int H_movement = Convert.ToInt32(gridWidth / x_quads);  //determines horizontal movement between quadrants
+        int V_movement = Convert.ToInt32(gridHeight / z_quads); //determines vertical movement between quadrants
 
         for (int i = 0; i < QuadrantsWanted; i++)
         {
-            Quadrants.Add(new List<GameObject>());
-            Zones.Add(new float[] {0,0,0,0 });
+            Quadrants.Add(new List<GameObject>());  //Add appropriate number of quadrant game objects
+            Zones.Add(new float[] {0,0,0,0 });      //Add appropriate number of zones
         }
 
-        int zone = 0;
+        int zone = 0;                       //Tracks which quadrant we are on
         for (int i = 0; i < z_quads; i++)
         {
-            float northbase = V_movement + (V_movement * i);
-            float southbase = V_movement * i;
+            float northbase = V_movement + (V_movement * i);    //quadrant north perimeter calculation
+            float southbase = V_movement * i;                   //quadrant south perimeter calculation
+            if (i != 0)
+                southbase += returnCellSizez;                   //ensure boundaries don't interlock with quadrants below
 
             for (int x = 0; x < x_quads; x++)
             {
-                Zones[zone][0] = northbase;
-                Zones[zone][1] = boundaries[3] + (H_movement + (H_movement * x));
-                Zones[zone][2] = southbase;
-                Zones[zone][3] = boundaries[3] + (H_movement * x);
-                zone += 1;
+                Zones[zone][0] = northbase;                                         //set north perimeter to calculation
+                Zones[zone][1] = boundaries[3] + (H_movement + (H_movement * x));   //set east perimeter to calculation  
+                Zones[zone][2] = southbase;                                         //set south perimeter to calculation
+                if (x == 0)
+                    Zones[zone][3] = boundaries[3] + (H_movement * x);              //set west perimeter to calculation 
+                else
+                    Zones[zone][3] = boundaries[3] + (returnCellSizex + (H_movement * x));  //ensure boundaries don't interlock with quadrants to the side
+                zone += 1;  //increment to next quadrant
+
             }
         }
 
-        getQuadrantBoundaries = Zones;
+        QuadrantBoundaries = Zones;                         //Set quadrant boundaries
         
+        //iterate through all cells and determine their quadrant based on their position
         for (int i = 0; i < cells.Count; i++)
         {
-            Vector3 position = cells[i].transform.position;
+            Vector3 position = cells[i].transform.position; //use local variable for ease
 
+            //iterate through quadrant boundaries to determine if cell belongs in the quadrant
             for (int x = 0; x < Zones.Count; x++)
             {
-                if (position.z > Zones[x][0])
+                if (position.z > Zones[x][0])               //greater than north perimeter
                 {
                     continue;
                 }
 
-                else if (position.z < Zones[x][2])
+                else if (position.z < Zones[x][2])          //less than south perimeter
                     continue;
 
-                else if (position.x > Zones[x][1])
+                else if (position.x > Zones[x][1])          //greater than east perimeter
                     continue;
 
-                else if (position.x < Zones[x][3])
+                else if (position.x < Zones[x][3])          //less than west perimeter
                     continue;
 
                 else
                 {
-                    Quadrants[x].Add(cells[i]);
+                    Quadrants[x].Add(cells[i]);             //add cell to quadrant
                     break;
                 }
             }
@@ -313,15 +326,10 @@ public class GenerationRevamped : MonoBehaviour
 
         for (int i = 0; i < Quadrants.Count; i++)
         {
-            parentObject(Quadrants[i], "Cells", "Quadrant " + i);
+            parentObject(Quadrants[i], "Cells", "Quadrant " + i);   //Parent quadrants under cells game object
         }
 
         return Quadrants;
-    }
-
-    void determineQuadPosition()
-    {
-
     }
     #endregion
 
@@ -336,23 +344,24 @@ public class GenerationRevamped : MonoBehaviour
         //quadrant of room,
         //Vector3 variable to save the position of the center if it changes
 
-
         bool mergeRoom = false;                                     //Determines if rooms need to be merged
         Vector3 roomToMergePosition = Vector3.zero;                 //Gets room that needs to be merged
         int roomSizezCheck = ((roomSizez) / 2) * returnCellSizez;   //Used for checking size of room from center along z
         int roomSizexCheck = ((roomSizex) / 2) * returnCellSizex;   //Used for checking size of room from center along x
         List<GameObject> cellsInRoom = new List<GameObject>();      //Used to store cells of the room
-       
+
+        roomCenter = positionCorrection(roomCenter);                //Make sure position could be on grid
+
         //If the center is not in a valid position on the grid...
         //  (ex. Is not on the grid, exceeds boundaries of grid or quadrant)
         //...it will be shifted to the nearest valid position
         roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck , boundaries[2], boundaries[3]);    //check against grid east and west boundaries
-        roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck, QuadrantBoundaries[Quadrant][2], QuadrantBoundaries[Quadrant][3]); //check against quadrant east and west boundaries
+        roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck, QuadrantBoundaries[Quadrant][1], QuadrantBoundaries[Quadrant][3]); //check against quadrant east and west boundaries
         roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, boundaries[0], boundaries[1]);     //check against grid north and south boundaries
-        roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, QuadrantBoundaries[Quadrant][0], QuadrantBoundaries[Quadrant][1]); //check against quadrant north and south boundaries
+        roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, QuadrantBoundaries[Quadrant][0], QuadrantBoundaries[Quadrant][2]); //check against quadrant north and south boundaries
         returnCenter = roomCenter;  //store the new room center
 
-        //The following generates a null exception
+        //The following is necessary but generates a null exception. Will likely not be needed for new seed
         //BEGIN
         if (findCell(roomCenter).transform.parent.name == "Main Room" 
         || findCell(roomCenter).transform.parent.name == "Boss Room"
@@ -362,7 +371,7 @@ public class GenerationRevamped : MonoBehaviour
         }
         //END
 
-        findCell(returnCenter).name += " Center";   //Name room
+        findCell(returnCenter).name += " Center";   //Name center cell
         cellsInRoom.Add(findCell(roomCenter));      //Add room to list of cells in room
 
         //calculates starting position (bottom left corner of room)
@@ -403,6 +412,27 @@ public class GenerationRevamped : MonoBehaviour
             return null;
         }
         return cellsInRoom;
+    }
+
+    private Vector3 positionCorrection(Vector3 roomcenter)
+    {
+        //Function ensures that the position given could be on the grid provided it was big enough to accomodate it
+        //ex. The point (0,0,2) is a valid position on grid of 31x31 with a 0.4 cell size, 
+        //however no cell could exist there because a cellsize of 0.4 would mean a distance of 4 between each cell. 
+        //Since the grid starts at (0,0,0), the next possible position in this case would be (0,0,4)
+        //So, we increase the room center's Vector3 until its x and z are divisble by the cell sizes
+
+        while (roomcenter.x % returnCellSizex != 0) //roomcenter x is not divisible by cellsize x
+        {
+            roomcenter.x += 1.0f;
+        }
+
+        while (roomcenter.z % returnCellSizez != 0) //roomcenter z is not divisible by cellsize z
+        {
+            roomcenter.z += 1.0f;
+        }
+
+        return roomcenter;
     }
 
     //Destroys the walls of a cell
@@ -487,7 +517,7 @@ public class GenerationRevamped : MonoBehaviour
     }
 
     //This function ensures any room created is pushed onto the grid
-    private static float confineRoom(float point, int roomSize, float check1, float check2)
+    private float confineRoom(float point, int roomSize, float check1, float check2)
     {
         while (point + roomSize > check1)
         {
@@ -759,113 +789,60 @@ public class GenerationRevamped : MonoBehaviour
         boundaries = furthestDirections(cells); //Gets the furthest positions of the grid (n,s,e,w)
         generateQuadrants();                    //Breaks the grid into 9 quadrants
 
+        //Generating Rooms and Halls
         if (Generate) //If we want to generate walls, rooms, and hallways
         {
-            generateCellWalls(cells); //Generates walls around each cell
+            generateCellWalls(cells); //Generate walls around each cell
 
-            //GenerateDungeon();                  //Generate Dungeon
+            GenerateDungeon();                  //Generate Dungeon
             //Destroy(GameObject.Find("Cells")); //Destroy whatever isn't used
         }
     }
     #endregion
 
-    #region GenerateDungeon
+    #region Generate Dungeon
     private void GenerateDungeon()
     {
-
-    }
-
-    private void defaultDungeon()
-    {
-        List<List<Vector3>> rooms = new List<List<Vector3>>();
-        List<Vector3> roomPositions = new List<Vector3>();
-        roomPositions.Add(new Vector3());   //Top Middle    0
-        roomPositions.Add(new Vector3());   //Bottom Middle 1
-        roomPositions.Add(new Vector3());   //Right Middle  2
-        roomPositions.Add(new Vector3());   //Left Middle   3
-        roomPositions.Add(new Vector3());   //Top Left      4
-        roomPositions.Add(new Vector3());   //Top Right     5
-        roomPositions.Add(new Vector3());   //Bottom Left   6
-        roomPositions.Add(new Vector3());   //Bottom Right  7
-        roomPositions.Add(new Vector3());   //Center        8
-
-        List<float> QuadrantDimensions = new List<float>();
-
         for (int i = 0; i < QuadrantsWanted; i++)
         {
-            float dimension = getQuadrantDimensions(QuadrantBoundaries[i]);
-            int d = -1;
-            if (!checkForDimension(QuadrantDimensions, dimension, out d))
-            {
-                QuadrantDimensions.Add(dimension);
-                roomPositions = findRoomPositions(QuadrantBoundaries[i]);
-                rooms.Add(roomPositions);
-            }
-
-            int room = 0;
-            while (room < roomsPerQuadrant)
-            {
-
-            }
+            List<Vector3> positions = findRoomPositions(QuadrantBoundaries[i]);
         }
     }
 
     private List<Vector3> findRoomPositions(float[] quadrant)
     {
-        List<Vector3> roomPositions = new List<Vector3>();
+        //Function is used to find the: Top Left, Top Middle, Top Right, Middle Left, Center, Middle Right
+        //                              Bottom Left, Bottom Middle, and Bottom Right
+        
+        //                              cells of a quadrant
 
-        float north = quadrant[0];
-        float south = quadrant[2];
-        float east  = quadrant[1];
-        float west  = quadrant[3];
-        float totalHeight = north - south;
-        float totalWidth = Mathf.Abs(east - west);
-        int xcells = Convert.ToInt32(totalWidth / returnCellSizex);
-        int zcells = Convert.ToInt32(totalHeight / returnCellSizez);
-        float xmid = (returnCellSizex * (xcells / 2));
-        float zmid = (returnCellSizez * (zcells / 2));
+        List<Vector3> roomPositions = new List<Vector3>();  //Stores room positions for quadrant
 
-        roomPositions.Add(new Vector3(xmid, 0.0f, north));  //Top Middle
-        roomPositions.Add(new Vector3(xmid, 0.0f, south));  //Bottom Middle
-        roomPositions.Add(new Vector3(east, 0.0f, zmid));   //Right Middle
-        roomPositions.Add(new Vector3(west, 0.0f, zmid));   //Left Middle
-        roomPositions.Add(new Vector3(west, 0.0f, north));  //Top Left
-        roomPositions.Add(new Vector3(east, 0.0f, north));  //Top Right
-        roomPositions.Add(new Vector3(west, 0.0f, south));  //Bottom Left
-        roomPositions.Add(new Vector3(east, 0.0f, south));  //Bottom Right
-        roomPositions.Add(new Vector3(xmid, 0.0f, zmid));   //Center
+        float north = quadrant[0];                  //Store north quadrant boundary
+        float south = quadrant[2];                  //Store south quadrant boundary
+        float east  = quadrant[1];                  //Store east  quadrant boundary
+        float west  = quadrant[3];                  //Store west  quadrant boundary
+
+        float totalHeight = north - south;          //total height of quadrant
+        float totalWidth = Mathf.Abs(east - west);  //total width of quadrant
+
+        float xmid = ((totalWidth / 2) + west);     //mid width of quadrant
+        float zmid = ((totalHeight / 2) + south);   //mid height of quadrant
+
+        roomPositions.Add(new Vector3(west, 0.0f, north));  //Top Left      0
+        roomPositions.Add(new Vector3(xmid, 0.0f, north));  //Top Middle    1
+        roomPositions.Add(new Vector3(east, 0.0f, north));  //Top Right     2
+
+        roomPositions.Add(new Vector3(west, 0.0f, zmid));   //Middle Left   3
+        roomPositions.Add(new Vector3(xmid, 0.0f, zmid));   //Center        4
+        roomPositions.Add(new Vector3(east, 0.0f, zmid));   //Middle Right  5
+
+        roomPositions.Add(new Vector3(west, 0.0f, south));  //Bottom Left   6
+        roomPositions.Add(new Vector3(xmid, 0.0f, south));  //Bottom Middle 7
+        roomPositions.Add(new Vector3(east, 0.0f, south));  //Bottom Right  8
+
 
         return roomPositions;
-    }
-
-    private float getQuadrantDimensions(float[] quadrant)
-    {
-        float north = quadrant[0];
-        float south = quadrant[2];
-        float east = quadrant[1];
-        float west = quadrant[3];
-        float totalHeight = north - south;
-        float totalWidth = Mathf.Abs(east - west);
-        float totalDimension = totalHeight * totalWidth;
-
-        return totalDimension;
-    }
-
-    private bool checkForDimension(List<float> QuadrantDimensions, float dimension, out int d)
-    {
-        d = -1;
-        if (QuadrantDimensions.Count > 0)
-        {
-            for (int x = 0; x < QuadrantDimensions.Count; x++)
-            {
-                if (dimension == QuadrantDimensions[x])
-                {
-                    d = x;
-                    return true;
-                }
-            }
-        }
-        return false;
     }
     #endregion
 
@@ -877,19 +854,6 @@ public class GenerationRevamped : MonoBehaviour
         get
         {
             return boundaries;
-        }
-    }
-
-    public List<float[]> getQuadrantBoundaries
-    {
-        get
-        {
-            return QuadrantBoundaries;
-        }
-
-        set
-        {
-            QuadrantBoundaries = value;
         }
     }
 

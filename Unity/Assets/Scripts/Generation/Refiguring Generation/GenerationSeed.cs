@@ -75,9 +75,14 @@ public static class GenerationSeed
         */
     static int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-    public static void defaultSeed(Vector3 top, Vector3 b_Right, Vector3 b_Left)
+    public static int[] generateSeed()
     {
+        for (int i = 0; i < seed.Length; i++)
+        {
+            seed[i] = randomGenerator(0, 9);
+        }
 
+        return seed;
     }
 
     //generates random number between max and min
@@ -85,29 +90,13 @@ public static class GenerationSeed
     {
         System.Random rand = new System.Random(Guid.NewGuid().GetHashCode());
         
-        int result = rand.Next(minValue, maxValue);
+        int result = rand.Next(minValue, maxValue + 1);
 
         return result;
     }
 
-    //returns room size from RoomSizes
-    public static int findRoomSize(char letter)
-    {
-        string[] roomSizes = Enum.GetNames(typeof(RoomSizes));
-
-        for (int i = 0; i < roomSizes.Length; i++)
-        {
-            if (letter == roomSizes[i][0])
-            {
-                return indexRoomSizes()[i];
-            }
-        }
-
-        throw new Exception("Seed Could Not Be Found");
-    }
-
     //Stores actual values for room sizes
-    private static int[] indexRoomSizes()
+    public static int[] indexRoomSizes()
     {
         int[] roomSizes = new int[]{23, 24, 25, 33, 34, 35, 43, 44, 45, 53, 54, 55,
         63, 64, 65, 66};
@@ -117,35 +106,4 @@ public static class GenerationSeed
 
     //int[] roomSizes = new int[]{11, 12, 13, 14, 15, 21, 22, 23, 24, 25, 31, 32, 33, 34, 35, 41, 42, 43, 44, 45,
        // 51, 52, 53, 54, 55};
-
-    //List of letters a - i for use in the seed
-    public enum RoomSizes
-    {
-        a,
-        b,
-        c,
-        d,
-        e,
-        f,
-        g,
-        h,
-        i,
-        j,
-        k,
-        l,
-        m,
-        n,
-        o,
-        p,
-        /*q,
-        r,
-        s,
-        t,
-        u,
-        /*v,
-        /*w,
-        x,
-        y,
-        z*/
-    };
 }
