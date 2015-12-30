@@ -198,7 +198,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 22460654, guid: ac14e04a10cd7cc4ca32d2636bfe6a13, type: 2}
       propertyPath: m_RootOrder
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 22460654, guid: ac14e04a10cd7cc4ca32d2636bfe6a13, type: 2}
       propertyPath: m_AnchoredPosition.x
@@ -339,19 +339,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Generate: 1
-  x_cells: 31
-  z_cells: 31
+  x_cells: 41
+  z_cells: 41
   roomsPerQuadrant: 3
-  QuadrantsWanted: 9
-  roomsToGen: 3
-  hallsToGen: 1
+  QuadrantsWanted: 16
   cellSize: {x: .400000006, y: .400000006, z: .400000006}
   cellWallHeight: 6
   cellWallWidth: .400000006
-  seed: 
-  seeddisplay: 0
   FLOOR: {fileID: 102678, guid: e9078d9954935584a8f9f01faacc1f1c, type: 2}
-  WALL: {fileID: 188416, guid: 5706b5f6917248a46b58681b6705a63a, type: 2}
+  WALL: {fileID: 110836, guid: 77c791a8fc3bca64fb428347e310cc1d, type: 2}
+  seed: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  seeddisplay: 
+  seedGen: 1
 --- !u!1 &1349654109
 GameObject:
   m_ObjectHideFlags: 0
