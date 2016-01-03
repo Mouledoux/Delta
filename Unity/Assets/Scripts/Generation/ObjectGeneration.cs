@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 
-public class ObjectGeneration : StructuralGeneration
+public class ObjectGeneration : MonoBehaviour
 {
     //Script needs to add prefabs for objects
 
     //Enemies
     public GameObject EntitySpawn;
-    public GameObject Agony;
+    public GameObject Enemy;
 
     //Loot
     public GameObject Chest;
@@ -29,14 +29,16 @@ public class ObjectGeneration : StructuralGeneration
     public float tileSizes = 0.25f;     //Subdives cells as necessary
     public int lootDistance;            //Any loot objects must maintain this distance from each other when spawning
 
+    bool done = false;
+    bool creation = true; //CHANGE THIS TO FALSE WHEN YOU USE STRUCTURAL GENERATION
+
+    List<GameObject> EnemySpawns = new List<GameObject>();
+
+    public int EnemiesPerRoom;
+
 
     void SubdivideDungeon()
     {
-        
-        for (int i = 0; i < getCells.Count; i++)
-        {
-
-        }
     }
 
     void EnemySpawning()
@@ -61,6 +63,87 @@ public class ObjectGeneration : StructuralGeneration
 
     void Start()
     {
+    }
 
+    void Update()
+    {
+
+        /*if (!StructuralGeneration.structuredone)
+        {
+            StartCoroutine(checkStructure());
+        }
+
+        else if (creation)
+        {
+            CreateSpawn();
+        }*/
+        //UNCOMMENT THIS AND DELETE EVERYTHING BELOW WHEN YOU USE STRUCTURAL GENERATION
+
+        if (GenerationRevamped.structuredone)
+        {
+            if (creation)
+                CreateSpawn();
+        }
+    }
+
+    IEnumerator checkStructure()
+    {
+        Debug.Log("here");
+        int x = 0;
+        /*while (!StructuralGeneration.structuredone)
+        {
+            yield return new WaitForSeconds(1);
+            x++;
+        }*/
+
+        while (!GenerationRevamped.structuredone)
+        {
+            yield return new WaitForSeconds(1);
+            x++;
+        }
+
+        StopAllCoroutines();
+        done = true;
+        creation = true;
+    }
+
+    void CreateSpawn()
+    {
+        List<Vector3> roomCenters = new List<Vector3>();
+        GameObject Rooms = GameObject.Find("Rooms");
+        for (int i = 0; i < Rooms.transform.childCount; i++)
+        {
+            GameObject child = Rooms.transform.GetChild(i).gameObject;
+            roomCenters.Add(child.transform.GetChild(0).transform.position);
+        }
+
+        for (int i = 0; i < roomCenters.Count; i++)
+        {
+            GameObject spawn = Instantiate(EntitySpawn);
+            spawn.transform.position = roomCenters[i];
+            EnemySpawns.Add(spawn);
+        }
+
+        StructuralGeneration.parentObject(EnemySpawns, "Spawns");
+
+        placeEnemies();
+
+        creation = false;
+    }
+
+    void placeEnemies()
+    {
+        List<GameObject> enemies = new List<GameObject>();
+        for (int i = 0; i < EnemySpawns.Count; i++)
+        {
+            for (int x = 0; x < EnemiesPerRoom; x++)
+            {
+                GameObject enemy = Instantiate(Enemy);
+                enemy.transform.position = EnemySpawns[i].transform.position;
+                enemies.Add(enemy);
+            }
+        }
+
+        StructuralGeneration.parentObject(enemies, "Enemies");
     }
 }

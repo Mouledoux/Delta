@@ -28,7 +28,6 @@ public class IKController : MonoBehaviour
         MidEndDistance  = Vector3.Distance(MidJoint.position, EndJoint.position);
         BaseRotation = BaseJoint.rotation;
         endTarget.position = EndJoint.position;
-        Debug.Log(MidEndDistance);
 
         basePoint = BaseJoint.position;
         midPoint = MidJoint.position;
@@ -40,9 +39,6 @@ public class IKController : MonoBehaviour
     void FixedUpdate()
     {
         float angle = Vector3.Angle(MidJoint.position, EndJoint.position);
-        Debug.Log(angle);
-        Debug.DrawLine(MidJoint.position, Vector3.zero);
-        Debug.DrawLine(EndJoint.position, Vector3.zero);
     }
 
 }

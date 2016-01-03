@@ -308,13 +308,37 @@ GameObject:
   m_Component:
   - 4: {fileID: 964184252}
   - 114: {fileID: 964184253}
+  - 114: {fileID: 964184251}
   m_Layer: 0
   m_Name: Dungeon Generator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
+--- !u!114 &964184251
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 964184250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf5335f22c7221440ab33663c4358195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  EntitySpawn: {fileID: 143618, guid: e2d2aa3d9420b0841bff8299fc14e54f, type: 2}
+  Enemy: {fileID: 156404, guid: 951f3e6e2383c654fade1849e15aa76d, type: 2}
+  Chest: {fileID: 0}
+  WeaponRack: {fileID: 0}
+  Torch: {fileID: 0}
+  FirePit: {fileID: 0}
+  Trap: {fileID: 0}
+  HealingWell: {fileID: 0}
+  Altar: {fileID: 0}
+  tileSizes: .25
+  lootDistance: 0
+  EnemiesPerRoom: 3
 --- !u!4 &964184252
 Transform:
   m_ObjectHideFlags: 0
@@ -339,17 +363,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Generate: 1
-  x_cells: 41
-  z_cells: 41
-  roomsPerQuadrant: 3
-  QuadrantsWanted: 16
+  x_cells: 31
+  z_cells: 31
+  roomsPerQuadrant: 2
+  QuadrantsWanted: 9
   cellSize: {x: .400000006, y: .400000006, z: .400000006}
   cellWallHeight: 6
   cellWallWidth: .400000006
   FLOOR: {fileID: 102678, guid: e9078d9954935584a8f9f01faacc1f1c, type: 2}
   WALL: {fileID: 110836, guid: 77c791a8fc3bca64fb428347e310cc1d, type: 2}
   seed: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-  seeddisplay: 
+  seeddisplay: 055205031444
   seedGen: 1
 --- !u!1 &1349654109
 GameObject:
@@ -411,3 +435,79 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
+--- !u!1 &1817992722
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 1817992724}
+  - 114: {fileID: 1817992723}
+  - 114: {fileID: 1817992725}
+  m_Layer: 0
+  m_Name: Old Dungeon Generator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1817992723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1817992722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13a49760ae3102c4a8caf6654aead4df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Generate: 1
+  x_cells: 31
+  z_cells: 31
+  cellSize: {x: .400000006, y: .400000006, z: .400000006}
+  roomsPerQuadrant: 3
+  seed: 
+  FLOOR: {fileID: 102678, guid: e9078d9954935584a8f9f01faacc1f1c, type: 2}
+  WALL: {fileID: 188416, guid: 5706b5f6917248a46b58681b6705a63a, type: 2}
+  cellWallHeight: 6
+  cellWallWidth: .400000006
+  roomsToGen: 27
+  hallsToGen: 0
+  minMaxRooms: 150000001b000000
+--- !u!4 &1817992724
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1817992722}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -11.5810375, y: 15.1397552, z: 44.5636139}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+--- !u!114 &1817992725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1817992722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf5335f22c7221440ab33663c4358195, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  EntitySpawn: {fileID: 143618, guid: e2d2aa3d9420b0841bff8299fc14e54f, type: 2}
+  Enemy: {fileID: 156404, guid: 951f3e6e2383c654fade1849e15aa76d, type: 2}
+  Chest: {fileID: 0}
+  WeaponRack: {fileID: 0}
+  Torch: {fileID: 0}
+  FirePit: {fileID: 0}
+  Trap: {fileID: 0}
+  HealingWell: {fileID: 0}
+  Altar: {fileID: 0}
+  tileSizes: .25
+  lootDistance: 0
+  EnemiesPerRoom: 2

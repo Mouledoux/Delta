@@ -7,6 +7,7 @@ using System.Linq;
 public class StructuralGeneration : MonoBehaviour
 {
     /*
+
         This script is used to generate the structure of the dungeon.
         This consists of the floor, walls, rooms, hallways, and ceiling.
 
@@ -168,6 +169,8 @@ public class StructuralGeneration : MonoBehaviour
 
     public bool seedGen;                                                //Generate a seed
     private bool running;                                               //Checks if game has started
+
+    public static bool structuredone = false;
 
 
     #endregion
@@ -837,6 +840,7 @@ public class StructuralGeneration : MonoBehaviour
     {
         if (Generate)
         {
+            structuredone = false;
             StartCoroutine(Generation());
             Generate = false;
         }
@@ -882,6 +886,7 @@ public class StructuralGeneration : MonoBehaviour
         }
 
         Destroy(GameObject.Find("Cells"));
+        structuredone = true;
     }
     #endregion
 
