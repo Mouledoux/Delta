@@ -7,7 +7,8 @@ public class PlayerController : MonoBehaviour
     //Variables
     public float speed;             //Speed player moves
     public float combatspeed;       //Speed player moves in combat mode
-    public float rotationSpeed;     //Speed player rotates
+    public float H_rotSpeed;        //Speed camera rotates horizontally
+    public float V_rotSpeed;        //Speed camera rotates vertically
     public float gravity;           //Used to effect player falling
     private float movement;         //Actual value of speed that gets passed to rigidbody
 
@@ -17,6 +18,9 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 movePosition;   //Tracks direction of player movement
     private Vector3 moveRotation;   //Tracks direction of player rotation
+
+    private Vector3 stillRotation;
+    private float rotatetrack;
 
     //These bools tracks the state of the player:
 
@@ -52,27 +56,21 @@ public class PlayerController : MonoBehaviour
         ctrl    = Input.GetKeyDown(inputs.Mode);    //Get combat key state
         roll    = Input.GetKeyDown(inputs.Roll);    //Get roll key state
 
-        float HorizontalRotate  = Input.GetAxis("Mouse X");     //Get horizontal mouse movement
-        float VerticalRotate    = Input.GetAxis("Mouse Y");     //Get vertical mouse movement
+        float HorizontalRot  = Input.GetAxis("Mouse X");     //Get horizontal mouse movement
+        float VerticalRot    = Input.GetAxis("Mouse Y");     //Get vertical mouse movement
         float zoom = Input.GetAxis("Mouse ScrollWheel");        //Get mouse scroll movement
 
-        //Rotate player based on horizontal mouse movement multiplied by rotationSpeed
-        moveRotation += new Vector3(0.0f, HorizontalRotate, 0.0f) * rotationSpeed * 10 * Time.deltaTime;
+        Transform camera = transform.Find("Camera");
 
-        Quaternion rotate = Quaternion.Euler(moveRotation); //Convert moveRotation into a quaternion
-        rb.MoveRotation(rotate);                            //rotate player
+        camera.RotateAround(transform.position, transform.up, 20.0f * HorizontalRot * H_rotSpeed * Time.deltaTime);
+        camera.RotateAround(-transform.position, camera.right, 20.0f * VerticalRot * V_rotSpeed * Time.deltaTime);
+        Vector3 tem = camera.rotation.eulerAngles;
+        tem.z = 0.0f;
+        camera.rotation = Quaternion.Euler(tem);
 
-        //If player moves mouse up or down, rotate the camera instead of the player
-        //using vertical mouse movement multplied by rotation sped
-        if (VerticalRotate < 0 || VerticalRotate > 0)
+        if (zoom != 0)
         {
-            float rotation = VerticalRotate * rotationSpeed * Time.deltaTime;
-            gameObject.transform.Find("Camera").gameObject.transform.Rotate(new Vector3(-rotation, 0.0f, 0.0f));
-        }
-
-        if (zoom > 0 || zoom < 0)
-        {
-            gameObject.transform.Find("Camera").gameObject.transform.position += (new Vector3(0.0f, 0.0f, zoom * zoomspeed));
+            camera.localPosition += camera.forward * zoom * zoomspeed;
         }
 
         if (forward) //If forward key is being held
@@ -87,12 +85,16 @@ public class PlayerController : MonoBehaviour
 
         if (left)   //If left key is being held    
         {
-            movePosition -= transform.right * movement; //Subtract right transform from movePosition
+            stillRotation += new Vector3(0.0f, -2.0f, 0.0f);
+            stillRotation.y = Mathf.Clamp(stillRotation.y, -90, 0);
+            rb.MoveRotation(Quaternion.Euler(stillRotation));
+            Debug.Log(stillRotation);
         }
 
         if (right)  //If right key is being held
         {
             movePosition += transform.right * movement; //Add right transform from movePosition
+            StartCoroutine(Rotate(false));
         }
 
         if (roll)   //If roll key has been pressed
@@ -127,6 +129,9 @@ public class PlayerController : MonoBehaviour
 
         movePosition = transform.position;  //Set movePosition to player's initial position
         anim.SetBool("Empty", true);        //Player initially has no weapon
+
+        moveRotation = transform.rotation.eulerAngles;  //Initialize moveRotation to current rotation
+        stillRotation = moveRotation;
 
         movement = speed;                   //Set movement speed == free mode speed
     }
@@ -170,6 +175,39 @@ public class PlayerController : MonoBehaviour
         AnimatorStateInfo info = anim.GetCurrentAnimatorStateInfo(0);   //Get roll animation
         yield return new WaitForSeconds(info.length);                   //Wait for roll length
         setState("Rolling", false);                                     //Set state to false
+    }
+    #endregion
+
+    #region CoRoutines
+
+    IEnumerator Rotate(bool left)
+    {
+        float l_rotSpeed = 5;
+        float rotation = 0;
+
+        
+        if (left)
+        {
+            Vector3 rot = transform.position - new Vector3(0.0f, 90.0f, 0.0f);
+            Quaternion wantedRotation = Quaternion.LookRotation(transform.position - rot);
+            while (rotation < 90)
+            {
+                yield return new WaitForFixedUpdate();
+            }
+        }
+
+        else
+        {
+            Vector3 rot = new Vector3(0.0f, 90.0f, 0.0f);
+            while (rotation < 90)
+            {
+                gameObject.transform.Rotate(new Vector3(0, -l_rotSpeed, 0));
+                rotation += l_rotSpeed;
+                yield return new WaitForFixedUpdate();
+            }
+        }
+
+        
     }
     #endregion
 }

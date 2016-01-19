@@ -9,6 +9,7 @@ public class IKController : MonoBehaviour
 
     private float BaseMidDistance;
     private float MidEndDistance;
+    private float reachDistance;
 
     public Transform endTarget;
 
@@ -33,6 +34,8 @@ public class IKController : MonoBehaviour
         midPoint = MidJoint.position;
         endPoint = EndJoint.position;
         movement = endPoint;
+
+        reachDistance = Vector3.Distance(BaseJoint.position, EndJoint.position);
 
     }
 

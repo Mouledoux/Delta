@@ -5,7 +5,7 @@ AvatarMask:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: TwoHanded
+  m_Name: Upperbody
   m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
   m_Elements:
   - m_Path: 
@@ -15,21 +15,21 @@ AvatarMask:
   - m_Path: metarig
     m_Weight: 1
   - m_Path: metarig/spine
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: metarig/spine/pelvis_L
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: metarig/spine/pelvis_R
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: metarig/spine/spine_001
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: metarig/spine/spine_001/spine_002
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: metarig/spine/spine_001/spine_002/spine_003
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: metarig/spine/spine_001/spine_002/spine_003/breast_L
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: metarig/spine/spine_001/spine_002/spine_003/breast_R
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: metarig/spine/spine_001/spine_002/spine_003/shoulder_L
     m_Weight: 1
   - m_Path: metarig/spine/spine_001/spine_002/spine_003/shoulder_L/upper_arm_L
@@ -333,7 +333,7 @@ AvatarMask:
   - m_Path: metarig/spine/thigh_R/shin_R/foot_R/toe_R
     m_Weight: 0
   - m_Path: rig
-    m_Weight: 1
+    m_Weight: 0
   - m_Path: rig/root
     m_Weight: 0
   - m_Path: rig/root/DEF-spine
@@ -753,17 +753,17 @@ AvatarMask:
   - m_Path: rig/root/torso/MCH-spine_002/MCH-spine_003/MCH-ROT-neck/neck/MCH-ROT-head/head/ORG-spine_006/ORG-face/nose_R/DEF-nose_R
     m_Weight: 0
   - m_Path: rig/root/torso/MCH-spine_002/MCH-spine_003/tweak_spine_003
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: rig/root/torso/MCH-spine_002/MCH-spine_003/tweak_spine_003/ORG-spine_003
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: rig/root/torso/MCH-spine_002/MCH-spine_003/tweak_spine_003/ORG-spine_003/ORG-breast_L
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: rig/root/torso/MCH-spine_002/MCH-spine_003/tweak_spine_003/ORG-spine_003/ORG-breast_L/DEF-breast_L
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: rig/root/torso/MCH-spine_002/MCH-spine_003/tweak_spine_003/ORG-spine_003/ORG-breast_R
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: rig/root/torso/MCH-spine_002/MCH-spine_003/tweak_spine_003/ORG-spine_003/ORG-breast_R/DEF-breast_R
-    m_Weight: 0
+    m_Weight: 1
   - m_Path: rig/root/torso/MCH-spine_002/MCH-spine_003/tweak_spine_003/ORG-spine_003/ORG-shoulder_L
     m_Weight: 1
   - m_Path: rig/root/torso/MCH-spine_002/MCH-spine_003/tweak_spine_003/ORG-spine_003/ORG-shoulder_L/DEF-shoulder_L
