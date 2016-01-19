@@ -2005,7 +2005,8 @@ Transform:
   m_LocalRotation: {x: .0989190191, y: 0, z: 0, w: .995095491}
   m_LocalPosition: {x: -.349999994, y: 1.88999999, z: -.959999979}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 598495581}
   m_Father: {fileID: 0}
   m_RootOrder: 3
 --- !u!114 &300398048
@@ -3907,6 +3908,33 @@ Transform:
   m_LocalScale: {x: 1, y: 1.00000012, z: .99999994}
   m_Children: []
   m_Father: {fileID: 1421217627}
+  m_RootOrder: 0
+--- !u!1 &598495580
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 598495581}
+  m_Layer: 0
+  m_Name: CameraFollower
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &598495581
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 598495580}
+  m_LocalRotation: {x: -.0989190191, y: 0, z: 0, w: .995095491}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 300398047}
   m_RootOrder: 0
 --- !u!1 &604398058
 GameObject:

@@ -10,12 +10,12 @@ public class PlayerController : MonoBehaviour
     public float gravity;           //Used to effect player falling
     private float movement;         //Actual value of speed that gets passed to rigidbody
 
-    private InputManager inputs; //Used to create instance of Input Manager
-    private Rigidbody rb;        //Handles the rigidbody component
-    private Animator anim;       //Handles the animator component
+    private InputManager inputs;    //Used to create instance of Input Manager
+    private Rigidbody rb;           //Handles the rigidbody component
+    private Animator anim;          //Handles the animator component
+    private GameObject cam;         //Gets camera gameobject
 
     private Vector3 movePosition;   //Tracks direction of player movement
-    private Vector3 moveRotation;   //Tracks direction of player rotation
 
     private Vector3 stillRotation;
     private float rotatetrack;
@@ -42,9 +42,12 @@ public class PlayerController : MonoBehaviour
     private string Crossbow = "Crossbow";           //Track state of crossbow
     private string Polearm = "Polearm";             //Track state of polearm
 
+    private bool already = false;
+
     #region Updates and Start
     void FixedUpdate()
     {
+        bool moving = false;
         forward = Input.GetKey(inputs.Forward);     //Get forward key state
         back    = Input.GetKey(inputs.Backward);    //Get back key state
         left    = Input.GetKey(inputs.Left);        //Get left key state
@@ -54,26 +57,47 @@ public class PlayerController : MonoBehaviour
 
         if (forward) //If forward key is being held
         {
-            movePosition += transform.forward * movement; //Add forward transform to movePosition
+            movePosition += cam.transform.forward * movement; //Add forward transform to movePosition
+            moving = true;
         }
 
         if (back)   //If back key is being held
         {
-            movePosition -= transform.forward * movement; //Subtract forward transform from movePosition
+            movePosition -= cam.transform.forward * movement; //Subtract forward transform from movePosition
+            moving = true;
         }
 
         if (left)   //If left key is being held    
         {
-            stillRotation += new Vector3(0.0f, -2.0f, 0.0f);
-            stillRotation.y = Mathf.Clamp(stillRotation.y, -90, 0);
-            rb.MoveRotation(Quaternion.Euler(stillRotation));
-            Debug.Log(stillRotation);
+            float rotate = 90.0f;
+            if (forward)
+                rotate = 45.0f;
+            if (back)
+                rotate = -45.0f;
+
+            Vector3 rot = cam.transform.rotation.eulerAngles - new Vector3(0.0f, rotate, 0.0f);
+            rb.MoveRotation(Quaternion.Slerp(transform.rotation, Quaternion.Euler(rot), 0.05f * Time.time));
+            movePosition += -cam.transform.right * movement; //Add forward transform to movePosition
+            moving = true;
         }
+ 
 
         if (right)  //If right key is being held
         {
-            movePosition += transform.right * movement; //Add right transform from movePosition
-            StartCoroutine(Rotate(false));
+            float rotate = 90.0f;
+            if (forward)
+                rotate = 45.0f;
+            if (back)
+                rotate = -45.0f;
+
+            Vector3 rot = cam.transform.rotation.eulerAngles + new Vector3(0.0f, rotate, 0.0f);
+            rb.MoveRotation(Quaternion.Slerp(transform.rotation, Quaternion.Euler(rot), 0.05f * Time.time));
+            //movePosition += -cam.transform.right * movement; //Add forward transform to movePosition
+            moving = true;
+
+
+            movePosition += cam.transform.right * movement; //Add right transform from movePosition
+            moving = true;
         }
 
         if (roll)   //If roll key has been pressed
@@ -91,6 +115,12 @@ public class PlayerController : MonoBehaviour
                 movement = combatspeed;     //Adjust speed for combat mode
         }
 
+        if (moving)
+        {
+            if (!left && !right)
+                transform.forward = cam.transform.forward;
+        }
+
         setMovementState(forward, back, left, right);       //Update animator based on movement
         rb.MovePosition(movePosition * Time.deltaTime);     //Move player through rigidbody(free)
 
@@ -102,15 +132,13 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;   //Lock cursor
         Cursor.visible = false;                     //Turn off cursor
 
-        rb = GetComponent<Rigidbody>();     //Get rigidbody
-        inputs = new InputManager();        //Initialize input manager
-        anim = GetComponent<Animator>();    //Get animator
+        rb = GetComponent<Rigidbody>();         //Get rigidbody
+        inputs = new InputManager();            //Initialize input manager
+        anim = GetComponent<Animator>();        //Get animator
+        cam = GameObject.Find("CameraFollower"); //Get Camera
 
         movePosition = transform.position;  //Set movePosition to player's initial position
         anim.SetBool("Empty", true);        //Player initially has no weapon
-
-        moveRotation = transform.rotation.eulerAngles;  //Initialize moveRotation to current rotation
-        stillRotation = moveRotation;
 
         movement = speed;                   //Set movement speed == free mode speed
     }

@@ -18,12 +18,6 @@ public class PlayerCamera : MonoBehaviour {
         float VerticalRot = Input.GetAxis("Mouse Y");     //Get vertical mouse movement
         float zoom = Input.GetAxis("Mouse ScrollWheel");        //Get mouse scroll movement
 
-        transform.RotateAround(player.transform.position, player.transform.up, 20.0f * HorizontalRot * H_rotSpeed * Time.deltaTime);
-        //transform.RotateAround(-player.transform.position, player.transform.right, 20.0f * VerticalRot * V_rotSpeed * Time.deltaTime);
-        Vector3 tem = transform.rotation.eulerAngles;
-        tem.z = 0.0f;
-        transform.rotation = Quaternion.Euler(tem);
-
         if (zoom != 0)
         {
             transform.localPosition += transform.forward * zoom * zoomspeed;
@@ -34,6 +28,12 @@ public class PlayerCamera : MonoBehaviour {
             transform.position += player.transform.position - originalPos;
             originalPos = player.transform.position;
         }
+
+        transform.RotateAround(player.transform.position, player.transform.up, 20.0f * HorizontalRot * H_rotSpeed * Time.deltaTime);
+        //transform.RotateAround(-player.transform.position, player.transform.right, 20.0f * VerticalRot * V_rotSpeed * Time.deltaTime);
+        Vector3 tem = transform.rotation.eulerAngles;
+        tem.z = 0.0f;
+        transform.rotation = Quaternion.Euler(tem);
 
     }
 
