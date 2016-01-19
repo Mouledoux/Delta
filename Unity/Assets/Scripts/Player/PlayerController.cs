@@ -7,8 +7,6 @@ public class PlayerController : MonoBehaviour
     //Variables
     public float speed;             //Speed player moves
     public float combatspeed;       //Speed player moves in combat mode
-    public float H_rotSpeed;        //Speed camera rotates horizontally
-    public float V_rotSpeed;        //Speed camera rotates vertically
     public float gravity;           //Used to effect player falling
     private float movement;         //Actual value of speed that gets passed to rigidbody
 
@@ -44,8 +42,6 @@ public class PlayerController : MonoBehaviour
     private string Crossbow = "Crossbow";           //Track state of crossbow
     private string Polearm = "Polearm";             //Track state of polearm
 
-    public float zoomspeed;
-
     #region Updates and Start
     void FixedUpdate()
     {
@@ -55,23 +51,6 @@ public class PlayerController : MonoBehaviour
         right   = Input.GetKey(inputs.Right);       //Get right key state
         ctrl    = Input.GetKeyDown(inputs.Mode);    //Get combat key state
         roll    = Input.GetKeyDown(inputs.Roll);    //Get roll key state
-
-        float HorizontalRot  = Input.GetAxis("Mouse X");     //Get horizontal mouse movement
-        float VerticalRot    = Input.GetAxis("Mouse Y");     //Get vertical mouse movement
-        float zoom = Input.GetAxis("Mouse ScrollWheel");        //Get mouse scroll movement
-
-        Transform camera = transform.Find("Camera");
-
-        camera.RotateAround(transform.position, transform.up, 20.0f * HorizontalRot * H_rotSpeed * Time.deltaTime);
-        camera.RotateAround(-transform.position, camera.right, 20.0f * VerticalRot * V_rotSpeed * Time.deltaTime);
-        Vector3 tem = camera.rotation.eulerAngles;
-        tem.z = 0.0f;
-        camera.rotation = Quaternion.Euler(tem);
-
-        if (zoom != 0)
-        {
-            camera.localPosition += camera.forward * zoom * zoomspeed;
-        }
 
         if (forward) //If forward key is being held
         {
