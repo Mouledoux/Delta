@@ -28,8 +28,7 @@ public class ControllerExperiment : AnimationMaster
 
         if (forward)
         {
-            PlayAnimation("MoveForward");
-            CheckFoot();
+            
         }
 
     }

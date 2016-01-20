@@ -23,11 +23,6 @@ public class AnimationMaster : MonoBehaviour
         }
     }
 
-    public void PlayAnimation(string animation)
-    {
-        Anim.Play(animation);
-    }
-
     void MoveEntity()
     {
     }

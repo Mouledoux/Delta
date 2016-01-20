@@ -10,6 +10,8 @@ public class PlayerController : MonoBehaviour
     public float gravity;           //Used to effect player falling
     private float movement;         //Actual value of speed that gets passed to rigidbody
 
+    public bool toggleMove;
+
     private InputManager inputs;    //Used to create instance of Input Manager
     private Rigidbody rb;           //Handles the rigidbody component
     private Animator anim;          //Handles the animator component
@@ -28,6 +30,8 @@ public class PlayerController : MonoBehaviour
     private bool left;      //Track state of left key
     private bool right;     //Track state of right key
     private bool ctrl;      //Track state of control key
+    private bool onHand;
+    private bool offHand;
 
     private bool mode;      //Tracks state of combat/free mode key
     private bool roll;      //Track state of roll key
@@ -42,7 +46,8 @@ public class PlayerController : MonoBehaviour
     private string Crossbow = "Crossbow";           //Track state of crossbow
     private string Polearm = "Polearm";             //Track state of polearm
 
-    private bool already = false;
+    public Transform LeftFoot;
+    public Transform RightFoot;
 
     #region Updates and Start
     void FixedUpdate()
@@ -54,10 +59,15 @@ public class PlayerController : MonoBehaviour
         right   = Input.GetKey(inputs.Right);       //Get right key state
         ctrl    = Input.GetKeyDown(inputs.Mode);    //Get combat key state
         roll    = Input.GetKeyDown(inputs.Roll);    //Get roll key state
+        onHand = Input.GetKey(inputs.OnHand);
+        offHand = Input.GetKey(inputs.OffHand);
 
         if (forward) //If forward key is being held
         {
-            movePosition += cam.transform.forward * movement; //Add forward transform to movePosition
+                //Debug.Log(LeftFoot.localPosition.z);
+                movePosition += LeftFoot.position;
+
+            //movePosition += cam.transform.forward * movement; //Add forward transform to movePosition
             moving = true;
         }
 
@@ -76,7 +86,7 @@ public class PlayerController : MonoBehaviour
                 rotate = -45.0f;
 
             Vector3 rot = cam.transform.rotation.eulerAngles - new Vector3(0.0f, rotate, 0.0f);
-            rb.MoveRotation(Quaternion.Slerp(transform.rotation, Quaternion.Euler(rot), 0.05f * Time.time));
+            rb.MoveRotation(Quaternion.Lerp(transform.rotation, Quaternion.Euler(rot), 0.1f * Time.time));
             movePosition += -cam.transform.right * movement; //Add forward transform to movePosition
             moving = true;
         }
@@ -118,10 +128,14 @@ public class PlayerController : MonoBehaviour
         if (moving)
         {
             if (!left && !right)
+            {
                 transform.forward = cam.transform.forward;
+
+            }
         }
 
         setMovementState(forward, back, left, right);       //Update animator based on movement
+        if (toggleMove)
         rb.MovePosition(movePosition * Time.deltaTime);     //Move player through rigidbody(free)
 
 
