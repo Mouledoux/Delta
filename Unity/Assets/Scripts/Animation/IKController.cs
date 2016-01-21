@@ -42,7 +42,7 @@ public class IKController : MonoBehaviour
     void FixedUpdate()
     {
         Vector3 mejointVec = Vector3.MoveTowards(MidJoint.position, EndJoint.position,10.0f);
-        Vector3 meTargetVec = Vector3.MoveTowards(MidJoint.right, endTarget.position, 10.0f);
+        Vector3 meTargetVec = Vector3.MoveTowards(MidJoint.position, endTarget.position, 10.0f);
         Vector3 bejointVec = Vector3.MoveTowards(BaseJoint.position, EndJoint.position, 10.0f);
         Vector3 beTargeVec = Vector3.MoveTowards(BaseJoint.position, endTarget.position, 10.0f);
 
@@ -57,8 +57,18 @@ public class IKController : MonoBehaviour
         float c = Vector3.Distance(MidJoint.position, endTarget.position);
         float angle = Mathf.Acos((-(a*a) + (b * b) + (c * c))/ (2 * b * c));
 
-        if (Input.GetKey(KeyCode.G)) 
-        MidJoint.Rotate(MidJoint.up, -angle);
+        //MidJoint.Rotate(MidJoint.up, -angle);
+
+        a = Vector3.Distance(EndJoint.position, endTarget.position);
+        b = Vector3.Distance(BaseJoint.position, EndJoint.position);
+        c = Vector3.Distance(BaseJoint.position, endTarget.position);
+        angle = Mathf.Acos((-(a * a) + (b * b) + (c * c)) / (2 * b * c));
+
+        //BaseJoint.Rotate(BaseJoint.up, -angle);
+        Vector3 dir = endTarget.position - MidJoint.position;
+        dir = -dir.normalized;
+        Quaternion look = Quaternion.LookRotation(dir);
+        MidJoint.rotation = Quaternion.Slerp(MidJoint.rotation, look, Time.deltaTime);
         //EndJoint.rotation = Quaternion.FromToRotation(EndJoint.position, endTarget.position);
         //MidJoint.rotation = Quaternion.FromToRotation(mejointVec, meTargetVec);
         //BaseJoint.rotation = Quaternion.FromToRotation(bejointVec, beTargeVec);
