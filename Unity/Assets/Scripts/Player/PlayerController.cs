@@ -129,7 +129,7 @@ public class PlayerController : MonoBehaviour
         {
             if (!left && !right)
             {
-                transform.forward = cam.transform.forward;
+                transform.forward = Vector3.Lerp(transform.forward, cam.transform.forward, 0.01f * Time.time);
 
             }
         }

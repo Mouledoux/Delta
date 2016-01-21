@@ -28,7 +28,7 @@ public class IKController : MonoBehaviour
         BaseMidDistance = Vector3.Distance(BaseJoint.position, MidJoint.position);
         MidEndDistance  = Vector3.Distance(MidJoint.position, EndJoint.position);
         BaseRotation = BaseJoint.rotation;
-        endTarget.position = EndJoint.position;
+        //endTarget.position = EndJoint.position;
 
         basePoint = BaseJoint.position;
         midPoint = MidJoint.position;
@@ -41,7 +41,33 @@ public class IKController : MonoBehaviour
 
     void FixedUpdate()
     {
-        float angle = Vector3.Angle(MidJoint.position, EndJoint.position);
+        Vector3 mejointVec = Vector3.MoveTowards(MidJoint.position, EndJoint.position,10.0f);
+        Vector3 meTargetVec = Vector3.MoveTowards(MidJoint.right, endTarget.position, 10.0f);
+        Vector3 bejointVec = Vector3.MoveTowards(BaseJoint.position, EndJoint.position, 10.0f);
+        Vector3 beTargeVec = Vector3.MoveTowards(BaseJoint.position, endTarget.position, 10.0f);
+
+        Debug.DrawLine(EndJoint.position, endTarget.position, Color.black);
+        Debug.DrawLine(MidJoint.position, EndJoint.position, Color.black);
+        Debug.DrawLine(MidJoint.position, endTarget.position, Color.black);
+        //Debug.DrawLine(BaseJoint.position, EndJoint.position, Color.magenta);
+        //Debug.DrawLine(BaseJoint.position, endTarget.position, Color.magenta);
+
+        float a = Vector3.Distance(EndJoint.position, endTarget.position);
+        float b = Vector3.Distance(MidJoint.position, EndJoint.position);
+        float c = Vector3.Distance(MidJoint.position, endTarget.position);
+        float angle = Mathf.Acos((-(a*a) + (b * b) + (c * c))/ (2 * b * c));
+
+        if (Input.GetKey(KeyCode.G)) 
+        MidJoint.Rotate(MidJoint.up, -angle);
+        //EndJoint.rotation = Quaternion.FromToRotation(EndJoint.position, endTarget.position);
+        //MidJoint.rotation = Quaternion.FromToRotation(mejointVec, meTargetVec);
+        //BaseJoint.rotation = Quaternion.FromToRotation(bejointVec, beTargeVec);
+
+    }
+
+    void ikSolver()
+    {
+
     }
 
 }
