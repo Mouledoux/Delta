@@ -59,8 +59,8 @@ public class PlayerController : MonoBehaviour
         right   = Input.GetKey(inputs.Right);       //Get right key state
         ctrl    = Input.GetKeyDown(inputs.Mode);    //Get combat key state
         roll    = Input.GetKeyDown(inputs.Roll);    //Get roll key state
-        onHand = Input.GetKey(inputs.OnHand);
-        offHand = Input.GetKey(inputs.OffHand);
+        onHand = Input.GetKey(inputs.OnHand);       //Get Onhand
+        offHand = Input.GetKey(inputs.OffHand);     //Get Offhand
 
         if (forward) //If forward key is being held
         {
@@ -137,6 +137,16 @@ public class PlayerController : MonoBehaviour
         setMovementState(forward, back, left, right);       //Update animator based on movement
         if (toggleMove)
         rb.MovePosition(movePosition * Time.deltaTime);     //Move player through rigidbody(free)
+
+        if (onHand)
+        {
+
+        }
+
+        if (offHand)
+        {
+
+        }
 
 
     }
