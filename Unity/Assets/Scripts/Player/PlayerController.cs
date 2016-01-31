@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;           //Handles the rigidbody component
     private Animator anim;          //Handles the animator component
     private GameObject cam;         //Gets camera gameobject
+    private AnimatorStateInfo animinfo;
 
     private Vector3 movePosition;   //Tracks direction of player movement
 
@@ -32,6 +33,7 @@ public class PlayerController : MonoBehaviour
     private bool ctrl;      //Track state of control key
     private bool onHand;
     private bool offHand;
+    private bool attacking;
 
     private bool mode;      //Tracks state of combat/free mode key
     private bool roll;      //Track state of roll key
@@ -49,6 +51,11 @@ public class PlayerController : MonoBehaviour
     public Transform LeftFoot;
     public Transform RightFoot;
 
+    public bool hold;
+    float lastAttackTime = 0.0f;
+    public float attackWait;
+    int atkseq = 0;
+
     #region Updates and Start
     void FixedUpdate()
     {
@@ -59,8 +66,11 @@ public class PlayerController : MonoBehaviour
         right   = Input.GetKey(inputs.Right);       //Get right key state
         ctrl    = Input.GetKeyDown(inputs.Mode);    //Get combat key state
         roll    = Input.GetKeyDown(inputs.Roll);    //Get roll key state
+
         onHand = Input.GetKey(inputs.OnHand);       //Get Onhand
         offHand = Input.GetKey(inputs.OffHand);     //Get Offhand
+
+        animinfo = anim.GetCurrentAnimatorStateInfo(1);
 
         if (forward) //If forward key is being held
         {
@@ -118,7 +128,7 @@ public class PlayerController : MonoBehaviour
 
         if (ctrl)  //If mode key is being held
         {
-            changeMode(mode = !mode);       //Switch modes
+            setState("Mode", mode = !mode); //Switch modes
             if (!mode)
                 movement = speed;           //Adjust speed for free mode
             else
@@ -134,21 +144,29 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        if (Time.time > lastAttackTime + animinfo.length)
+        {
+            if (onHand || offHand)
+            {
+                atkseq++;
+                setInt("Attack_OneHand_1", atkseq);
+                lastAttackTime = Time.time;
+                animinfo = anim.GetCurrentAnimatorStateInfo(1);
+            }
+
+            if (Time.time > animinfo.length + lastAttackTime + attackWait)
+            {
+                atkseq = 0;
+                setInt("Attack_OneHand_1", atkseq);
+            }
+        }
+
+        if (atkseq == 2)
+            atkseq = 0;
+
         setMovementState(forward, back, left, right);       //Update animator based on movement
         if (toggleMove)
         rb.MovePosition(movePosition * Time.deltaTime);     //Move player through rigidbody(free)
-
-        if (onHand)
-        {
-
-        }
-
-        if (offHand)
-        {
-
-        }
-
-
     }
 
     void Start()
@@ -200,16 +218,23 @@ public class PlayerController : MonoBehaviour
         anim.SetBool("Mode", mode);             //Set mode == to mode
     }
 
-        //Coroutine for roll animation
+    void setInt(string parameter, int value)
+    {
+        anim.SetInteger(parameter, value);
+    }
+
+
+    #endregion
+
+    #region CoRoutines
+
+    //Coroutine for roll animation
     IEnumerator Roll()
     {
         AnimatorStateInfo info = anim.GetCurrentAnimatorStateInfo(0);   //Get roll animation
         yield return new WaitForSeconds(info.length);                   //Wait for roll length
         setState("Rolling", false);                                     //Set state to false
     }
-    #endregion
-
-    #region CoRoutines
 
     IEnumerator Rotate(bool left)
     {
