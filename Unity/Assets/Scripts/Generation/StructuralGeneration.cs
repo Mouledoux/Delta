@@ -171,8 +171,96 @@ public class StructuralGeneration : MonoBehaviour
     private bool running;                                               //Checks if game has started
 
     public static bool structuredone = false;
+    public float numberofRooms;                                         //Debugging purposes only
 
 
+    #endregion
+
+    #region Start and Update
+
+
+    void Start()
+    {
+        //Generating Cells
+        cells = generateGrid();                 //generate grid
+        parentObject(cells, "Cells");           //Parent every cell generated under a game object named "Cells"
+
+        boundaries = furthestDirections(cells); //Get the furthest world positions of the grid in each direction
+        generateQuadrants();                    //Divide the grid into quadrants
+
+        //Generating Rooms and Halls
+        // if (Generate) //If we want to generate walls, rooms, and hallways
+        // {
+        generateCellWalls(cells); //Generate walls around each cell
+
+        //     GenerateDungeon();                  //Generate Dungeon
+        //     Destroy(GameObject.Find("Cells")); //Destroy whatever cells aren't used
+
+        //     GameObject Rooms = GameObject.Find("Rooms");
+
+        //     for (int i = 0; i < Rooms.transform.childCount; i++)
+        //    {
+        //        Rooms.transform.GetChild(i).name = "Room " + i;
+        //    }
+        //  }
+        // Generate = false;
+        running = true;
+    }
+
+    void Update()
+    {
+        if (Generate)
+        {
+            structuredone = false;
+            StartCoroutine(Generation());
+            Generate = false;
+        }
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            Destroy(GameObject.Find("Rooms"));
+            cells = generateGrid();
+            boundaries = furthestDirections(cells);
+            parentObject(cells, "Cells");
+            generateQuadrants();
+            generateCellWalls(cells);
+            Generate = true;
+            seeddisplay = "";
+        }
+
+    }
+
+    IEnumerator Generation()
+    {
+        yield return new WaitForSeconds(1.0f);
+        GenerateDungeon();
+
+    }
+
+    IEnumerator GenerationDampener(List<Vector3> roomPositions, int[] allRooms, int[] roomSizes)
+    {
+        for (int i = 0; i < roomPositions.Count; i++)
+        {
+            string temp = allRooms[roomSizes[i]].ToString();
+
+            int[] roomsize = new int[] { Convert.ToInt32(temp[0].ToString()), Convert.ToInt32(temp[1].ToString()) };
+            Vector3 returnPos = roomPositions[i];
+            List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos);
+            parentObject(parent, "Rooms", "Rooms " + i);
+            yield return new WaitForSeconds(0.3f * Time.deltaTime);
+        }
+
+        GameObject Rooms = GameObject.Find("Rooms");
+
+        for (int i = 0; i < Rooms.transform.childCount; i++)
+        {
+            Rooms.transform.GetChild(i).name = "Room " + i;
+        }
+
+        numberofRooms = Rooms.transform.childCount;
+
+        Destroy(GameObject.Find("Cells"));
+        structuredone = true;
+    }
     #endregion
 
     #region Generate Grid
@@ -803,91 +891,6 @@ public class StructuralGeneration : MonoBehaviour
         return true;
     }
 
-    #endregion
-
-    #region Start and Update
-
-
-    void Start()
-    {
-        //Generating Cells
-        cells = generateGrid();                 //generate grid
-        parentObject(cells, "Cells");           //Parent every cell generated under a game object named "Cells"
-
-        boundaries = furthestDirections(cells); //Get the furthest world positions of the grid in each direction
-        generateQuadrants();                    //Divide the grid into quadrants
-
-        //Generating Rooms and Halls
-       // if (Generate) //If we want to generate walls, rooms, and hallways
-       // {
-            generateCellWalls(cells); //Generate walls around each cell
-
-       //     GenerateDungeon();                  //Generate Dungeon
-       //     Destroy(GameObject.Find("Cells")); //Destroy whatever cells aren't used
-
-       //     GameObject Rooms = GameObject.Find("Rooms");
-
-       //     for (int i = 0; i < Rooms.transform.childCount; i++)
-        //    {
-        //        Rooms.transform.GetChild(i).name = "Room " + i;
-        //    }
-      //  }
-       // Generate = false;
-        running = true;
-    }
-
-    void Update()
-    {
-        if (Generate)
-        {
-            structuredone = false;
-            StartCoroutine(Generation());
-            Generate = false;
-        }
-        if (Input.GetKeyDown(KeyCode.G))
-        {
-            Destroy(GameObject.Find("Rooms"));
-            cells = generateGrid();
-            boundaries = furthestDirections(cells);
-            parentObject(cells, "Cells");
-            generateQuadrants();
-            generateCellWalls(cells);
-            Generate = true;
-            seeddisplay = "";
-        }
-
-    }
-
-    IEnumerator Generation()
-    {
-        yield return new WaitForSeconds(1.0f);
-        GenerateDungeon();
-
-    }
-
-    IEnumerator GenerationDampener(List<Vector3> roomPositions, int[] allRooms, int[] roomSizes)
-    {
-        for (int i = 0; i < roomPositions.Count; i++)
-        {
-            string temp = allRooms[roomSizes[i]].ToString();
-
-            int[] roomsize = new int[] { Convert.ToInt32(temp[0].ToString()), Convert.ToInt32(temp[1].ToString()) };
-            Vector3 returnPos = roomPositions[i];
-            List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos);
-            parentObject(parent, "Rooms", "Rooms " + i);
-            yield return new WaitForSeconds(0.3f * Time.deltaTime);
-        }
-
-        GameObject Rooms = GameObject.Find("Rooms");
-
-        for (int i = 0; i < Rooms.transform.childCount; i++)
-        {
-            Rooms.transform.GetChild(i).name = "Room " + i;
-        }
-
-        Destroy(GameObject.Find("Cells"));
-        structuredone = true;
-    }
     #endregion
 
     #region Generate Dungeon

@@ -4167,7 +4167,7 @@ Transform:
   m_PrefabParentObject: {fileID: 451956, guid: cc3e464fda2432848a1a806eaa74ffd5, type: 2}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 635443918}
-  m_LocalRotation: {x: -.547348738, y: .0829215646, z: .551231921, w: .624241054}
+  m_LocalRotation: {x: -.547348678, y: .0829215571, z: .551231861, w: .624240994}
   m_LocalPosition: {x: -4.45142007e-10, y: 6.16660101e-09, z: 4.56575648e-08}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -6147,7 +6147,7 @@ Transform:
   m_PrefabParentObject: {fileID: 444078, guid: cc3e464fda2432848a1a806eaa74ffd5, type: 2}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 959262508}
-  m_LocalRotation: {x: -.533635855, y: .155762553, z: .579552889, w: .5958938}
+  m_LocalRotation: {x: -.533635795, y: .155762538, z: .579552829, w: .595893741}
   m_LocalPosition: {x: -.20648168, y: .139839262, z: .176801965}
   m_LocalScale: {x: 1, y: 1, z: .99999994}
   m_Children:
@@ -12390,8 +12390,8 @@ MonoBehaviour:
   toggleMove: 0
   LeftFoot: {fileID: 1787471207}
   RightFoot: {fileID: 659621038}
-  hold: 0
-  attackWait: .25
+  hold: 1
+  attackWait: .150000006
 --- !u!114 &1911877375
 MonoBehaviour:
   m_ObjectHideFlags: 0

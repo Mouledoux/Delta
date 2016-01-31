@@ -315,7 +315,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &964184251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -363,9 +363,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Generate: 1
-  x_cells: 31
-  z_cells: 31
-  roomsPerQuadrant: 2
+  x_cells: 41
+  z_cells: 41
+  roomsPerQuadrant: 3
   QuadrantsWanted: 9
   cellSize: {x: .400000006, y: .400000006, z: .400000006}
   cellWallHeight: 6
@@ -373,8 +373,9 @@ MonoBehaviour:
   FLOOR: {fileID: 102678, guid: e9078d9954935584a8f9f01faacc1f1c, type: 2}
   WALL: {fileID: 110836, guid: 77c791a8fc3bca64fb428347e310cc1d, type: 2}
   seed: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-  seeddisplay: 055205031444
+  seeddisplay: 
   seedGen: 1
+  numberofRooms: 0
 --- !u!1 &1349654109
 GameObject:
   m_ObjectHideFlags: 0
@@ -451,7 +452,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1817992723
 MonoBehaviour:
   m_ObjectHideFlags: 0

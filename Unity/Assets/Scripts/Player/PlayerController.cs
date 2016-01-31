@@ -148,6 +148,7 @@ public class PlayerController : MonoBehaviour
         {
             if (onHand || offHand)
             {
+                setState("Mode", true);
                 atkseq++;
                 setInt("Attack_OneHand_1", atkseq);
                 lastAttackTime = Time.time;
