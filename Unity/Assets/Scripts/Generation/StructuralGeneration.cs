@@ -6,20 +6,16 @@ using System.Linq;
 
 public class StructuralGeneration : MonoBehaviour
 {
+    #region Description
     /*
-
         This script is used to generate the structure of the dungeon.
         This consists of the floor, walls, rooms, hallways, and ceiling.
-
         How dungeon generation works:
-
         First a little lingo:
             Cell = a single rectangular FLOOR gameobject prefab (primitive plane with a texture for the floor)
             Grid = A large rectangular plane made up of all cells. It is divided into even quadrants.
             Quadrant = A section of the grid made up of a group of cells.
-
         Alright, now onto the steps.
-
         Step 1: Generates a grid
         Step 2: Divide grid into even quadrants (specified as a variable)
         Step 3: Generate four walls around each cell (primitive cube with a texture for walls)
@@ -28,14 +24,11 @@ public class StructuralGeneration : MonoBehaviour
         Step 5: Define the main rooms
         Step 6: Connect the main rooms using a main hall
         Step 7: Ensure every other room is connected in some way to the main hall, either directly or indirectly
-
-
         How the seed works
     
             Step 1: Generate the quadrants of the grid
             Step 2: Find default room positions in each quadrant of the grid.
                 - The default room positions are: 
-
                 //////////////////////////////////////////////////////  
                 //// Top Left        Top Middle      Top Right,   ////      
                 //// Middle Left     Center          Middle Right ////     
@@ -43,16 +36,13 @@ public class StructuralGeneration : MonoBehaviour
                 //////////////////////////////////////////////////////
                                                                         
                 - Room's default positions are placed in these positions
-
             Step 3: Execute transformations and exchanges based on numbers 0-9 to shift, scale, and switch rooms
-
             The seed is currently an int array with length 12.
             The first nine numbers are used to transform the dungeon
             The tenth and eleventh numbers determine which rooms (every room is numbered from 0 - number of rooms)
                 will be considered the main rooms
             The twelfth number determines the boss that spawns
             This array may be expanded to help with object generation if wanted (more details when I get to that)
-
             As stated previously, numbers 0-9 are used for transformations and whatnot.
             They are currently used in the following manner:
             0 - shifts every room up in their quadrant by room number
@@ -67,15 +57,10 @@ public class StructuralGeneration : MonoBehaviour
             9 - Not currently in use
             
             *Every shift also scales rooms by room number (0-x; x = however many rooms we want to generate)
-
             Adding a negative to these numbers processes the command in the opposite manner (Though it doesn't do this now)
-
         *Note that all of the above is subject to change...and probably will*
-
             
-
         One seed is used for the entire dungeon.
-
         Tier I
         Level 1 uses the original default setup
         Levels 2-8 changes the default dungeon orientation
@@ -84,7 +69,6 @@ public class StructuralGeneration : MonoBehaviour
         Level 11-17 changes default orientation
         Level 18 shuffles room numbers
         Level 19-20 changes default orientation
-
         Tier II
         Level 21 changes the grid size and roomsPerQuadrant. Uses default room orientation
         Level 22-28 changes the default dungeon orientation
@@ -93,15 +77,12 @@ public class StructuralGeneration : MonoBehaviour
         Level 31-37 changes default orientation
         Level 38 shuffles the room numbers
         Level 39-40 changes default orientation
-
         Tier III
         Level 41 changes number of quadrants. Uses default orientation
         Level 42-60 same as Tier II
-
         Tier IV
         Level 61 changes number of quadrants and roomsPerQuadrant. Uses default room orientation
         Level 62-80 are the same as Tier III
-
         Tier V
         Level 81 changes grid size. Use default room orientation
         Level 82-97 are the same as Tier IV
@@ -111,8 +92,6 @@ public class StructuralGeneration : MonoBehaviour
         
          
         Note that the above is an idea, but the final generation will involve similar structure
-
-
      * This script needs to:
      * Generate a grid
      *  - public ints for changing the grid size to meet whatever specifications we want
@@ -142,6 +121,7 @@ public class StructuralGeneration : MonoBehaviour
      * 
      */
     //After Global Variables, scroll to Start to begin tracking code.
+    #endregion
 
     #region Global Variables
 
@@ -151,8 +131,11 @@ public class StructuralGeneration : MonoBehaviour
     public int roomsPerQuadrant;    //Number of rooms allowed per quadrant
     public int QuadrantsWanted;     //Number of quadrants to generate
 
+    public int minRoomSize;
+    public int maxRoomSize;
+
     public Vector3 cellSize;        //Determines the size of individual cells (testing only)
-    
+
     public float cellWallHeight;    //determines height of cell walls
     public float cellWallWidth;     //determines width of cell walls
 
@@ -168,16 +151,14 @@ public class StructuralGeneration : MonoBehaviour
     public string seeddisplay;                                          //controls seed
 
     public bool seedGen;                                                //Generate a seed
-    private bool running;                                               //Checks if game has started
+    private bool realTimeGen;                                           //Coroutine vs Instant
 
-    public static bool structuredone = false;
-    public float numberofRooms;                                         //Debugging purposes only
+    public float numberofRooms;                                         //Outputs number of rooms (debugging)
 
 
     #endregion
 
     #region Start and Update
-
 
     void Start()
     {
@@ -204,19 +185,19 @@ public class StructuralGeneration : MonoBehaviour
         //    }
         //  }
         // Generate = false;
-        running = true;
+        realTimeGen = true;
     }
 
     void Update()
     {
         if (Generate)
         {
-            structuredone = false;
-            StartCoroutine(Generation());
+            StartCoroutine(WaitSeconds(1.0f, GenerateDungeon));
             Generate = false;
         }
         if (Input.GetKeyDown(KeyCode.G))
         {
+            Destroy(GameObject.Find("Cells"));
             Destroy(GameObject.Find("Rooms"));
             cells = generateGrid();
             boundaries = furthestDirections(cells);
@@ -229,43 +210,11 @@ public class StructuralGeneration : MonoBehaviour
 
     }
 
-    IEnumerator Generation()
-    {
-        yield return new WaitForSeconds(1.0f);
-        GenerateDungeon();
-
-    }
-
-    IEnumerator GenerationDampener(List<Vector3> roomPositions, int[] allRooms, int[] roomSizes)
-    {
-        for (int i = 0; i < roomPositions.Count; i++)
-        {
-            string temp = allRooms[roomSizes[i]].ToString();
-
-            int[] roomsize = new int[] { Convert.ToInt32(temp[0].ToString()), Convert.ToInt32(temp[1].ToString()) };
-            Vector3 returnPos = roomPositions[i];
-            List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos);
-            parentObject(parent, "Rooms", "Rooms " + i);
-            yield return new WaitForSeconds(0.3f * Time.deltaTime);
-        }
-
-        GameObject Rooms = GameObject.Find("Rooms");
-
-        for (int i = 0; i < Rooms.transform.childCount; i++)
-        {
-            Rooms.transform.GetChild(i).name = "Room " + i;
-        }
-
-        numberofRooms = Rooms.transform.childCount;
-
-        Destroy(GameObject.Find("Cells"));
-        structuredone = true;
-    }
     #endregion
 
     #region Generate Grid
 
-    private List<GameObject> generateGrid() 
+    private List<GameObject> generateGrid()
     {
         //Function generates the grid
 
@@ -296,7 +245,7 @@ public class StructuralGeneration : MonoBehaviour
                 cell.name = "cell " + cellName;                 //name the cell for easier reference
                 cellName++;                                     //Increment cellName  
                 cell.transform.position = currentGridPosition;  //bring cell to current position
-                cell.transform.localScale = cellSize;           //set cell to the size determined
+                cell.transform.localScale = cellSize * 10;           //set cell to the size determined
                 cells.Add(cell);                                //add cell to cells List
                 currentGridPosition.x -= cellSpace.x;           //update currentGridPosition to next empty spot
             }
@@ -323,7 +272,7 @@ public class StructuralGeneration : MonoBehaviour
         for (int i = 0; i <= a_cells.Count - 1; i++)
         {
             //Set current position to center of cell in world space
-            Vector3 currentCellPosition = a_cells[i].transform.position; 
+            Vector3 currentCellPosition = a_cells[i].transform.position;
 
             //Generates walls
             GameObject[] wall = cellWallGenerator(currentCellPosition, nsMovePosition, ewMovePosition,
@@ -349,7 +298,7 @@ public class StructuralGeneration : MonoBehaviour
         //Function generates cell walls
 
         //Instantiate 4 wall prefabs
-        GameObject[] wall = new GameObject[] {Instantiate(WALL), Instantiate(WALL), Instantiate(WALL), Instantiate(WALL)};
+        GameObject[] wall = new GameObject[] { Instantiate(WALL), Instantiate(WALL), Instantiate(WALL), Instantiate(WALL) };
 
         wall[0].name = "north_wall";    //identifies north wall
         wall[1].name = "east_wall";     //identifies east wall
@@ -361,7 +310,7 @@ public class StructuralGeneration : MonoBehaviour
         wall[2].transform.localScale = nsCellWallSize; //adjust scale for south wall
         wall[3].transform.localScale = ewCellWallSize; //adjust scale for west wall
 
-        for (int x = 0; x < wall.Length; x++ )
+        for (int x = 0; x < wall.Length; x++)
         {
             //moves wall so that the base rests on top of the plane
             wall[x].transform.position = cellPosition + new Vector3(0.0f, wall[x].transform.localScale.y / 2, 0.0f);
@@ -406,7 +355,7 @@ public class StructuralGeneration : MonoBehaviour
             }
         }
 
-            return furthestPoints;  //return furthest points
+        return furthestPoints;  //return furthest points
     }
     #endregion
 
@@ -463,7 +412,7 @@ public class StructuralGeneration : MonoBehaviour
         for (int i = 0; i < QuadrantsWanted; i++)
         {
             Quadrants.Add(new List<GameObject>());  //Add appropriate number of quadrant game objects
-            Zones.Add(new float[] {0,0,0,0 });      //Add appropriate number of zones
+            Zones.Add(new float[] { 0, 0, 0, 0 });      //Add appropriate number of zones
         }
 
         int zone = 0;                       //Tracks which quadrant we are building
@@ -483,7 +432,7 @@ public class StructuralGeneration : MonoBehaviour
                 Zones[zone][1] = southbase;                         //set south perimeter to calculation  
                 Zones[zone][2] = lastBoundaries[2] + H_movement;    //set east perimeter to calculation
                 Zones[zone][3] = lastBoundaries[2];                 //set west perimeter to calculation
-                
+
                 lastBoundaries[0] = Zones[zone][0];                 //lastboundary north = zone north
                 lastBoundaries[1] = Zones[zone][1];                 //lasboundary south = zone south          
                 lastBoundaries[2] = Zones[zone][2];                 //lastboundary east = zone east
@@ -493,7 +442,7 @@ public class StructuralGeneration : MonoBehaviour
         }
 
         QuadrantBoundaries = Zones;                                 //Set the global variable: QuadrantBoundaries
-        
+
         //iterate through all cells and determine their quadrant based on their position
         for (int i = 0; i < cells.Count; i++)
         {
@@ -545,7 +494,7 @@ public class StructuralGeneration : MonoBehaviour
 
     #region Generate Rooms
 
-    private List<GameObject> generateRoom(Vector3 roomCenter, int roomSizex, int roomSizez, out Vector3 returnCenter)
+    private List<GameObject> generateRoom(Vector3 roomCenter, int roomSizex, int roomSizez, out Vector3 returnCenter, out List<GameObject> MergedRooms)
     {
         //Function marks cells for rooms.
         //Parameters: 
@@ -554,7 +503,7 @@ public class StructuralGeneration : MonoBehaviour
         //quadrant of room,
         //Vector3 variable to save the position of the center if it changes
 
-        bool mergeRoom = false;                                     //Determines if rooms need to be merged
+        MergedRooms = new List<GameObject>();                       //Determines if rooms need to be merged
         Vector3 roomToMergePosition = Vector3.zero;                 //Gets room that needs to be merged
         int roomSizezCheck = ((roomSizez) / 2) * returnCellSizez;   //Used for checking size of room from center along z
         int roomSizexCheck = ((roomSizex) / 2) * returnCellSizex;   //Used for checking size of room from center along x
@@ -566,7 +515,7 @@ public class StructuralGeneration : MonoBehaviour
         //...it will be shifted to the nearest valid position
 
         //check against grid east and west boundaries
-        roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck , boundaries[2], boundaries[3], "x");
+        roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck, boundaries[2], boundaries[3], "x");
 
         //check against grid north and south boundaries
         roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, boundaries[0], boundaries[1], "z");
@@ -577,7 +526,7 @@ public class StructuralGeneration : MonoBehaviour
         roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck, QuadrantBoundaries[Quadrant][2], QuadrantBoundaries[Quadrant][3], "x");
 
         //check against quadrant north and south boundaries
-        roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, QuadrantBoundaries[Quadrant][0], QuadrantBoundaries[Quadrant][1], "z");    
+        roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, QuadrantBoundaries[Quadrant][0], QuadrantBoundaries[Quadrant][1], "z");
 
 
         returnCenter = roomCenter;  //store the new room center
@@ -586,7 +535,7 @@ public class StructuralGeneration : MonoBehaviour
         cellsInRoom.Add(findCell(roomCenter));      //Add roomcenter to list of cells in room
 
         //calculates starting position for generating the room (bottom left corner of room)
-        Vector3 startingPosition = roomCenter + new Vector3(-roomSizex / 2  * returnCellSizex, 0.0f, -roomSizez / 2 * returnCellSizez);
+        Vector3 startingPosition = roomCenter + new Vector3(-roomSizex / 2 * returnCellSizex, 0.0f, -roomSizez / 2 * returnCellSizez);
 
         for (int i = 0; i < roomSizez; i++)     //Rows
         {
@@ -595,27 +544,31 @@ public class StructuralGeneration : MonoBehaviour
 
             for (int v = 0; v < roomSizex; v++) //Colums
             {
-                //The following isn't currently used to the same extent as previous generation,
-                //However, may still be necessary. I haven't tested without it
-                //BEGIN
-                //Don't affect Main Room and Boss Room
+                //get name of cell's parent at the current position
+                GameObject nameTest = findCell(curPosition).transform.parent.gameObject;  
 
-                string nameTest = findCell(curPosition).transform.parent.name;  //get name of cell's parent at the current position
-
-                //If it is not a main room or the center for another room
-                if (nameTest != "Main Room" && nameTest != "Boss Room" && !nameTest.Contains("Center")) 
+                if (nameTest.name.Contains("Room"))
                 {
-                    cellsInRoom.Add(findCell(curPosition)); //Add cell to List of gameobjects of room
+                    if (MergedRooms.Count > 0)
+                        for (int x = 0; x < MergedRooms.Count; x++)
+                        {
+                            if (MergedRooms[x].name != nameTest.name)
+                            {
+                                if (x == MergedRooms.Count - 1)
+                                    MergedRooms.Add(nameTest);
+                            }
+                            else
+                                break;
+                        }
 
-                    if (findCell(curPosition).transform.parent.name.Contains("Room"))
-                    {
-                        mergeRoom = true;
-                        roomToMergePosition = curPosition;
-                    }
+                    else
+                        MergedRooms.Add(nameTest);
+                    
                 }
-                //END
+
+                cellsInRoom.Add(findCell(curPosition));                     //Add cell to List of gameobjects of room
                 curPosition = moveCellPosition(1, curPosition, false);     //move between cells of room on x axis
-            }  
+            }
         }
 
         float[] roomBoundaries = furthestDirections(cellsInRoom);   //gets the boundaries of the rooms
@@ -625,11 +578,6 @@ public class StructuralGeneration : MonoBehaviour
             destroyWalls(cell, roomBoundaries);                     //Destroys walls of cells that aren't on the edges of the room
         }
 
-        if (mergeRoom)
-        {
-            parentObject(cellsInRoom, "Rooms", findCell(roomToMergePosition).transform.parent.name);
-            return null;
-        }
         return cellsInRoom;
     }
 
@@ -685,10 +633,10 @@ public class StructuralGeneration : MonoBehaviour
         foreach (Transform child in cell.transform)
         {
             children.Add(child.gameObject);         //Add wall to List of gameobjects
-            
+
         }
 
-        foreach(GameObject child in children)
+        foreach (GameObject child in children)
         {
             //If cell position is not on the edge of the room, destroy the walls and set the parent to null
             if (cell.transform.position.z != getBoundaries[1] && cell.transform.position.z != roomBoundaries[1] && child.name.Contains("south") ||
@@ -702,7 +650,7 @@ public class StructuralGeneration : MonoBehaviour
         }
 ;
     }
-     
+
     private Vector3 moveCellPosition(int direction, Vector3 position, bool restrict, int movement = 1)
     {
         //Function moves correctly between cells
@@ -711,7 +659,7 @@ public class StructuralGeneration : MonoBehaviour
         //position: Current position
         //Restrict: whether or not to restrict movements to quadrants
         //Number of times you want to move
-        
+
 
         int timesMoved = 0;
         int quadrant = getQuadrant(position);
@@ -727,37 +675,37 @@ public class StructuralGeneration : MonoBehaviour
                 case 0: //north
                     position.z += returnCellSizez;
                     if (restrict)
-                    if (position.z > north)
-                    {
-                        position.z = south;
-                    }
-                        break;
+                        if (position.z > north)
+                        {
+                            position.z = south;
+                        }
+                    break;
 
                 case 1: //east
                     position.x += returnCellSizex;
                     if (restrict)
-                    if (position.x > east)
-                    {
-                        position.x = west;
-                    }
+                        if (position.x > east)
+                        {
+                            position.x = west;
+                        }
                     break;
 
                 case 2: //south
                     position.z -= returnCellSizez;
                     if (restrict)
                         if (position.z < south)
-                    {
-                        position.z = north;
-                    }
+                        {
+                            position.z = north;
+                        }
                     break;
 
                 case 3: //west
                     position.x -= returnCellSizex;
                     if (restrict)
                         if (position.x < west)
-                    {
-                        position.x = east;
-                    }
+                        {
+                            position.x = east;
+                        }
                     break;
             }
 
@@ -870,7 +818,7 @@ public class StructuralGeneration : MonoBehaviour
     //This method is used by connectCells to destroy connected walls
     private void destroyConnectingWalls(GameObject cellOne, GameObject cellTwo, string wallOne, string wallTwo)
     {
-        if (cellOne.transform.Find(wallOne)) 
+        if (cellOne.transform.Find(wallOne))
         {
             Destroy(cellOne.transform.Find(wallOne).gameObject);
         }
@@ -896,6 +844,7 @@ public class StructuralGeneration : MonoBehaviour
     #region Generate Dungeon
     private void GenerateDungeon()
     {
+        #region Initial Variables
         if (roomsPerQuadrant > 9)
             roomsPerQuadrant = 9;                           //Ensure roomsPerQuadrant <= 9
 
@@ -906,6 +855,8 @@ public class StructuralGeneration : MonoBehaviour
 
         int[] roomSizes = new int[roomsPerQuadrant * QuadrantsWanted];      //Track room sizes
         int[] allRooms = getRoomSizes();                                    //Get the list of room sizes
+
+        #endregion
 
         #region Position Default Dungeon
         for (int i = 0; i < defaultlayout.Length; i++)
@@ -925,13 +876,14 @@ public class StructuralGeneration : MonoBehaviour
                 roomSizes[s] = 0;
                 roomNum[s] = s;
                 s++;
-                
+
             }
         }
 
         roomNum = Shuffle(roomNum);     //Shuffle room numbers
         #endregion
 
+        #region Generate and Breakdown Seed
         if (seedGen)    //Generate seed
         {
             if (!string.IsNullOrEmpty(seeddisplay)) //If manual seed is input
@@ -944,9 +896,11 @@ public class StructuralGeneration : MonoBehaviour
         }
 
         roomPositions = breakdownSeed(roomPositions, roomNum, roomSizes, allRooms.Length);  //Room Transformations and whatnot
+        #endregion
 
-        if (running)    //If the game is running
-            StartCoroutine(GenerationDampener(roomPositions, allRooms, roomSizes)); //Generate in coroutine
+        #region Generate Rooms
+        if (realTimeGen)    //If the game is running
+            StartCoroutine(RealTimeGenerator(roomPositions, allRooms, roomSizes)); //Generate in coroutine
 
         else            //Otherwise generate everything instantly
         {
@@ -955,12 +909,39 @@ public class StructuralGeneration : MonoBehaviour
                 string temp = allRooms[roomSizes[i]].ToString();
 
                 int[] roomsize = new int[] { Convert.ToInt32(temp[0].ToString()), Convert.ToInt32(temp[1].ToString()) };
-                Vector3 returnPos = roomPositions[i];
 
-                List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos);
+                Vector3 returnPos = roomPositions[i];
+                List<GameObject> MergedRooms;
+                List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
+                if (MergedRooms.Count != 0)
+                {
+                    List<GameObject> newRoom = parent;
+                    for (int x = 0; x < MergedRooms.Count; x++)
+                    {
+                        foreach (Transform cell in MergedRooms[x].transform)
+                        {
+                            newRoom.Add(cell.gameObject);
+                        }
+                        GameObject.Destroy(MergedRooms[x]);
+                    }
+                }
+
                 parentObject(parent, "Rooms", "Rooms " + i);
             }
+
+            GameObject Rooms = GameObject.Find("Rooms");
+
+            for (int i = 0; i < Rooms.transform.childCount; i++)
+            {
+                Rooms.transform.GetChild(i).name = "Room " + i;
+            }
+
+            numberofRooms = Rooms.transform.childCount;
+
+            Destroy(GameObject.Find("Cells"));
+            PushFromCenter();
         }
+        #endregion
 
     }
 
@@ -996,14 +977,14 @@ public class StructuralGeneration : MonoBehaviour
             else if (seed[i] == 4)
             {
                 if (roomsPerQuadrant > 3)
-                    roomNum = ShuffleNumbers(roomNum, true);
+                    roomNum = ShuffleRooms(roomNum, true);
                 else
-                    roomNum = ShuffleNumbers(roomNum, false);
+                    roomNum = ShuffleRooms(roomNum, false);
             }
 
             else if (seed[i] == 5)
             {
-                roomNum = ShuffleNumbers(roomNum, false);
+                roomNum = ShuffleRooms(roomNum, false);
             }
 
             else if (seed[i] == 6)
@@ -1034,15 +1015,15 @@ public class StructuralGeneration : MonoBehaviour
     {
         //Function is used to find the: Top Left, Top Middle, Top Right, Middle Left, Center, Middle Right
         //                              Bottom Left, Bottom Middle, and Bottom Right
-        
+
         //                              cells of a quadrant
 
         List<Vector3> roomPositions = new List<Vector3>();  //Stores room positions for quadrant
 
         float north = quadrant[0];                  //Store north quadrant boundary
         float south = quadrant[1];                  //Store south quadrant boundary
-        float east  = quadrant[2];                  //Store east  quadrant boundary
-        float west  = quadrant[3];                  //Store west  quadrant boundary
+        float east = quadrant[2];                  //Store east  quadrant boundary
+        float west = quadrant[3];                  //Store west  quadrant boundary
 
         float totalHeight = north - south;          //total height of quadrant
         float totalWidth = Mathf.Abs(east - west);  //total width of quadrant
@@ -1076,7 +1057,7 @@ public class StructuralGeneration : MonoBehaviour
             seeddisplay += seed[i].ToString();
         }
 
-        return seed;      
+        return seed;
     }
 
     #region Room Transformations
@@ -1125,7 +1106,7 @@ public class StructuralGeneration : MonoBehaviour
         return position;
     }
 
-    private int[] ShuffleNumbers(int[] RoomNumbers, bool quadrantOnly)
+    private int[] ShuffleRooms(int[] RoomNumbers, bool quadrantOnly)
     {
 
         if (quadrantOnly)
@@ -1159,19 +1140,118 @@ public class StructuralGeneration : MonoBehaviour
 
     private int[] getRoomSizes()
     {
-        int[] RoomSizes = new int[] { 33, 34, 35, 36, 37, 43, 44, 45, 46, 47, 53, 54, 55, 56,
-                                        57, 63, 64, 65, 66, 67, 73, 74, 75, 76, 77 };
+        if (maxRoomSize > 10)
+            maxRoomSize = 10;
+        List<int> sizes = new List<int>();
+        for (int i = minRoomSize; i <= maxRoomSize; i++)
+        {
+            for (int x = minRoomSize; x < maxRoomSize; x++)
+            {
+                string Num = i.ToString() + x.ToString();
+                sizes.Add(Convert.ToInt32(Num));
+            }
+        }
+        int[] RoomSizes = sizes.ToArray();
         return RoomSizes;
+    }
+
+    private void ElevateRooms()
+    {
+
     }
     #endregion
 
+    #endregion
 
+    #region Coroutines
+
+    IEnumerator RealTimeGenerator(List<Vector3> roomPositions, int[] allRooms, int[] roomSizes)
+    {
+        for (int i = 0; i < roomPositions.Count; i++)
+        {
+            string temp = allRooms[roomSizes[i]].ToString();
+
+            int[] roomsize = new int[] { Convert.ToInt32(temp[0].ToString()), Convert.ToInt32(temp[1].ToString()) };
+
+            Vector3 returnPos = roomPositions[i];
+            List<GameObject> MergedRooms;
+            List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
+            if (MergedRooms.Count != 0)
+            {
+                List<GameObject> newRoom = parent;
+                for (int x = 0; x < MergedRooms.Count; x++)
+                {
+                    foreach (Transform cell in MergedRooms[x].transform)
+                    {
+                        newRoom.Add(cell.gameObject);
+                    }
+                    GameObject.Destroy(MergedRooms[x]);
+                }
+            }
+
+            parentObject(parent, "Rooms", "Rooms " + i);
+            yield return new WaitForSeconds(0.3f * Time.deltaTime);
+        }
+
+        GameObject Rooms = GameObject.Find("Rooms");
+
+        for (int i = 0; i < Rooms.transform.childCount; i++)
+        {
+            Rooms.transform.GetChild(i).name = "Room " + i;
+        }
+
+        numberofRooms = Rooms.transform.childCount;
+
+        Destroy(GameObject.Find("Cells"));
+        yield return new WaitForSeconds(5.0f * Time.deltaTime);
+        PushFromCenter();
+    }
+
+    IEnumerator WaitSeconds(float seconds, Action FunctionName)
+    {
+        yield return new WaitForSeconds(seconds);
+        FunctionName();
+    }
+    #endregion
+
+    #region Post Generation
+    void PushFromCenter()
+    {
+        //Function pushes all rooms away from center of grid
+        float NgridMid = (boundaries[0] + boundaries[1]) / 2;
+        float EgridMid = (boundaries[2] + boundaries[3]) / 2;
+
+        GameObject Rooms = GameObject.Find("Rooms");
+
+        for (int i = 0; i < Rooms.transform.childCount; i++)
+        {
+            if (Rooms.transform.GetChild(i).transform.position.z < NgridMid)
+            {
+                Rooms.transform.GetChild(i).transform.position += new Vector3(0, 0, -returnCellSizez);
+            }
+
+            else
+            {
+                Rooms.transform.GetChild(i).transform.position += new Vector3(0, 0, returnCellSizez);
+            }
+
+            if (Rooms.transform.GetChild(i).transform.position.x < EgridMid)
+            {
+                Rooms.transform.GetChild(i).transform.position += new Vector3(-returnCellSizex, 0, 0);
+            }
+
+            else
+            {
+                Rooms.transform.GetChild(i).transform.position += new Vector3(returnCellSizex, 0, 0);
+            }
+        }
+    }
     #endregion
 
     #region Properties
 
     //Used to return the furthest positions of the grid (read-only)
-    public float[] getBoundaries 
+    public float[] getBoundaries
     {
         get
         {
@@ -1180,9 +1260,9 @@ public class StructuralGeneration : MonoBehaviour
     }
 
     //Used to add/remove from cell grid
-    public static List<GameObject> getCells 
+    public static List<GameObject> getCells
     {
-        get 
+        get
         {
             return cells;
         }
@@ -1351,10 +1431,10 @@ public class StructuralGeneration : MonoBehaviour
         if (z > x)
         {
             if (cellOne.x > cellTwo.x)
-            relation = 3;
+                relation = 3;
 
-        else if (cellOne.x < cellTwo.x) 
-            relation = 2;
+            else if (cellOne.x < cellTwo.x)
+                relation = 2;
         }
 
         else if (z < x)
@@ -1364,7 +1444,7 @@ public class StructuralGeneration : MonoBehaviour
 
             else if (cellOne.z < cellTwo.z)
                 relation = 0;
-        } 
+        }
 
         else
         {
