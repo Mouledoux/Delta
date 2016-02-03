@@ -124,36 +124,35 @@ public class StructuralGeneration : MonoBehaviour
     #endregion
 
     #region Global Variables
-
+        //Cells and Grid
     public bool Generate;           //Determines whether or not to generate past the grid
-
     public int x_cells, z_cells;    //Number of cells generated along x and z axis
     public int roomsPerQuadrant;    //Number of rooms allowed per quadrant
     public int QuadrantsWanted;     //Number of quadrants to generate
-
-    public int minRoomSize;
-    public int maxRoomSize;
-
     public Vector3 cellSize;        //Determines the size of individual cells (testing only)
-
     public float cellWallHeight;    //determines height of cell walls
     public float cellWallWidth;     //determines width of cell walls
 
-    public GameObject FLOOR;        //Floor gameobject
-    public GameObject WALL;         //Wall gameobject
+    //Game Objects
+    public GameObject FLOOR;                //Floor gameobject
+    public GameObject WALL;                 //Wall gameobject
+    private static List<GameObject> cells;  //Tracks all of the physical cells used in the game
 
+    //Boundary Tracking
     private float[] boundaries = new float[] { 0, 0, 0, 0 };            //Tracks the furthest points of the grid
     private List<float[]> QuadrantBoundaries;                           //Tracks furthest points of each quadrant
 
-    private static List<GameObject> cells;                              //Tracks all of the physical cells used in the game
-
+    //Seed and Generation
     public int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };        //stores seed
     public string seeddisplay;                                          //controls seed
-
     public bool seedGen;                                                //Generate a seed
     private bool realTimeGen;                                           //Coroutine vs Instant
-
     public float numberofRooms;                                         //Outputs number of rooms (debugging)
+
+    //Rooms | Halls | Stairs
+    public int minRoomSize;
+    public int maxRoomSize;
+    public float stairlength;
 
 
     #endregion
@@ -245,7 +244,7 @@ public class StructuralGeneration : MonoBehaviour
                 cell.name = "cell " + cellName;                 //name the cell for easier reference
                 cellName++;                                     //Increment cellName  
                 cell.transform.position = currentGridPosition;  //bring cell to current position
-                cell.transform.localScale = cellSize * 10;           //set cell to the size determined
+                cell.transform.localScale = cellSpace;      //set cell to the size determined
                 cells.Add(cell);                                //add cell to cells List
                 currentGridPosition.x -= cellSpace.x;           //update currentGridPosition to next empty spot
             }
@@ -895,12 +894,15 @@ public class StructuralGeneration : MonoBehaviour
                 seed = generateSeed();                  //Generate new
         }
 
-        roomPositions = breakdownSeed(roomPositions, roomNum, roomSizes, allRooms.Length);  //Room Transformations and whatnot
+        int elevationNum;
+        int rotationNum;
+        //Room Transformations and whatnot
+        roomPositions = breakdownSeed(roomPositions, roomNum, roomSizes, allRooms.Length, out elevationNum, out rotationNum); 
         #endregion
 
         #region Generate Rooms
         if (realTimeGen)    //If the game is running
-            StartCoroutine(RealTimeGenerator(roomPositions, allRooms, roomSizes)); //Generate in coroutine
+            StartCoroutine(RealTimeGenerator(roomPositions, allRooms, roomSizes, elevationNum, rotationNum)); //Generate in coroutine
 
         else            //Otherwise generate everything instantly
         {
@@ -930,23 +932,29 @@ public class StructuralGeneration : MonoBehaviour
             }
 
             GameObject Rooms = GameObject.Find("Rooms");
+            List<GameObject> AllRooms = new List<GameObject>();
 
             for (int i = 0; i < Rooms.transform.childCount; i++)
             {
                 Rooms.transform.GetChild(i).name = "Room " + i;
+                AllRooms.Add(Rooms.transform.GetChild(i).gameObject);
             }
 
             numberofRooms = Rooms.transform.childCount;
 
             Destroy(GameObject.Find("Cells"));
             PushFromCenter();
+            ElevateRooms(elevationNum, AllRooms);
         }
         #endregion
 
     }
 
-    private List<Vector3> breakdownSeed(List<Vector3> positions, int[] roomNum, int[] roomSizes, int totalRoomSizes)
+    private List<Vector3> breakdownSeed(List<Vector3> positions, int[] roomNum, int[] roomSizes, int totalRoomSizes,
+        out int elevationNum, out int rotationNum)
     {
+        elevationNum = 0;
+        rotationNum = 0;
         for (int i = 0; i < seed.Length; i++)
         {
 
@@ -989,12 +997,12 @@ public class StructuralGeneration : MonoBehaviour
 
             else if (seed[i] == 6)
             {
-
+                elevationNum += 1;
             }
 
             else if (seed[i] == 7)
             {
-
+                rotationNum += 1;
             }
 
             else if (seed[i] == 8)
@@ -1053,12 +1061,14 @@ public class StructuralGeneration : MonoBehaviour
     {
         for (int i = 0; i < seed.Length; i++)
         {
-            seed[i] = randomGenerator(0, 5);
+            seed[i] = randomGenerator(0, 7);
             seeddisplay += seed[i].ToString();
         }
 
         return seed;
     }
+
+    #endregion
 
     #region Room Transformations
 
@@ -1155,17 +1165,33 @@ public class StructuralGeneration : MonoBehaviour
         return RoomSizes;
     }
 
-    private void ElevateRooms()
+    private void ElevateRooms(int elevationNum, List<GameObject> Rooms)
     {
-
+        Debug.Log("ran");
+        for (int i = 0; i < elevationNum; i++)
+        {
+            for (int x = i; x < Rooms.Count; x += 2)
+            {
+                Rooms[x].transform.position += new Vector3(0.0f, cellWallHeight, 0.0f);
+            }
+        }
     }
-    #endregion
 
+    private void RotateGrid(int rotationNum)
+    {
+        float ZgridMid = (boundaries[0] + boundaries[1]) / 2;
+        float XgridMid = (boundaries[2] + boundaries[3]) / 2;
+
+        Vector3 mid = new Vector3(XgridMid, 0.0f, ZgridMid);
+
+        for (int i = 0; i < rotationNum; i++)
+            GameObject.Find("Rooms").transform.RotateAround(mid, transform.forward, 90);
+    }
     #endregion
 
     #region Coroutines
 
-    IEnumerator RealTimeGenerator(List<Vector3> roomPositions, int[] allRooms, int[] roomSizes)
+    IEnumerator RealTimeGenerator(List<Vector3> roomPositions, int[] allRooms, int[] roomSizes, int elevationNum, int rotationNum)
     {
         for (int i = 0; i < roomPositions.Count; i++)
         {
@@ -1194,10 +1220,12 @@ public class StructuralGeneration : MonoBehaviour
         }
 
         GameObject Rooms = GameObject.Find("Rooms");
+        List<GameObject> AllRooms = new List<GameObject>();
 
         for (int i = 0; i < Rooms.transform.childCount; i++)
         {
             Rooms.transform.GetChild(i).name = "Room " + i;
+            AllRooms.Add(Rooms.transform.GetChild(i).gameObject);
         }
 
         numberofRooms = Rooms.transform.childCount;
@@ -1205,6 +1233,9 @@ public class StructuralGeneration : MonoBehaviour
         Destroy(GameObject.Find("Cells"));
         yield return new WaitForSeconds(5.0f * Time.deltaTime);
         PushFromCenter();
+        ElevateRooms(elevationNum, AllRooms);
+        yield return new WaitForSeconds(2.0f * Time.deltaTime);
+        RotateGrid(rotationNum);
     }
 
     IEnumerator WaitSeconds(float seconds, Action FunctionName)
@@ -1245,6 +1276,30 @@ public class StructuralGeneration : MonoBehaviour
                 Rooms.transform.GetChild(i).transform.position += new Vector3(returnCellSizex, 0, 0);
             }
         }
+    }
+
+    void CalculateStairProperties(Vector3 bottomCell, Vector3 upperCell, 
+        out float height, out float xlength, float zlength)
+    {
+        height  = upperCell.y - bottomCell.y;
+        xlength = Mathf.Abs(upperCell.x - bottomCell.x);
+        zlength = Mathf.Abs(upperCell.z - bottomCell.z);
+    }
+
+    void BuildStairs(float totalHeight, float stepHeight, float stairLength, Vector3 bottomStep, int direction)
+    {
+        List<GameObject> steps = new List<GameObject>();
+        float xLength = 0;
+        float zLength = 0;
+        float stepLength = 0;
+
+        stepLength = Mathf.Clamp(stepLength, stepLength / 3, stepLength / 2);
+        Mathf.Clamp(stepHeight, 0.1f, 0.3f);
+    }
+
+    void GenerateStairs()
+    {
+
     }
     #endregion
 

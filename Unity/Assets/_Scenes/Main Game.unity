@@ -367,8 +367,6 @@ MonoBehaviour:
   z_cells: 41
   roomsPerQuadrant: 4
   QuadrantsWanted: 9
-  minRoomSize: 3
-  maxRoomSize: 7
   cellSize: {x: .400000006, y: .0399999991, z: .400000006}
   cellWallHeight: 6
   cellWallWidth: .400000006
@@ -378,6 +376,9 @@ MonoBehaviour:
   seeddisplay: 
   seedGen: 1
   numberofRooms: 0
+  minRoomSize: 4
+  maxRoomSize: 7
+  stairlength: 0
 --- !u!1 &1349654109
 GameObject:
   m_ObjectHideFlags: 0
