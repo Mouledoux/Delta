@@ -362,9 +362,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 782001bff398e7c4082b94878d3559d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Generate: 1
-  x_cells: 41
-  z_cells: 41
+  Generate: 0
+  x_cells: 10
+  z_cells: 10
   roomsPerQuadrant: 4
   QuadrantsWanted: 9
   cellSize: {x: .400000006, y: .0399999991, z: .400000006}
@@ -378,7 +378,8 @@ MonoBehaviour:
   numberofRooms: 0
   minRoomSize: 4
   maxRoomSize: 7
-  stairlength: 0
+  stairlength: .200000003
+  maxStairHeight: .200000003
 --- !u!1 &1210137825
 GameObject:
   m_ObjectHideFlags: 0
@@ -408,7 +409,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Bottom: {fileID: 0}
   Top: {fileID: 0}
-  maxHeight: 0
+  minStepHeight: 0
+  maxStepHeight: 0
+  minStepLength: 0
+  maxStepLength: 0
+  stairWidth: 0
 --- !u!4 &1210137827
 Transform:
   m_ObjectHideFlags: 0

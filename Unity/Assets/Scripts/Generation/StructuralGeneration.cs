@@ -153,6 +153,7 @@ public class StructuralGeneration : MonoBehaviour
     public int minRoomSize;
     public int maxRoomSize;
     public float stairlength;
+    public float maxStairHeight;
 
 
     #endregion
@@ -184,7 +185,6 @@ public class StructuralGeneration : MonoBehaviour
         //    }
         //  }
         // Generate = false;
-        realTimeGen = true;
     }
 
     void Update()
@@ -205,6 +205,21 @@ public class StructuralGeneration : MonoBehaviour
             generateCellWalls(cells);
             Generate = true;
             seeddisplay = "";
+        }
+
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            List<GameObject> raise = new List<GameObject>();
+            raise.Add(cells[43]);
+            destroyWalls(cells[33], boundaries);
+            destroyWalls(cells[43], boundaries);
+            ElevateDungeon(raise, cellWallHeight);
+            BuildStair(cells[43], cells[33]);
+            raise.Add(cells[33]);
+
+            parentObject(raise, "Test");
+            Destroy(GameObject.Find("Cells"));
+
         }
 
     }
@@ -1278,28 +1293,58 @@ public class StructuralGeneration : MonoBehaviour
         }
     }
 
-    void CalculateStairProperties(Vector3 bottomCell, Vector3 upperCell, 
-        out float height, out float xlength, float zlength)
+    void BuildStair(GameObject topCell, GameObject bottomCell)
     {
-        height  = upperCell.y - bottomCell.y;
-        xlength = Mathf.Abs(upperCell.x - bottomCell.x);
-        zlength = Mathf.Abs(upperCell.z - bottomCell.z);
-    }
+        Vector3 topPos = topCell.transform.position;
+        Vector3 lowPos = bottomCell.transform.position;
 
-    void BuildStairs(float totalHeight, float stepHeight, float stairLength, Vector3 bottomStep, int direction)
-    {
+        float length = returnCellSizez;                     //Length of the stair by default
+        float width  = returnCellSizex;                     //Width of the stair by default
+
+        int direction;                                      //Direction of stairs;
+        float height = Mathf.Abs(topPos.y - lowPos.y);      //Total height of stairs in units of wallheight;
+        Debug.Log(height);
+
+        int numberOfStairs = 1;                 //number of stairs needed to connect the positions
+        int cellOffset = 0;                     //If we need more room to create stairs, use this to let the generator
+                                                //know
+
+        while (height >= cellWallHeight)
+        {
+            Debug.Log("3");
+            numberOfStairs++;
+            cellOffset++;
+            length += cellSize.z;
+            height /= 2;
+        }
+
+        int numberOfSteps = Mathf.CeilToInt(height / maxStairHeight);
+        float lengthofSteps = length / numberOfSteps;
+        Debug.Log(numberOfSteps);
+
         List<GameObject> steps = new List<GameObject>();
-        float xLength = 0;
-        float zLength = 0;
-        float stepLength = 0;
 
-        stepLength = Mathf.Clamp(stepLength, stepLength / 3, stepLength / 2);
-        Mathf.Clamp(stepHeight, 0.1f, 0.3f);
+        for (int i = 1; i < numberOfSteps; i++)
+        {
+            //For every unit taken from scale, position has to be increased by half to compensate
+            float temp = (stairlength * i) / 2;
+            Vector3 distance = new Vector3(0, 0, -temp);
+            Vector3 stairHeight = new Vector3(0.0f, i * maxStairHeight, 0);
+            GameObject step = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            step.transform.position = lowPos + stairHeight - distance;
+            step.transform.localScale = new Vector3(width, maxStairHeight, length - (stairlength * i));
+            steps.Add(step);
+        }
+
+
     }
 
-    void GenerateStairs()
+    void ElevateDungeon(List<GameObject> cells, float height)
     {
-
+        foreach (GameObject cell in cells)
+        {
+            cell.transform.position += new Vector3(0, height, 0);
+        }
     }
     #endregion
 

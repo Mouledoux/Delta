@@ -5,7 +5,9 @@ public class StairBuilder : MonoBehaviour {
 
     public Transform Bottom;
     public Transform Top;
-    public float maxHeight;
+    public float minStepHeight, maxStepHeight;
+    public float minStepLength, maxStepLength;
+    public float stairWidth;
 
     void BuildStair()
     {
@@ -18,10 +20,22 @@ public class StairBuilder : MonoBehaviour {
 
         findProperties(out height, out xlength, out zlength, out xDirection, out zDirection);
 
-        if (height < maxHeight)
-        {
 
+        if (xlength > zlength)
+        {
+            //follow zdirection followed by x direction
         }
+
+        else if (xlength < zlength)
+        {
+            //follow xdirection followed by zdirection
+        }
+
+        else
+        {
+            //follow whichever direction isn't equal to zero
+        }
+
     }
 
     void findProperties(out float height, out float xlength, out float zlength, out int xDirection, out int zDirection)
@@ -63,19 +77,5 @@ public class StairBuilder : MonoBehaviour {
         }
         #endregion
 
-        if (xlength > zlength)
-        {
-            //follow zdirection followed by x direction
-        }
-
-        else if (xlength < zlength)
-        {
-            //follow xdirection followed by zdirection
-        }
-
-        else
-        {
-            //follow whichever direction isn't equal to zero
-        }
     }
 }
