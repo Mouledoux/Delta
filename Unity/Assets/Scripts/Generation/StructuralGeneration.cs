@@ -211,11 +211,11 @@ public class StructuralGeneration : MonoBehaviour
         {
             List<GameObject> raise = new List<GameObject>();
             raise.Add(cells[43]);
-            destroyWalls(cells[33], boundaries);
+            destroyWalls(cells[23], boundaries);
             destroyWalls(cells[43], boundaries);
             ElevateDungeon(raise, cellWallHeight);
-            BuildStair(cells[43], cells[33]);
-            raise.Add(cells[33]);
+            BuildStair(cells[43], cells[23]);
+            raise.Add(cells[23]);
 
             parentObject(raise, "Test");
             Destroy(GameObject.Find("Cells"));
@@ -1298,7 +1298,7 @@ public class StructuralGeneration : MonoBehaviour
         Vector3 topPos = topCell.transform.position;
         Vector3 lowPos = bottomCell.transform.position;
 
-        float length = returnCellSizez;                     //Length of the stair by default
+        float length = Mathf.Abs(topPos.z - lowPos.z);                     //Length of the stair by default
         float width  = returnCellSizex;                     //Width of the stair by default
 
         int direction;                                      //Direction of stairs;
@@ -1311,14 +1311,13 @@ public class StructuralGeneration : MonoBehaviour
 
         while (height >= cellWallHeight)
         {
-            Debug.Log("3");
             numberOfStairs++;
             cellOffset++;
             length += cellSize.z;
             height /= 2;
         }
 
-        int numberOfSteps = Mathf.CeilToInt(height / maxStairHeight);
+        int numberOfSteps = 15;
         float lengthofSteps = length / numberOfSteps;
         Debug.Log(numberOfSteps);
 
@@ -1327,14 +1326,18 @@ public class StructuralGeneration : MonoBehaviour
         for (int i = 1; i < numberOfSteps; i++)
         {
             //For every unit taken from scale, position has to be increased by half to compensate
-            float temp = (stairlength * i) / 2;
-            Vector3 distance = new Vector3(0, 0, -temp);
-            Vector3 stairHeight = new Vector3(0.0f, i * maxStairHeight, 0);
+            Vector3 stairHeight = new Vector3(0.0f, i * maxStairHeight + cellSize.y, 0);
             GameObject step = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            step.transform.position = lowPos + stairHeight - distance;
             step.transform.localScale = new Vector3(width, maxStairHeight, length - (stairlength * i));
+
+            float temp = (step.transform.localScale.z) + ((stairlength * i) / 2);
+            Vector3 distance = new Vector3(0, 0, -temp);
+            step.transform.position = lowPos + stairHeight + distance;
+            step.name = "Step " + i;
             steps.Add(step);
         }
+
+        parentObject(steps, "Steps");
 
 
     }
