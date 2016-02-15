@@ -12,11 +12,11 @@ public class StructuralGeneration : MonoBehaviour
         This consists of the floor, walls, rooms, hallways, and ceiling.
         How dungeon generation works:
         First a little lingo:
-            Cell = a single rectangular FLOOR gameobject prefab (primitive plane with a texture for the floor)
+            Cell = a single rectangular FLOOR gameobject prefab (primitive cube with a texture for the floor)
             Grid = A large rectangular plane made up of all cells. It is divided into even quadrants.
             Quadrant = A section of the grid made up of a group of cells.
         Alright, now onto the steps.
-        Step 1: Generates a grid
+        Step 1: Generate a grid
         Step 2: Divide grid into even quadrants (specified as a variable)
         Step 3: Generate four walls around each cell (primitive cube with a texture for walls)
         Step 4: Define a default dungeon, thereby generating rooms
@@ -51,8 +51,8 @@ public class StructuralGeneration : MonoBehaviour
             3 - shifts every room right on the entire grid by room number (same rules as 1)
             4 - switches room numbers and sizes within quadrant
             5 - switches room numbers and sizes among the grid
-            6 - Not currently in use
-            7 - Not currently in use
+            6 - Elevates rooms
+            7 - Rotates the grid 90 degrees
             8 - Not currently in use
             9 - Not currently in use
             
@@ -210,11 +210,11 @@ public class StructuralGeneration : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.H))
         {
             List<GameObject> raise = new List<GameObject>();
-            raise.Add(cells[43]);
+            raise.Add(cells[53]);
             destroyWalls(cells[23], boundaries);
-            destroyWalls(cells[43], boundaries);
+            destroyWalls(cells[53], boundaries);
             ElevateDungeon(raise, cellWallHeight);
-            BuildStair(cells[43], cells[23]);
+            BuildStair(cells[53], cells[23]);
             raise.Add(cells[23]);
 
             parentObject(raise, "Test");
@@ -1298,41 +1298,31 @@ public class StructuralGeneration : MonoBehaviour
         Vector3 topPos = topCell.transform.position;
         Vector3 lowPos = bottomCell.transform.position;
 
-        float length = Mathf.Abs(topPos.z - lowPos.z);                     //Length of the stair by default
+        float length = Mathf.Abs(topPos.z - lowPos.z);      //Length of the stair by default
         float width  = returnCellSizex;                     //Width of the stair by default
+        float stepLength;
+        float stepHeight;
 
-        int direction;                                      //Direction of stairs;
         float height = Mathf.Abs(topPos.y - lowPos.y);      //Total height of stairs in units of wallheight;
-        Debug.Log(height);
-
-        int numberOfStairs = 1;                 //number of stairs needed to connect the positions
-        int cellOffset = 0;                     //If we need more room to create stairs, use this to let the generator
-                                                //know
-
-        while (height >= cellWallHeight)
-        {
-            numberOfStairs++;
-            cellOffset++;
-            length += cellSize.z;
-            height /= 2;
-        }
 
         int numberOfSteps = 15;
-        float lengthofSteps = length / numberOfSteps;
-        Debug.Log(numberOfSteps);
+        stepHeight = height / numberOfSteps;
+        stepLength = length / numberOfSteps;
 
         List<GameObject> steps = new List<GameObject>();
 
-        for (int i = 1; i < numberOfSteps; i++)
+        for (int i = 1; i <= numberOfSteps; i++)
         {
             //For every unit taken from scale, position has to be increased by half to compensate
-            Vector3 stairHeight = new Vector3(0.0f, i * maxStairHeight + cellSize.y, 0);
+            Vector3 stairHeight = new Vector3(0.0f, stepHeight * i , 0);
             GameObject step = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            step.transform.localScale = new Vector3(width, maxStairHeight, length - (stairlength * i));
+            step.transform.localScale = new Vector3(width, stepHeight, length - (stepLength * i));
 
-            float temp = (step.transform.localScale.z) + ((stairlength * i) / 2);
-            Vector3 distance = new Vector3(0, 0, -temp);
-            step.transform.position = lowPos + stairHeight + distance;
+            float temp = (stepLength * i) / 2;
+            Vector3 distance = new Vector3(0, 0, temp);
+            float set = (length - returnCellSizez) * 0.5f;
+            Vector3 offSet = new Vector3(0, 0, set);
+            step.transform.position = lowPos + stairHeight + distance + offSet;
             step.name = "Step " + i;
             steps.Add(step);
         }
