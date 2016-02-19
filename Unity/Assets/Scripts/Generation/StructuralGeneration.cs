@@ -210,11 +210,11 @@ public class StructuralGeneration : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.H))
         {
             List<GameObject> raise = new List<GameObject>();
-            raise.Add(cells[53]);
+            raise.Add(cells[3]);
             destroyWalls(cells[23], boundaries);
-            destroyWalls(cells[53], boundaries);
+            destroyWalls(cells[3], boundaries);
             ElevateDungeon(raise, cellWallHeight);
-            BuildStair(cells[53], cells[23]);
+            BuildStair(cells[3], cells[23]);
             raise.Add(cells[23]);
 
             parentObject(raise, "Test");
@@ -1298,16 +1298,25 @@ public class StructuralGeneration : MonoBehaviour
         Vector3 topPos = topCell.transform.position;
         Vector3 lowPos = bottomCell.transform.position;
 
-        float length = Mathf.Abs(topPos.z - lowPos.z);      //Length of the stair by default
-        float width  = returnCellSizex;                     //Width of the stair by default
-        float stepLength;
-        float stepHeight;
+        List<float> direction = new List<float>();
+
+        List<float> length;
+        List<float> width;
+        float stepLength;                                   //Length of steps
+        float stepHeight;                                   //Height of steps
 
         float height = Mathf.Abs(topPos.y - lowPos.y);      //Total height of stairs in units of wallheight;
+        List<char> dir;
+
+        Vector3 distance = StairDirection(topPos, lowPos, out length, out width, 
+            out dir)[0];    //Distance and direction
+                                                                                        //between steps
 
         int numberOfSteps = 15;
         stepHeight = height / numberOfSteps;
-        stepLength = length / numberOfSteps;
+        stepLength = length[0] / numberOfSteps;
+
+        Debug.Log(width[0]);
 
         List<GameObject> steps = new List<GameObject>();
 
@@ -1316,13 +1325,36 @@ public class StructuralGeneration : MonoBehaviour
             //For every unit taken from scale, position has to be increased by half to compensate
             Vector3 stairHeight = new Vector3(0.0f, stepHeight * i , 0);
             GameObject step = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            step.transform.localScale = new Vector3(width, stepHeight, length - (stepLength * i));
 
-            float temp = (stepLength * i) / 2;
-            Vector3 distance = new Vector3(0, 0, temp);
-            float set = (length - returnCellSizez) * 0.5f;
-            Vector3 offSet = new Vector3(0, 0, set);
-            step.transform.position = lowPos + stairHeight + distance + offSet;
+            float set;
+            Vector3 offSet;
+
+            if (dir[0] == 'w' || dir[0] == 'e')
+            {
+                step.transform.localScale = new Vector3(length[0] - (stepLength * i), stepHeight, width[0]);
+                set = (length[0] - returnCellSizez) * 0.5f;
+
+                if (dir[0] == 'e')
+                    offSet = new Vector3(set, 0, 0);
+                else
+                    offSet = new Vector3(-set, 0, 0);
+            }
+
+            else
+            {
+                step.transform.localScale = new Vector3(width[0], stepHeight, length[0] - (stepLength * i));
+                set = (length[0] - returnCellSizex) * 0.5f;
+                
+                if (dir[0] == 'n')
+                    offSet = new Vector3(0, 0, set);
+                else
+                    offSet = new Vector3(0, 0, -set);
+            }
+
+            float temp = (stepLength * i) / 2;                      //how far steps need to move to be uniform
+            Vector3 tempVector = temp * distance;                   //Transform temp into a vector
+            
+            step.transform.position = lowPos + offSet + stairHeight + tempVector;
             step.name = "Step " + i;
             steps.Add(step);
         }
@@ -1330,6 +1362,61 @@ public class StructuralGeneration : MonoBehaviour
         parentObject(steps, "Steps");
 
 
+    }
+
+    List<Vector3> StairDirection(Vector3 topPos, Vector3 lowPos, out List<float> length, out List<float> width,
+        out List<char> dir)
+    {
+        //Function determines which direction the Vector3 distance variable will shift steps in
+        //as well as the scale of the steps
+        float xTop = topPos.x;
+        float xLow = lowPos.x;
+        float zTop = topPos.z;
+        float zLow = lowPos.z;
+
+        length = new List<float>();
+        width = new List<float>();
+        dir = new List<char>();
+
+        List<Vector3> distance = new List<Vector3>();
+
+        if (xTop != xLow)
+        {
+            if (xTop > xLow)
+            {
+                distance.Add(new Vector3(1, 0, 0));    //Shift steps right
+                dir.Add('e');
+            }
+
+            else
+            {
+                distance.Add(new Vector3(-1, 0, 0));   //Shift steps left
+                dir.Add('w');
+            }
+
+            length.Add(Mathf.Abs(topPos.x - lowPos.x));
+            width.Add(returnCellSizez); 
+        }
+
+        if (zTop != zLow)
+        {
+            if (zTop > zLow)
+            {
+                distance.Add(new Vector3(0, 0, 1));    //Shift steps up
+                dir.Add('n');
+            }
+
+            else
+            {
+                distance.Add(new Vector3(0, 0, -1));   //Shift steps down 
+                dir.Add('s');
+            }
+
+            length.Add(Mathf.Abs(topPos.z - lowPos.z));
+            width.Add(returnCellSizex);
+        }
+
+        return distance;
     }
 
     void ElevateDungeon(List<GameObject> cells, float height)
