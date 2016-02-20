@@ -376,8 +376,9 @@ MonoBehaviour:
   numberofRooms: 0
   minRoomSize: 4
   maxRoomSize: 7
-  stairlength: 0
-  maxStairHeight: 0
+  s1: 23
+  s2: 3
+  h: 2
 --- !u!1 &1349654109
 GameObject:
   m_ObjectHideFlags: 0

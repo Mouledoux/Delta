@@ -185,6 +185,8 @@ public class StructuralGeneration : MonoBehaviour
         //  }
         // Generate = false;
     }
+    public int s1, s2;  //stair 1 and 2. Testing purposes
+    public float h;     //elevate. Testing purposes
 
     void Update()
     {
@@ -195,7 +197,11 @@ public class StructuralGeneration : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.G))
         {
-            Destroy(GameObject.Find("Cells"));
+            if (GameObject.Find("Cells"))
+                Destroy(GameObject.Find("Cells"));
+
+            if (GameObject.Find("Rooms"))
+                Destroy(GameObject.Find("Rooms"));
             Destroy(GameObject.Find("Rooms"));
             cells = generateGrid();
             boundaries = furthestDirections(cells);
@@ -209,17 +215,35 @@ public class StructuralGeneration : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.H))    //Used to test stair building
         {
             List<GameObject> raise = new List<GameObject>();
-            raise.Add(cells[3]);
-            destroyWalls(cells[23], boundaries);
-            destroyWalls(cells[3], boundaries);
-            ElevateDungeon(raise, cellWallHeight);
-            ElevateDungeon(raise, cellWallHeight);
-            BuildStair(cells[3], cells[23]);
-            raise.Add(cells[23]);
+            raise.Add(cells[s2]);
+            destroyWalls(cells[s1], boundaries);
+            destroyWalls(cells[s2], boundaries);
+            ElevateDungeon(raise, h);
+            //ElevateDungeon(raise, cellWallHeight);
+            BuildStair(cells[s2], cells[s1]);
+            raise.Add(cells[s1]);
 
-            parentObject(raise, "Test");
+            parentObject(raise, "Stairs", "test");
             Destroy(GameObject.Find("Cells"));
 
+        }
+
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            if (GameObject.Find("Cells"))
+                Destroy(GameObject.Find("Cells"));
+
+            if (GameObject.Find("Rooms"))
+                Destroy(GameObject.Find("Rooms"));
+
+            if (GameObject.Find("Stairs"))
+             Destroy(GameObject.Find("Stairs"));
+            cells = generateGrid();
+            boundaries = furthestDirections(cells);
+            parentObject(cells, "Cells");
+            generateQuadrants();
+            generateCellWalls(cells);
+            seeddisplay = "";
         }
 
     }
@@ -1338,7 +1362,7 @@ public class StructuralGeneration : MonoBehaviour
                     break;
             }
         }
-        int numberOfSteps = 15;                 //number of steps in stair
+        int numberOfSteps = 13;                 //number of steps in stair
         stepHeight = height / numberOfSteps;    //height of step
         stepLength = length[0] / numberOfSteps; //length of step
 
@@ -1346,14 +1370,16 @@ public class StructuralGeneration : MonoBehaviour
         {
 
             List<GameObject> steps = new List<GameObject>();    //Game objects for each step
-            Debug.Log("run");
+
             for (int i = 1; i <= numberOfSteps; i++)
             {
-                Vector3 stairHeight = new Vector3(0.0f, stepHeight * i, 0);        //Raises steps to form stair
                 GameObject step = GameObject.CreatePrimitive(PrimitiveType.Cube);   //Creates a cube
 
                 float set;      //Used to offset the steps so that they form correctly from cell to cell
                 Vector3 offSet; //Transforms set into a vector so that it can be added to step.transform.position
+
+                float temp = (stepLength * i) / 2;                      //how far steps need to move to be uniform
+                Vector3 tempVector = temp * distance;                   //Transform temp into a vector
 
                 if (dir[0] == 'w' || dir[0] == 'e') //If direction is west or east
                 {
@@ -1363,9 +1389,31 @@ public class StructuralGeneration : MonoBehaviour
                     set = (length[0] - returnCellSizez * numOfStairs) * 0.5f; //line stair up correctly
 
                     if (dir[0] == 'e')  //If direction is east
-                        offSet = new Vector3(set, 0, 0);    //offset is positive
+                        offSet = new Vector3(set, stepHeight * i, 0);    //offset is positive
                     else
-                        offSet = new Vector3(-set, 0, 0);   //else it is negative
+                        offSet = new Vector3(-set, stepHeight * i, 0);   //else it is negative
+
+                    if (i == 1 && x >= 1)
+                    {
+                        step.transform.localScale = new Vector3(returnCellSizex, height + stepHeight, width[0]);
+
+                        if (dir[0] == 'w')
+                            tempVector -= new Vector3(-0.2f, height / 2, 0);
+
+                        else
+                            tempVector += new Vector3(-0.2f, -(height / 2), 0);
+                    }
+
+                    else if (i == numberOfSteps)
+                    {
+                        step.transform.localScale = new Vector3(returnCellSizex, height, width[0]);
+
+                        if (dir[0] == 'w')
+                            tempVector -= new Vector3(step.transform.localScale.x / 2, height / 2 - (stepHeight / 2), 0);
+
+                        else
+                            tempVector -= new Vector3(-(step.transform.localScale.x / 2), height / 2 - (stepHeight / 2), 0);
+                    }
                 }
 
                 else    //If direction is north or south
@@ -1376,23 +1424,40 @@ public class StructuralGeneration : MonoBehaviour
                     set = (length[0] - returnCellSizex) * 0.5f; //line up stair
 
                     if (dir[0] == 'n')  //If direction is north
-                        offSet = new Vector3(0, 0, set);    //positive offset
+                        offSet = new Vector3(0, stepHeight * i, set);    //positive offset
                     else
-                        offSet = new Vector3(0, 0, -set);   //negative offset
+                        offSet = new Vector3(0, stepHeight * i, -set);   //negative offset
+
+                    if (i == 1 && x >= 1)
+                    {
+                        step.transform.localScale = new Vector3(width[0], height + stepHeight, returnCellSizez);
+
+                        if (dir[0] == 's')
+                            tempVector -= new Vector3(0, height / 2, -0.2f);
+
+                        else
+                            tempVector += new Vector3(0, -(height / 2), -0.2f);
+                    }
+
+                    else if (i == numberOfSteps)
+                    {
+                        step.transform.localScale = new Vector3(width[0], height, returnCellSizez);
+                        if (dir[0] == 's')
+                            tempVector -= new Vector3(0, height / 2 - (stepHeight / 2), step.transform.localScale.z / 2);
+                        else
+                            tempVector -= new Vector3(0, height / 2 - (stepHeight / 2), -(step.transform.localScale.z / 2));
+                    }
                 }
 
-                float temp = (stepLength * i) / 2;                      //how far steps need to move to be uniform
-                Vector3 tempVector = temp * distance;                   //Transform temp into a vector
-
-                step.transform.position = lowPos + offSet + stairHeight + tempVector;   //Move step to correct position
+                step.transform.position = lowPos + offSet + tempVector;   //Move step to correct position
                 step.name = "Step " + i;                                                //Name step
                 steps.Add(step);                                                        //Add step to List
             }
 
-            parentObject(steps, "Steps" + x);   //Parent steps
+            parentObject(steps, "Stairs", "Steps " + x);   //Parent steps
 
             if (numOfStairs - 1 != x)
-                switch (dir[x])
+                switch (dir[0])
                 {
                     case 'n':
                         lowPos = moveCellPosition(0, lowPos, false, 2);
