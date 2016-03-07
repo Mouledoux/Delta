@@ -9,7 +9,7 @@ public class PlayerCamera : MonoBehaviour {
 
     Vector3 originalPos;
 
-    GameObject player;
+    public GameObject player;
 
     // Update is called once per frame
     void Update () {
@@ -30,6 +30,7 @@ public class PlayerCamera : MonoBehaviour {
         }
 
         transform.RotateAround(player.transform.position, player.transform.up, 20.0f * HorizontalRot * H_rotSpeed * Time.deltaTime);
+        transform.Rotate(new Vector3(-1.0f * VerticalRot * V_rotSpeed, 0, 0));
         //transform.RotateAround(-player.transform.position, player.transform.right, 20.0f * VerticalRot * V_rotSpeed * Time.deltaTime);
         Vector3 tem = transform.rotation.eulerAngles;
         tem.z = 0.0f;
@@ -39,7 +40,6 @@ public class PlayerCamera : MonoBehaviour {
 
     void Start()
     {
-        player = GameObject.Find("Player 1");
         originalPos = player.transform.position;
     }
 }

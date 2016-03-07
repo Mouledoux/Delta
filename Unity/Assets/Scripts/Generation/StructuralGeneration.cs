@@ -146,12 +146,15 @@ public class StructuralGeneration : MonoBehaviour
     public int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };        //stores seed
     public string seeddisplay;                                          //controls seed
     public bool seedGen;                                                //Generate a seed
-    private bool realTimeGen;                                           //Coroutine vs Instant
+    public bool realTimeGen;                                           //Coroutine vs Instant
     public float numberofRooms;                                         //Outputs number of rooms (debugging)
 
     //Rooms | Halls | Stairs
     public int minRoomSize;
     public int maxRoomSize;
+
+    public int largestRoomCount;
+    public int minMainRoomCount;
 
 
 
@@ -1107,6 +1110,47 @@ public class StructuralGeneration : MonoBehaviour
         return seed;
     }
 
+    private void generateMainRoom()
+    {
+        int direction = (int)numberofRooms % 4;
+
+        GameObject MainRoom = new GameObject();
+        MainRoom.transform.position = Vector3.zero;
+
+        switch(direction)
+        {
+            case 0:
+                MainRoom.transform.position = new Vector3(0, 0, boundaries[0]);
+                break;
+
+            case 1:
+                MainRoom.transform.position = new Vector3(boundaries[2], 0, boundaries[0] / 2);
+                break;
+
+            case 2:
+                MainRoom.transform.position = new Vector3(0, 0, boundaries[1]);
+
+                break;
+
+            case 3:
+                MainRoom.transform.position = new Vector3(boundaries[3], 0, boundaries[0] / 2);
+                break;
+        }
+
+        MainRoom.transform.position =  moveCellPosition(direction, MainRoom.transform.position, false, 10);
+
+        GameObject floor = Instantiate(FLOOR);
+        floor.transform.localScale = new Vector3(20, 0.4f, 20);
+        floor.transform.position = MainRoom.transform.position;
+        floor.transform.parent = MainRoom.transform;
+        floor.name = "Floor";
+        MainRoom.name = "MainRoom";
+        GenerateSquareWalls(floor);
+
+        List<GameObject> temp = new List<GameObject>();
+        temp.Add(MainRoom);
+        parentObject(temp, "Rooms");
+    }
     #endregion
 
     #region Room Transformations
@@ -1260,13 +1304,24 @@ public class StructuralGeneration : MonoBehaviour
 
         GameObject Rooms = GameObject.Find("Rooms");
         List<GameObject> AllRooms = new List<GameObject>();
-
+        int largestRoom = 0;
+        int largestCount = 0;
+        bool mainRoom = false;
         for (int i = 0; i < Rooms.transform.childCount; i++)
         {
-            Rooms.transform.GetChild(i).name = "Room " + i;
-            AllRooms.Add(Rooms.transform.GetChild(i).gameObject);
+            GameObject temp = Rooms.transform.GetChild(i).gameObject;
+            temp.name = "Room " + i;
+            AllRooms.Add(temp);
+
+            if (temp.transform.childCount > largestCount)
+            {
+                largestRoom = i;
+                largestCount = temp.transform.childCount;
+                largestRoomCount = largestCount;
+            }
         }
 
+        Rooms.transform.GetChild(largestRoom).name = "Boss Room";
         numberofRooms = Rooms.transform.childCount;
 
         Destroy(GameObject.Find("Cells"));
@@ -1274,7 +1329,10 @@ public class StructuralGeneration : MonoBehaviour
         PushFromCenter();
         ElevateRooms(elevationNum, AllRooms);
         yield return new WaitForSeconds(2.0f * Time.deltaTime);
-        RotateGrid(rotationNum);
+        generateMainRoom();
+        //RotateGrid(rotationNum);
+
+        
     }
 
     IEnumerator WaitSeconds(float seconds, Action FunctionName)
@@ -1799,6 +1857,7 @@ public class StructuralGeneration : MonoBehaviour
         return result;
     }
 
+    //Shuffles numbers using a predictable algorithm
     private int[] Shuffle(int[] numbers)
     {
         //Function takes a set of numbers and Shuffles them using a predictable algorithm
@@ -1872,6 +1931,32 @@ public class StructuralGeneration : MonoBehaviour
             seed[i] = int.Parse(seeddisplay[i].ToString());
         }
         return seed;
+    }
+
+    private void GenerateSquareWalls(GameObject center)
+    {
+        GameObject[] walls = new GameObject[] { Instantiate(WALL), Instantiate(WALL), Instantiate(WALL), Instantiate(WALL) };
+
+        float n = center.transform.localScale.z;
+        float e = center.transform.localScale.x;
+        walls[0].transform.localScale = walls[1].transform.localScale = new Vector3(e, cellWallHeight, cellWallWidth);
+        walls[2].transform.localScale = walls[3].transform.localScale = new Vector3(cellWallWidth, cellWallHeight, n);
+
+        n = center.transform.localScale.z / 2;
+        e = center.transform.localScale.x / 2;
+        float wn = walls[0].transform.localScale.z / 2;
+        float we = walls[3].transform.localScale.x / 2;
+        walls[0].transform.position = center.transform.position + new Vector3(0, cellWallHeight / 2, n + wn);
+        walls[1].transform.position = center.transform.position + new Vector3(0, cellWallHeight / 2, -(n - wn));
+        walls[2].transform.position = center.transform.position + new Vector3(e + we, cellWallHeight / 2, 0);
+        walls[3].transform.position = center.transform.position + new Vector3(-(e + we), cellWallHeight / 2, 0);
+
+        walls[0].name = "n_wall";
+        walls[1].name = "s_wall";
+        walls[2].name = "e_wall";
+        walls[3].name = "w_wall";
+
+        parentObject(walls.ToList(), center.name, "Walls");
     }
     #endregion
 
