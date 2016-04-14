@@ -16,7 +16,7 @@ public class Display_ItemUI : MonoBehaviour
         if (!state)
             turnOffDisplay();
 
-        transform.forward = GameObject.Find("Player").transform.forward;
+        transform.forward = GameObject.Find("Camera").transform.forward;
     }
 
     void Update()

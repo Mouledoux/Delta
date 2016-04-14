@@ -253,6 +253,546 @@ public class StructuralGeneration : MonoBehaviour
 
     #endregion
 
+    #region Generate Dungeon
+    private void GenerateDungeon()
+    {
+        #region Initial Variables
+        if (roomsPerQuadrant > 9)
+            roomsPerQuadrant = 9;                           //Ensure roomsPerQuadrant <= 9
+
+        List<Vector3> roomPositions = new List<Vector3>();  //Store positions for rooms
+
+        int[] defaultlayout = new int[roomsPerQuadrant];                    //Call layouts from quadrant positions
+        int[] roomNum = new int[roomsPerQuadrant * QuadrantsWanted];        //Tracks room numbers
+
+        int[] roomSizes = new int[roomsPerQuadrant * QuadrantsWanted];      //Track room sizes
+        int[] allRooms = getRoomSizes();                                    //Get the list of room sizes
+
+        #endregion
+
+        #region Position Default Dungeon
+        for (int i = 0; i < defaultlayout.Length; i++)
+        {
+            defaultlayout[i] = i + 4;
+
+            if (defaultlayout[i] > 8)
+                defaultlayout[i] -= 9;
+        }
+        int s = 0;
+        for (int i = 0; i < QuadrantsWanted; i++)
+        {
+            List<Vector3> positions = findRoomPositions(QuadrantBoundaries[i]);
+            for (int x = 0; x < roomsPerQuadrant; x++)
+            {
+                roomPositions.Add(positions[defaultlayout[x]]);
+                roomSizes[s] = 0;
+                roomNum[s] = s;
+                s++;
+
+            }
+        }
+
+        roomNum = Shuffle(roomNum);     //Shuffle room numbers
+        #endregion
+
+        #region Generate and Breakdown Seed
+        if (seedGen)    //Generate seed
+        {
+            if (!string.IsNullOrEmpty(seeddisplay)) //If manual seed is input
+            {
+                seed = seedReturn();                    //Use it
+            }
+
+            else
+                seed = generateSeed();                  //Generate new
+        }
+
+        int elevationNum;
+        int rotationNum;
+        //Room Transformations and whatnot
+        roomPositions = breakdownSeed(roomPositions, roomNum, roomSizes, allRooms.Length, out elevationNum, out rotationNum);
+        #endregion
+
+        #region Generate Rooms
+        if (realTimeGen)    //If the game is running
+            StartCoroutine(RealTimeGenerator(roomPositions, allRooms, roomSizes, elevationNum, rotationNum)); //Generate in coroutine
+
+        else            //Otherwise generate everything instantly
+        {
+            for (int i = 0; i < roomPositions.Count; i++)
+            {
+                string temp = allRooms[roomSizes[i]].ToString();
+
+                int[] roomsize = new int[] { Convert.ToInt32(temp[0].ToString()), Convert.ToInt32(temp[1].ToString()) };
+
+                Vector3 returnPos = roomPositions[i];
+                List<GameObject> MergedRooms;
+                List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
+                if (MergedRooms.Count != 0)
+                {
+                    List<GameObject> newRoom = parent;
+                    for (int x = 0; x < MergedRooms.Count; x++)
+                    {
+                        foreach (Transform cell in MergedRooms[x].transform)
+                        {
+                            newRoom.Add(cell.gameObject);
+                        }
+                        GameObject.Destroy(MergedRooms[x]);
+                    }
+                }
+
+                parentObject(parent, "Rooms", "Rooms " + i);
+            }
+
+            GameObject Rooms = GameObject.Find("Rooms");
+            List<GameObject> AllRooms = new List<GameObject>();
+
+            for (int i = 0; i < Rooms.transform.childCount; i++)
+            {
+                Rooms.transform.GetChild(i).name = "Room " + i;
+                AllRooms.Add(Rooms.transform.GetChild(i).gameObject);
+            }
+
+            numberofRooms = Rooms.transform.childCount;
+
+            Destroy(GameObject.Find("Cells"));
+            PushFromCenter();
+            ElevateRooms(elevationNum, AllRooms);
+        }
+        #endregion
+
+    }
+
+    private List<Vector3> breakdownSeed(List<Vector3> positions, int[] roomNum, int[] roomSizes, int totalRoomSizes,
+        out int elevationNum, out int rotationNum)
+    {
+        elevationNum = 0;
+        rotationNum = 0;
+        for (int i = 0; i < seed.Length; i++)
+        {
+
+            if (seed[i] == 0)
+            {
+                positions = ShiftRooms(positions, roomNum.ToList(), 0, true);   //Shift rooms up in quadrant
+                roomSizes = ScaleRooms(roomSizes, roomNum, totalRoomSizes);     //Scale rooms
+            }
+
+            else if (seed[i] == 1)
+            {
+                positions = ShiftRooms(positions, roomNum.ToList(), 1, true);   //Shift rooms right in quadrant
+                roomSizes = ScaleRooms(roomSizes, roomNum, totalRoomSizes);     //Scale rooms
+            }
+
+            else if (seed[i] == 2)
+            {
+                positions = ShiftRooms(positions, roomNum.ToList(), 0, false);  //Shift rooms up on grid
+                roomSizes = ScaleRooms(roomSizes, roomNum, totalRoomSizes);     //Scale rooms
+            }
+
+            else if (seed[i] == 3)
+            {
+                positions = ShiftRooms(positions, roomNum.ToList(), 1, false);  //Shift rooms right on grid
+                roomSizes = ScaleRooms(roomSizes, roomNum, totalRoomSizes);     //Scale rooms
+            }
+
+            else if (seed[i] == 4)
+            {
+                if (roomsPerQuadrant > 3)
+                    roomNum = ShuffleRooms(roomNum, true);
+                else
+                    roomNum = ShuffleRooms(roomNum, false);
+            }
+
+            else if (seed[i] == 5)
+            {
+                roomNum = ShuffleRooms(roomNum, false);
+            }
+
+            else if (seed[i] == 6)
+            {
+                elevationNum += 1;
+            }
+
+            else if (seed[i] == 7)
+            {
+                rotationNum += 1;
+            }
+
+            else if (seed[i] == 8)
+            {
+
+            }
+
+            else if (seed[i] == 9)
+            {
+
+            }
+        }
+
+        return positions;
+    }
+
+    private List<Vector3> findRoomPositions(float[] quadrant)
+    {
+        //Function is used to find the: Top Left, Top Middle, Top Right, Middle Left, Center, Middle Right
+        //                              Bottom Left, Bottom Middle, and Bottom Right
+
+        //                              cells of a quadrant
+
+        List<Vector3> roomPositions = new List<Vector3>();  //Stores room positions for quadrant
+
+        float north = quadrant[0];                  //Store north quadrant boundary
+        float south = quadrant[1];                  //Store south quadrant boundary
+        float east = quadrant[2];                  //Store east  quadrant boundary
+        float west = quadrant[3];                  //Store west  quadrant boundary
+
+        float totalHeight = north - south;          //total height of quadrant
+        float totalWidth = Mathf.Abs(east - west);  //total width of quadrant
+
+        float xmid = ((totalWidth / 2) + west);     //mid width of quadrant
+        float zmid = ((totalHeight / 2) + south);   //mid height of quadrant
+        xmid = Mathf.Round(xmid);
+        zmid = Mathf.Round(zmid);
+
+        roomPositions.Add(new Vector3(west, 0.0f, north));  //Top Left      0
+        roomPositions.Add(new Vector3(xmid, 0.0f, north));  //Top Middle    1
+        roomPositions.Add(new Vector3(east, 0.0f, north));  //Top Right     2
+
+        roomPositions.Add(new Vector3(west, 0.0f, zmid));   //Middle Left   3
+        roomPositions.Add(new Vector3(xmid, 0.0f, zmid));   //Center        4
+        roomPositions.Add(new Vector3(east, 0.0f, zmid));   //Middle Right  5
+
+        roomPositions.Add(new Vector3(west, 0.0f, south));  //Bottom Left   6
+        roomPositions.Add(new Vector3(xmid, 0.0f, south));  //Bottom Middle 7
+        roomPositions.Add(new Vector3(east, 0.0f, south));  //Bottom Right  8
+
+
+        return roomPositions;
+    }
+
+    private int[] generateSeed()
+    {
+        for (int i = 0; i < seed.Length; i++)
+        {
+            seed[i] = randomGenerator(0, 7);
+            seeddisplay += seed[i].ToString();
+        }
+
+        return seed;
+    }
+
+    private void generateMainRoom()
+    {
+        int direction = (int)numberofRooms % 4;
+
+        GameObject MainRoom = new GameObject();
+        MainRoom.transform.position = Vector3.zero;
+
+        switch (direction)
+        {
+            case 0:
+                MainRoom.transform.position = new Vector3(0, 0, boundaries[0]);
+                break;
+
+            case 1:
+                MainRoom.transform.position = new Vector3(boundaries[2], 0, boundaries[0] / 2);
+                break;
+
+            case 2:
+                MainRoom.transform.position = new Vector3(0, 0, boundaries[1]);
+
+                break;
+
+            case 3:
+                MainRoom.transform.position = new Vector3(boundaries[3], 0, boundaries[0] / 2);
+                break;
+        }
+
+        MainRoom.transform.position = moveCellPosition(direction, MainRoom.transform.position, false, 10);
+
+        GameObject floor = Instantiate(FLOOR);
+        floor.transform.localScale = new Vector3(20, 0.4f, 20);
+        floor.transform.position = MainRoom.transform.position;
+        floor.transform.parent = MainRoom.transform;
+        floor.name = "Floor";
+        MainRoom.name = "MainRoom";
+        GenerateSquareWalls(floor);
+
+        List<GameObject> temp = new List<GameObject>();
+        temp.Add(MainRoom);
+        parentObject(temp, "Rooms");
+    }
+    #endregion
+
+    #region Post Generation
+    void PushFromCenter()
+    {
+        //Function pushes all rooms away from center of grid
+        float NgridMid = (boundaries[0] + boundaries[1]) / 2;
+        float EgridMid = (boundaries[2] + boundaries[3]) / 2;
+
+        GameObject Rooms = GameObject.Find("Rooms");
+
+        for (int i = 0; i < Rooms.transform.childCount; i++)
+        {
+            if (Rooms.transform.GetChild(i).transform.position.z < NgridMid)
+            {
+                Rooms.transform.GetChild(i).transform.position += new Vector3(0, 0, -returnCellSizez);
+            }
+
+            else
+            {
+                Rooms.transform.GetChild(i).transform.position += new Vector3(0, 0, returnCellSizez);
+            }
+
+            if (Rooms.transform.GetChild(i).transform.position.x < EgridMid)
+            {
+                Rooms.transform.GetChild(i).transform.position += new Vector3(-returnCellSizex, 0, 0);
+            }
+
+            else
+            {
+                Rooms.transform.GetChild(i).transform.position += new Vector3(returnCellSizex, 0, 0);
+            }
+        }
+    }
+
+    void BuildStair(GameObject topCell, GameObject bottomCell)
+    {
+        //Function builds stairs between two cells.
+        //Takes two parameters for the cells, and either connects them directly or creates intermediate
+        //positions and then connects them
+
+        float maxStairX = returnCellSizex * 2;              //A single stair cannot extend on the x-axis beyond this
+        float maxStairZ = returnCellSizez * 2;              //A single stair cannot extend on the z-axis beyond this
+        float maxStairHeight = cellWallHeight;              //A single stair cannot rise above this height
+
+        float stepLength;                                   //Length of steps
+        float stepHeight;                                   //Height of steps
+        float height;                                       //Height of stair
+
+        Vector3 topPos = topCell.transform.position;
+        Vector3 lowPos = bottomCell.transform.position;
+
+        List<float> length;                                 //Length of each stair to connect positions
+        List<float> width;                                  //Width of each stair to connect positions
+
+        List<char> dir;                                     //Direction of each stair
+
+        int numOfStairs;
+
+        //Returns the direction of each stair as well as the length and width
+        Vector3 distance = StairDirection(topPos, lowPos, out length, out width, out dir, out numOfStairs, out height)[0];
+
+        if (numOfStairs > 1)
+        {
+            switch (dir[0])
+            {
+                case 'n':
+                    lowPos = moveCellPosition(2, lowPos, false);
+                    break;
+                case 's':
+                    lowPos = moveCellPosition(0, lowPos, false);
+                    break;
+                case 'e':
+                    lowPos = moveCellPosition(3, lowPos, false);
+                    break;
+                case 'w':
+                    lowPos = moveCellPosition(1, lowPos, false);
+                    break;
+            }
+        }
+        int numberOfSteps = 13;                 //number of steps in stair
+        stepHeight = height / numberOfSteps;    //height of step
+        stepLength = length[0] / numberOfSteps; //length of step
+
+        for (int x = 0; x < numOfStairs; x++)
+        {
+
+            List<GameObject> steps = new List<GameObject>();    //Game objects for each step
+
+            for (int i = 1; i <= numberOfSteps; i++)
+            {
+                GameObject step = GameObject.CreatePrimitive(PrimitiveType.Cube);   //Creates a cube
+
+                float set;      //Used to offset the steps so that they form correctly from cell to cell
+                Vector3 offSet; //Transforms set into a vector so that it can be added to step.transform.position
+
+                float temp = (stepLength * i) / 2;                      //how far steps need to move to be uniform
+                Vector3 tempVector = temp * distance;                   //Transform temp into a vector
+
+                if (dir[0] == 'w' || dir[0] == 'e') //If direction is west or east
+                {
+                    //The length will be the x, height will be y, width will be z
+                    step.transform.localScale = new Vector3(length[0] - (stepLength * i), stepHeight, width[0]);
+
+                    set = (length[0] - returnCellSizez * numOfStairs) * 0.5f; //line stair up correctly
+
+                    if (dir[0] == 'e')  //If direction is east
+                        offSet = new Vector3(set, stepHeight * i, 0);    //offset is positive
+                    else
+                        offSet = new Vector3(-set, stepHeight * i, 0);   //else it is negative
+
+                    if (i == 1 && x >= 1)
+                    {
+                        step.transform.localScale = new Vector3(returnCellSizex, height + stepHeight, width[0]);
+
+                        if (dir[0] == 'w')
+                            tempVector -= new Vector3(-0.2f, height / 2, 0);
+
+                        else
+                            tempVector += new Vector3(-0.2f, -(height / 2), 0);
+                    }
+
+                    else if (i == numberOfSteps)
+                    {
+                        step.transform.localScale = new Vector3(returnCellSizex, height, width[0]);
+
+                        if (dir[0] == 'w')
+                            tempVector -= new Vector3(step.transform.localScale.x / 2, height / 2 - (stepHeight / 2), 0);
+
+                        else
+                            tempVector -= new Vector3(-(step.transform.localScale.x / 2), height / 2 - (stepHeight / 2), 0);
+                    }
+                }
+
+                else    //If direction is north or south
+                {
+                    //The width will be x, height is y, length is z
+                    step.transform.localScale = new Vector3(width[0], stepHeight, length[0] - (stepLength * i));
+
+                    set = (length[0] - returnCellSizex) * 0.5f; //line up stair
+
+                    if (dir[0] == 'n')  //If direction is north
+                        offSet = new Vector3(0, stepHeight * i, set);    //positive offset
+                    else
+                        offSet = new Vector3(0, stepHeight * i, -set);   //negative offset
+
+                    if (i == 1 && x >= 1)
+                    {
+                        step.transform.localScale = new Vector3(width[0], height + stepHeight, returnCellSizez);
+
+                        if (dir[0] == 's')
+                            tempVector -= new Vector3(0, height / 2, -0.2f);
+
+                        else
+                            tempVector += new Vector3(0, -(height / 2), -0.2f);
+                    }
+
+                    else if (i == numberOfSteps)
+                    {
+                        step.transform.localScale = new Vector3(width[0], height, returnCellSizez);
+                        if (dir[0] == 's')
+                            tempVector -= new Vector3(0, height / 2 - (stepHeight / 2), step.transform.localScale.z / 2);
+                        else
+                            tempVector -= new Vector3(0, height / 2 - (stepHeight / 2), -(step.transform.localScale.z / 2));
+                    }
+                }
+
+                step.transform.position = lowPos + offSet + tempVector;   //Move step to correct position
+                step.name = "Step " + i;                                                //Name step
+                steps.Add(step);                                                        //Add step to List
+            }
+
+            parentObject(steps, "Stairs", "Steps " + x);   //Parent steps
+
+            if (numOfStairs - 1 != x)
+                switch (dir[0])
+                {
+                    case 'n':
+                        lowPos = moveCellPosition(0, lowPos, false, 2);
+                        break;
+                    case 's':
+                        lowPos = moveCellPosition(2, lowPos, false, 2);
+                        break;
+                    case 'e':
+                        lowPos = moveCellPosition(1, lowPos, false, 2);
+                        break;
+                    case 'w':
+                        lowPos = moveCellPosition(3, lowPos, false, 2);
+                        break;
+
+                    default:
+                        break;
+                }
+
+            lowPos += new Vector3(0, height, 0);
+        }
+
+    }
+
+    List<Vector3> StairDirection(Vector3 topPos, Vector3 lowPos, out List<float> length, out List<float> width,
+        out List<char> dir, out int numberOfStairs, out float height)
+    {
+        //Function determines which direction the Vector3 distance variable will shift steps in
+        //as well as the scale of the steps
+        float xTop = topPos.x;
+        float xLow = lowPos.x;
+        float zTop = topPos.z;
+        float zLow = lowPos.z;
+
+        numberOfStairs = 1;
+
+        height = topPos.y - lowPos.y;
+
+        numberOfStairs = Convert.ToInt32(Mathf.Ceil(height / cellWallHeight));
+        numberOfStairs = Mathf.Clamp(numberOfStairs, 1, 100);
+        height /= numberOfStairs;
+
+        length = new List<float>();
+        width = new List<float>();
+        dir = new List<char>();
+
+        List<Vector3> distance = new List<Vector3>();
+
+        if (xTop != xLow)
+        {
+            if (xTop > xLow)
+            {
+                distance.Add(new Vector3(1, 0, 0));    //Shift steps right
+                dir.Add('e');
+            }
+
+            else
+            {
+                distance.Add(new Vector3(-1, 0, 0));   //Shift steps left
+                dir.Add('w');
+            }
+
+            length.Add(Mathf.Abs(topPos.x - lowPos.x) / numberOfStairs);
+            width.Add(returnCellSizez);
+        }
+
+        if (zTop != zLow)
+        {
+            if (zTop > zLow)
+            {
+                distance.Add(new Vector3(0, 0, 1));    //Shift steps up
+                dir.Add('n');
+            }
+
+            else
+            {
+                distance.Add(new Vector3(0, 0, -1));   //Shift steps down 
+                dir.Add('s');
+            }
+
+            length.Add(Mathf.Abs(topPos.z - lowPos.z) / numberOfStairs);
+            width.Add(returnCellSizex);
+        }
+
+        return distance;
+    }
+
+    void ElevateDungeon(List<GameObject> cells, float height)
+    {
+        foreach (GameObject cell in cells)
+        {
+            cell.transform.position += new Vector3(0, height, 0);
+        }
+    }
+    #endregion
+
     #region Generate Grid
 
     private List<GameObject> generateGrid()
@@ -797,361 +1337,39 @@ public class StructuralGeneration : MonoBehaviour
 
     #endregion
 
-    #region Generate Hallways
-
-    private bool connectCells(GameObject cellIn, GameObject cellToConnect)
+    private void GenerateHalls(List<Vector3> connectingPoints, int groups = 4, int pointsPerGroup = 0)
     {
-        //Function takes two cell gameObjects and connects them.
-        //If function returns false, then they are already connected or not possible to connect
+        //connecting Points: The positions that should be connected; in the case of the dungeon, this should be a list
+        //of the final room positions
 
-        string cellWallOne, cellWallTwo;    //Get the walls that need to be connected in each cell
+        //Function divides the positions to connect into sections. 
+        //All positions in each section are connected and then the sections are connected
 
-        if (!cellIn.transform.parent.name.Contains("Hall") || !cellIn.transform.parent.name.Contains("Room"))
+        #region Group Points
+        List<List<Vector3>> Points = new List<List<Vector3>>();
+
+        if (pointsPerGroup == 0)
         {
-            detectConnectingWalls(cellIn.transform.position, cellToConnect.transform.position,
-                out cellWallOne, out cellWallTwo);
-
-            destroyConnectingWalls(cellIn, cellToConnect, cellWallOne, cellWallTwo);
+            pointsPerGroup = connectingPoints.Count / groups;
         }
 
-        else
+        int iteration = 0;
+        for (int i = 0; i < connectingPoints.Count; i++)
         {
-            return false;
-        }
+            List<Vector3> group = new List<Vector3>();
 
-        return true;
-    }
-
-    //This method is used by connectCells to determine which walls are connecting the cells, if any
-    private void detectConnectingWalls(Vector3 cellOne, Vector3 cellTwo, out string wallOne, out string wallTwo)
-    {
-        float cellCalcx = returnCellSizex;
-        float cellCalcz = returnCellSizez;
-
-        if (cellOne.z + cellCalcz == cellTwo.z) //north
-        {
-            wallOne = "north_wall";
-            wallTwo = "south_wall";
-        }
-
-        else if (cellOne.z - cellCalcz == cellTwo.z) //south
-        {
-            wallOne = "south_wall";
-            wallTwo = "north_wall";
-        }
-
-        else if (cellOne.x + cellCalcx == cellTwo.x) //east
-        {
-            wallOne = "east_wall";
-            wallTwo = "west_wall";
-        }
-
-        else if (cellOne.x - cellCalcx == cellTwo.x) //west
-        {
-            wallOne = "west_wall";
-            wallTwo = "east_wall";
-        }
-
-        else
-            throw new Exception("These cells cannot be connected:" + findCell(cellOne).name + findCell(cellTwo).name);
-    }
-
-    //This method is used by connectCells to destroy connected walls
-    private void destroyConnectingWalls(GameObject cellOne, GameObject cellTwo, string wallOne, string wallTwo)
-    {
-        if (cellOne.transform.Find(wallOne))
-        {
-            Destroy(cellOne.transform.Find(wallOne).gameObject);
-        }
-
-        if (cellTwo.transform.Find(wallTwo))
-        {
-            Destroy(cellTwo.transform.Find(wallTwo).gameObject);
-        }
-    }
-
-    //This checks to see if a cell is currently parented (a room or a hall)
-    private bool checkCellStatus(Vector3 a_cell)
-    {
-        if (findCell(a_cell).transform.parent.transform.parent.name == "Rooms")
-        {
-            return false;
-        }
-        return true;
-    }
-
-    #endregion
-
-    #region Generate Dungeon
-    private void GenerateDungeon()
-    {
-        #region Initial Variables
-        if (roomsPerQuadrant > 9)
-            roomsPerQuadrant = 9;                           //Ensure roomsPerQuadrant <= 9
-
-        List<Vector3> roomPositions = new List<Vector3>();  //Store positions for rooms
-
-        int[] defaultlayout = new int[roomsPerQuadrant];                    //Call layouts from quadrant positions
-        int[] roomNum = new int[roomsPerQuadrant * QuadrantsWanted];        //Tracks room numbers
-
-        int[] roomSizes = new int[roomsPerQuadrant * QuadrantsWanted];      //Track room sizes
-        int[] allRooms = getRoomSizes();                                    //Get the list of room sizes
-
-        #endregion
-
-        #region Position Default Dungeon
-        for (int i = 0; i < defaultlayout.Length; i++)
-        {
-            defaultlayout[i] = i + 4;
-
-            if (defaultlayout[i] > 8)
-                defaultlayout[i] -= 9;
-        }
-        int s = 0;
-        for (int i = 0; i < QuadrantsWanted; i++)
-        {
-            List<Vector3> positions = findRoomPositions(QuadrantBoundaries[i]);
-            for (int x = 0; x < roomsPerQuadrant; x++)
+            for (int x = 0;x < pointsPerGroup; x++)
             {
-                roomPositions.Add(positions[defaultlayout[x]]);
-                roomSizes[s] = 0;
-                roomNum[s] = s;
-                s++;
-
-            }
-        }
-
-        roomNum = Shuffle(roomNum);     //Shuffle room numbers
-        #endregion
-
-        #region Generate and Breakdown Seed
-        if (seedGen)    //Generate seed
-        {
-            if (!string.IsNullOrEmpty(seeddisplay)) //If manual seed is input
-            {
-                seed = seedReturn();                    //Use it
+                group.Add(connectingPoints[iteration]);
+                iteration++;
             }
 
-            else
-                seed = generateSeed();                  //Generate new
-        }
-
-        int elevationNum;
-        int rotationNum;
-        //Room Transformations and whatnot
-        roomPositions = breakdownSeed(roomPositions, roomNum, roomSizes, allRooms.Length, out elevationNum, out rotationNum); 
-        #endregion
-
-        #region Generate Rooms
-        if (realTimeGen)    //If the game is running
-            StartCoroutine(RealTimeGenerator(roomPositions, allRooms, roomSizes, elevationNum, rotationNum)); //Generate in coroutine
-
-        else            //Otherwise generate everything instantly
-        {
-            for (int i = 0; i < roomPositions.Count; i++)
-            {
-                string temp = allRooms[roomSizes[i]].ToString();
-
-                int[] roomsize = new int[] { Convert.ToInt32(temp[0].ToString()), Convert.ToInt32(temp[1].ToString()) };
-
-                Vector3 returnPos = roomPositions[i];
-                List<GameObject> MergedRooms;
-                List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
-                if (MergedRooms.Count != 0)
-                {
-                    List<GameObject> newRoom = parent;
-                    for (int x = 0; x < MergedRooms.Count; x++)
-                    {
-                        foreach (Transform cell in MergedRooms[x].transform)
-                        {
-                            newRoom.Add(cell.gameObject);
-                        }
-                        GameObject.Destroy(MergedRooms[x]);
-                    }
-                }
-
-                parentObject(parent, "Rooms", "Rooms " + i);
-            }
-
-            GameObject Rooms = GameObject.Find("Rooms");
-            List<GameObject> AllRooms = new List<GameObject>();
-
-            for (int i = 0; i < Rooms.transform.childCount; i++)
-            {
-                Rooms.transform.GetChild(i).name = "Room " + i;
-                AllRooms.Add(Rooms.transform.GetChild(i).gameObject);
-            }
-
-            numberofRooms = Rooms.transform.childCount;
-
-            Destroy(GameObject.Find("Cells"));
-            PushFromCenter();
-            ElevateRooms(elevationNum, AllRooms);
+            Points.Add(group);
         }
         #endregion
 
+
     }
-
-    private List<Vector3> breakdownSeed(List<Vector3> positions, int[] roomNum, int[] roomSizes, int totalRoomSizes,
-        out int elevationNum, out int rotationNum)
-    {
-        elevationNum = 0;
-        rotationNum = 0;
-        for (int i = 0; i < seed.Length; i++)
-        {
-
-            if (seed[i] == 0)
-            {
-                positions = ShiftRooms(positions, roomNum.ToList(), 0, true);   //Shift rooms up in quadrant
-                roomSizes = ScaleRooms(roomSizes, roomNum, totalRoomSizes);     //Scale rooms
-            }
-
-            else if (seed[i] == 1)
-            {
-                positions = ShiftRooms(positions, roomNum.ToList(), 1, true);   //Shift rooms right in quadrant
-                roomSizes = ScaleRooms(roomSizes, roomNum, totalRoomSizes);     //Scale rooms
-            }
-
-            else if (seed[i] == 2)
-            {
-                positions = ShiftRooms(positions, roomNum.ToList(), 0, false);  //Shift rooms up on grid
-                roomSizes = ScaleRooms(roomSizes, roomNum, totalRoomSizes);     //Scale rooms
-            }
-
-            else if (seed[i] == 3)
-            {
-                positions = ShiftRooms(positions, roomNum.ToList(), 1, false);  //Shift rooms right on grid
-                roomSizes = ScaleRooms(roomSizes, roomNum, totalRoomSizes);     //Scale rooms
-            }
-
-            else if (seed[i] == 4)
-            {
-                if (roomsPerQuadrant > 3)
-                    roomNum = ShuffleRooms(roomNum, true);
-                else
-                    roomNum = ShuffleRooms(roomNum, false);
-            }
-
-            else if (seed[i] == 5)
-            {
-                roomNum = ShuffleRooms(roomNum, false);
-            }
-
-            else if (seed[i] == 6)
-            {
-                elevationNum += 1;
-            }
-
-            else if (seed[i] == 7)
-            {
-                rotationNum += 1;
-            }
-
-            else if (seed[i] == 8)
-            {
-
-            }
-
-            else if (seed[i] == 9)
-            {
-
-            }
-        }
-
-        return positions;
-    }
-
-    private List<Vector3> findRoomPositions(float[] quadrant)
-    {
-        //Function is used to find the: Top Left, Top Middle, Top Right, Middle Left, Center, Middle Right
-        //                              Bottom Left, Bottom Middle, and Bottom Right
-
-        //                              cells of a quadrant
-
-        List<Vector3> roomPositions = new List<Vector3>();  //Stores room positions for quadrant
-
-        float north = quadrant[0];                  //Store north quadrant boundary
-        float south = quadrant[1];                  //Store south quadrant boundary
-        float east = quadrant[2];                  //Store east  quadrant boundary
-        float west = quadrant[3];                  //Store west  quadrant boundary
-
-        float totalHeight = north - south;          //total height of quadrant
-        float totalWidth = Mathf.Abs(east - west);  //total width of quadrant
-
-        float xmid = ((totalWidth / 2) + west);     //mid width of quadrant
-        float zmid = ((totalHeight / 2) + south);   //mid height of quadrant
-        xmid = Mathf.Round(xmid);
-        zmid = Mathf.Round(zmid);
-
-        roomPositions.Add(new Vector3(west, 0.0f, north));  //Top Left      0
-        roomPositions.Add(new Vector3(xmid, 0.0f, north));  //Top Middle    1
-        roomPositions.Add(new Vector3(east, 0.0f, north));  //Top Right     2
-
-        roomPositions.Add(new Vector3(west, 0.0f, zmid));   //Middle Left   3
-        roomPositions.Add(new Vector3(xmid, 0.0f, zmid));   //Center        4
-        roomPositions.Add(new Vector3(east, 0.0f, zmid));   //Middle Right  5
-
-        roomPositions.Add(new Vector3(west, 0.0f, south));  //Bottom Left   6
-        roomPositions.Add(new Vector3(xmid, 0.0f, south));  //Bottom Middle 7
-        roomPositions.Add(new Vector3(east, 0.0f, south));  //Bottom Right  8
-
-
-        return roomPositions;
-    }
-
-    private int[] generateSeed()
-    {
-        for (int i = 0; i < seed.Length; i++)
-        {
-            seed[i] = randomGenerator(0, 7);
-            seeddisplay += seed[i].ToString();
-        }
-
-        return seed;
-    }
-
-    private void generateMainRoom()
-    {
-        int direction = (int)numberofRooms % 4;
-
-        GameObject MainRoom = new GameObject();
-        MainRoom.transform.position = Vector3.zero;
-
-        switch(direction)
-        {
-            case 0:
-                MainRoom.transform.position = new Vector3(0, 0, boundaries[0]);
-                break;
-
-            case 1:
-                MainRoom.transform.position = new Vector3(boundaries[2], 0, boundaries[0] / 2);
-                break;
-
-            case 2:
-                MainRoom.transform.position = new Vector3(0, 0, boundaries[1]);
-
-                break;
-
-            case 3:
-                MainRoom.transform.position = new Vector3(boundaries[3], 0, boundaries[0] / 2);
-                break;
-        }
-
-        MainRoom.transform.position =  moveCellPosition(direction, MainRoom.transform.position, false, 10);
-
-        GameObject floor = Instantiate(FLOOR);
-        floor.transform.localScale = new Vector3(20, 0.4f, 20);
-        floor.transform.position = MainRoom.transform.position;
-        floor.transform.parent = MainRoom.transform;
-        floor.name = "Floor";
-        MainRoom.name = "MainRoom";
-        GenerateSquareWalls(floor);
-
-        List<GameObject> temp = new List<GameObject>();
-        temp.Add(MainRoom);
-        parentObject(temp, "Rooms");
-    }
-    #endregion
 
     #region Room Transformations
 
@@ -1330,7 +1548,7 @@ public class StructuralGeneration : MonoBehaviour
         ElevateRooms(elevationNum, AllRooms);
         yield return new WaitForSeconds(2.0f * Time.deltaTime);
         generateMainRoom();
-        //RotateGrid(rotationNum);
+        RotateGrid(rotationNum);
 
         
     }
@@ -1339,275 +1557,6 @@ public class StructuralGeneration : MonoBehaviour
     {
         yield return new WaitForSeconds(seconds);
         FunctionName();
-    }
-    #endregion
-
-    #region Post Generation
-    void PushFromCenter()
-    {
-        //Function pushes all rooms away from center of grid
-        float NgridMid = (boundaries[0] + boundaries[1]) / 2;
-        float EgridMid = (boundaries[2] + boundaries[3]) / 2;
-
-        GameObject Rooms = GameObject.Find("Rooms");
-
-        for (int i = 0; i < Rooms.transform.childCount; i++)
-        {
-            if (Rooms.transform.GetChild(i).transform.position.z < NgridMid)
-            {
-                Rooms.transform.GetChild(i).transform.position += new Vector3(0, 0, -returnCellSizez);
-            }
-
-            else
-            {
-                Rooms.transform.GetChild(i).transform.position += new Vector3(0, 0, returnCellSizez);
-            }
-
-            if (Rooms.transform.GetChild(i).transform.position.x < EgridMid)
-            {
-                Rooms.transform.GetChild(i).transform.position += new Vector3(-returnCellSizex, 0, 0);
-            }
-
-            else
-            {
-                Rooms.transform.GetChild(i).transform.position += new Vector3(returnCellSizex, 0, 0);
-            }
-        }
-    }
-
-    void BuildStair(GameObject topCell, GameObject bottomCell)
-    {
-        //Function builds stairs between two cells.
-        //Takes two parameters for the cells, and either connects them directly or creates intermediate
-        //positions and then connects them
-
-        float maxStairX = returnCellSizex * 2;              //A single stair cannot extend on the x-axis beyond this
-        float maxStairZ = returnCellSizez * 2;              //A single stair cannot extend on the z-axis beyond this
-        float maxStairHeight = cellWallHeight;              //A single stair cannot rise above this height
-
-        float stepLength;                                   //Length of steps
-        float stepHeight;                                   //Height of steps
-        float height;                                       //Height of stair
-
-        Vector3 topPos = topCell.transform.position;
-        Vector3 lowPos = bottomCell.transform.position;
-
-        List<float> length;                                 //Length of each stair to connect positions
-        List<float> width;                                  //Width of each stair to connect positions
-
-        List<char> dir;                                     //Direction of each stair
-
-        int numOfStairs;
-
-        //Returns the direction of each stair as well as the length and width
-        Vector3 distance = StairDirection(topPos, lowPos, out length, out width, out dir, out numOfStairs, out height)[0];
-
-        if (numOfStairs > 1)
-        {
-            switch (dir[0])
-            {
-                case 'n':
-                    lowPos = moveCellPosition(2, lowPos, false);
-                    break;
-                case 's':
-                    lowPos = moveCellPosition(0, lowPos, false);
-                    break;
-                case 'e':
-                    lowPos = moveCellPosition(3, lowPos, false);
-                    break;
-                case 'w':
-                    lowPos = moveCellPosition(1, lowPos, false);
-                    break;
-            }
-        }
-        int numberOfSteps = 13;                 //number of steps in stair
-        stepHeight = height / numberOfSteps;    //height of step
-        stepLength = length[0] / numberOfSteps; //length of step
-
-        for (int x = 0; x < numOfStairs; x++)
-        {
-
-            List<GameObject> steps = new List<GameObject>();    //Game objects for each step
-
-            for (int i = 1; i <= numberOfSteps; i++)
-            {
-                GameObject step = GameObject.CreatePrimitive(PrimitiveType.Cube);   //Creates a cube
-
-                float set;      //Used to offset the steps so that they form correctly from cell to cell
-                Vector3 offSet; //Transforms set into a vector so that it can be added to step.transform.position
-
-                float temp = (stepLength * i) / 2;                      //how far steps need to move to be uniform
-                Vector3 tempVector = temp * distance;                   //Transform temp into a vector
-
-                if (dir[0] == 'w' || dir[0] == 'e') //If direction is west or east
-                {
-                    //The length will be the x, height will be y, width will be z
-                    step.transform.localScale = new Vector3(length[0] - (stepLength * i), stepHeight, width[0]);
-
-                    set = (length[0] - returnCellSizez * numOfStairs) * 0.5f; //line stair up correctly
-
-                    if (dir[0] == 'e')  //If direction is east
-                        offSet = new Vector3(set, stepHeight * i, 0);    //offset is positive
-                    else
-                        offSet = new Vector3(-set, stepHeight * i, 0);   //else it is negative
-
-                    if (i == 1 && x >= 1)
-                    {
-                        step.transform.localScale = new Vector3(returnCellSizex, height + stepHeight, width[0]);
-
-                        if (dir[0] == 'w')
-                            tempVector -= new Vector3(-0.2f, height / 2, 0);
-
-                        else
-                            tempVector += new Vector3(-0.2f, -(height / 2), 0);
-                    }
-
-                    else if (i == numberOfSteps)
-                    {
-                        step.transform.localScale = new Vector3(returnCellSizex, height, width[0]);
-
-                        if (dir[0] == 'w')
-                            tempVector -= new Vector3(step.transform.localScale.x / 2, height / 2 - (stepHeight / 2), 0);
-
-                        else
-                            tempVector -= new Vector3(-(step.transform.localScale.x / 2), height / 2 - (stepHeight / 2), 0);
-                    }
-                }
-
-                else    //If direction is north or south
-                {
-                    //The width will be x, height is y, length is z
-                    step.transform.localScale = new Vector3(width[0], stepHeight, length[0] - (stepLength * i));
-
-                    set = (length[0] - returnCellSizex) * 0.5f; //line up stair
-
-                    if (dir[0] == 'n')  //If direction is north
-                        offSet = new Vector3(0, stepHeight * i, set);    //positive offset
-                    else
-                        offSet = new Vector3(0, stepHeight * i, -set);   //negative offset
-
-                    if (i == 1 && x >= 1)
-                    {
-                        step.transform.localScale = new Vector3(width[0], height + stepHeight, returnCellSizez);
-
-                        if (dir[0] == 's')
-                            tempVector -= new Vector3(0, height / 2, -0.2f);
-
-                        else
-                            tempVector += new Vector3(0, -(height / 2), -0.2f);
-                    }
-
-                    else if (i == numberOfSteps)
-                    {
-                        step.transform.localScale = new Vector3(width[0], height, returnCellSizez);
-                        if (dir[0] == 's')
-                            tempVector -= new Vector3(0, height / 2 - (stepHeight / 2), step.transform.localScale.z / 2);
-                        else
-                            tempVector -= new Vector3(0, height / 2 - (stepHeight / 2), -(step.transform.localScale.z / 2));
-                    }
-                }
-
-                step.transform.position = lowPos + offSet + tempVector;   //Move step to correct position
-                step.name = "Step " + i;                                                //Name step
-                steps.Add(step);                                                        //Add step to List
-            }
-
-            parentObject(steps, "Stairs", "Steps " + x);   //Parent steps
-
-            if (numOfStairs - 1 != x)
-                switch (dir[0])
-                {
-                    case 'n':
-                        lowPos = moveCellPosition(0, lowPos, false, 2);
-                        break;
-                    case 's':
-                        lowPos = moveCellPosition(2, lowPos, false, 2);
-                        break;
-                    case 'e':
-                        lowPos = moveCellPosition(1, lowPos, false, 2);
-                        break;
-                    case 'w':
-                        lowPos = moveCellPosition(3, lowPos, false, 2);
-                        break;
-
-                    default:
-                        break;
-                }
-
-            lowPos += new Vector3(0, height, 0);
-        }
-
-    }
-
-    List<Vector3> StairDirection(Vector3 topPos, Vector3 lowPos, out List<float> length, out List<float> width,
-        out List<char> dir, out int numberOfStairs, out float height)
-    {
-        //Function determines which direction the Vector3 distance variable will shift steps in
-        //as well as the scale of the steps
-        float xTop = topPos.x;
-        float xLow = lowPos.x;
-        float zTop = topPos.z;
-        float zLow = lowPos.z;
-
-        numberOfStairs = 1;
-
-        height = topPos.y - lowPos.y;
-
-        numberOfStairs = Convert.ToInt32(Mathf.Ceil(height / cellWallHeight));
-        numberOfStairs = Mathf.Clamp(numberOfStairs, 1, 100);
-        height /= numberOfStairs;
-
-        length = new List<float>();
-        width = new List<float>();
-        dir = new List<char>();
-
-        List<Vector3> distance = new List<Vector3>();
-
-        if (xTop != xLow)
-        {
-            if (xTop > xLow)
-            {
-                distance.Add(new Vector3(1, 0, 0));    //Shift steps right
-                dir.Add('e');
-            }
-
-            else
-            {
-                distance.Add(new Vector3(-1, 0, 0));   //Shift steps left
-                dir.Add('w');
-            }
-
-            length.Add(Mathf.Abs(topPos.x - lowPos.x) / numberOfStairs);
-            width.Add(returnCellSizez); 
-        }
-
-        if (zTop != zLow)
-        {
-            if (zTop > zLow)
-            {
-                distance.Add(new Vector3(0, 0, 1));    //Shift steps up
-                dir.Add('n');
-            }
-
-            else
-            {
-                distance.Add(new Vector3(0, 0, -1));   //Shift steps down 
-                dir.Add('s');
-            }
-
-            length.Add(Mathf.Abs(topPos.z - lowPos.z) / numberOfStairs);
-            width.Add(returnCellSizex);
-        }
-
-        return distance;
-    }
-
-    void ElevateDungeon(List<GameObject> cells, float height)
-    {
-        foreach (GameObject cell in cells)
-        {
-            cell.transform.position += new Vector3(0, height, 0);
-        }
     }
     #endregion
 
