@@ -14,7 +14,7 @@ public class _Stats : MonoBehaviour
 
     public int m_RuneSlots;     // Number of possible augmentations
 
-    public bool twoHanded;
+    public bool twoHanded;      // If this item requires 2 hands to use
 
     public enum e_Rarity
     {
@@ -111,10 +111,10 @@ public class _Stats : MonoBehaviour
         m_Stealth   += Random.Range(0, 5);  // Random buff to m_Stealth
         m_Dextarity += Random.Range(0, 5);  // Random buff to m_Dextarity
 
-        m_Speed     *= m_Level * m_RareMod; // Sets m_Speed to      (level 1 stat * m_Level * m_RareMod)
-        m_Attack    *= m_Level * m_RareMod; // Sets m_Strength to   (level 1 stat * m_Level * m_RareMod)
-        m_Defence   *= m_Level * m_RareMod; // Sets m_Defence to    (level 1 stat * m_Level * m_RareMod)
-        m_Stealth   *= m_Level * m_RareMod; // Sets m_Stealth to    (level 1 stat * m_Level * m_RareMod)
-        m_Dextarity *= m_Level * m_RareMod; // Sets m_Dextarity to  (level 1 stat * m_Level * m_RareMod)
+        m_Speed     *= m_Level * m_RareMod; // Sets m_Speed to      (level n stat * m_Level * m_RareMod)
+        m_Attack    *= m_Level * m_RareMod; // Sets m_Strength to   (level n stat * m_Level * m_RareMod)
+        m_Defence   *= m_Level * m_RareMod; // Sets m_Defence to    (level n stat * m_Level * m_RareMod)
+        m_Stealth   *= m_Level * m_RareMod; // Sets m_Stealth to    (level n stat * m_Level * m_RareMod)
+        m_Dextarity *= m_Level * m_RareMod; // Sets m_Dextarity to  (level n stat * m_Level * m_RareMod)
     }
 }
