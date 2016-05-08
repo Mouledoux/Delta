@@ -4,41 +4,48 @@ using System;
 
 public class PlayerController : MonoBehaviour
 {
-    //Variables
-    public float speed;             //Speed player moves
-    public float combatspeed;       //Speed player moves in combat mode
-    public float gravity;           //Used to effect player falling
-    private float movement;         //Actual value of speed that gets passed to rigidbody
+    //Global Variables
+    //MOVEMENT
+    public bool toggleMove;     //Can the player move
 
-    public bool toggleMove;
+    public float speed;         //Speed player moves in free mode
+    public float combatspeed;   //Speed player moves in combat mode
+    public float startSpeed;    //Speed of transition from idle to top speed
+    public float endSpeed;      //Speed of transition from top speed to idle
 
-    private InputManager inputs;    //Used to create instance of Input Manager
-    private Rigidbody rb;           //Handles the rigidbody component
-    private Animator anim;          //Handles the animator component
-    private GameObject cam;         //Gets camera gameobject
-    private AnimatorStateInfo animinfo;
+    private float movement;     //Speed player is currently using
+    private float ForwardMove;
+    private float HorizontalMove;
 
-    private Vector3 movePosition;   //Tracks direction of player movement
+    private bool forward;       //Track state of forward key
+    private bool back;          //Track state of back key
+    private bool left;          //Track state of left key
+    private bool right;         //Track state of right key
+    private bool ctrl;          //Track state of control key
+    private bool onHand;        //Track state of onhand attack key
+    private bool offHand;       //Track state of offhand attack key
+    private bool attacking;     //Is player attacking?
+
+    private bool mode;          //Tracks state of combat/free mode key
+    private bool roll;          //Track state of roll key
+
+    private Vector3 moveVec;    //Vector that moves the player
+
+    //CLASS INSTANCES
+    private InputManager inputs;        //Used to create instance of Input Manager
+    private Rigidbody rb;               //Handles the rigidbody component
+    private Animator anim;              //Handles the animator component
+    public GameObject cam;             //Gets camera gameobject
+    private AnimatorStateInfo animinfo; //Gets info from the animator
 
     private Vector3 stillRotation;
     private float rotatetrack;
 
     //These bools tracks the state of the player:
 
-        //MOVEMENT:
-    private bool forward;   //Track state of forward key
-    private bool back;      //Track state of back key
-    private bool left;      //Track state of left key
-    private bool right;     //Track state of right key
-    private bool ctrl;      //Track state of control key
-    private bool onHand;
-    private bool offHand;
-    private bool attacking;
 
-    private bool mode;      //Tracks state of combat/free mode key
-    private bool roll;      //Track state of roll key
 
-        //WEAPON USAGE:
+    //WEAPON USAGE:
     private string Empty = "Empty";                 //Track state of empty hands
     private string OneHand = "OneHand";             //Track state of one-handed weapon (no shield)
     private string OneHandShield = "OneHandShield"; //Track state of one-handed weapon (shield)
@@ -48,77 +55,131 @@ public class PlayerController : MonoBehaviour
     private string Crossbow = "Crossbow";           //Track state of crossbow
     private string Polearm = "Polearm";             //Track state of polearm
 
-    public Transform LeftFoot;
-    public Transform RightFoot;
-
     public bool hold;
     float lastAttackTime = 0.0f;
     public float attackWait;
     int atkseq = 0;
 
     #region Updates and Start
+
+    void Start()
+    {
+        //Cursor.lockState = CursorLockMode.Locked;   //Lock cursor
+        //Cursor.visible = false;                     //Turn off cursor
+
+        inputs = new InputManager();                //Initialize input manager
+        anim = GetComponentInChildren<Animator>();  //Get animator
+
+        moveVec = transform.position;               //Set movePosition to player's initial position
+        anim.SetBool("Empty", true);                //Player initially has no weapon
+
+        movement = speed * Time.deltaTime;          //Set movement speed == free mode speed
+    }
+
     void FixedUpdate()
     {
         bool moving = false;
-        forward = Input.GetKey(inputs.Forward);     //Get forward key state
-        back    = Input.GetKey(inputs.Backward);    //Get back key state
-        left    = Input.GetKey(inputs.Left);        //Get left key state
-        right   = Input.GetKey(inputs.Right);       //Get right key state
-        ctrl    = Input.GetKeyDown(inputs.Mode);    //Get combat key state
-        roll    = Input.GetKeyDown(inputs.Roll);    //Get roll key state
+        //transform.forward = Vector3.Lerp(transform.forward, cam.transform.forward, 0.15f);
+
+        if (toggleMove)
+        {
+            forward = Input.GetKey(inputs.Forward);     //Get forward key state
+            back = Input.GetKey(inputs.Backward);    //Get back key state
+            left = Input.GetKey(inputs.Left);        //Get left key state
+            right = Input.GetKey(inputs.Right);       //Get right key state
+            ctrl = Input.GetKeyDown(inputs.Mode);    //Get combat key state
+            roll = Input.GetKeyDown(inputs.Roll);    //Get roll key state
+        }
 
         onHand = Input.GetKey(inputs.OnHand);       //Get Onhand
         offHand = Input.GetKey(inputs.OffHand);     //Get Offhand
+
 
         animinfo = anim.GetCurrentAnimatorStateInfo(1);
 
         if (forward) //If forward key is being held
         {
-                //Debug.Log(LeftFoot.localPosition.z);
-                movePosition += LeftFoot.position;
+            //Debug.Log(LeftFoot.localPosition.z);
 
-            //movePosition += cam.transform.forward * movement; //Add forward transform to movePosition
-            moving = true;
+            ForwardMove += startSpeed * cam.transform.forward.z * Time.deltaTime;
+            ForwardMove = Mathf.Clamp(ForwardMove, 0, movement);
         }
 
-        if (back)   //If back key is being held
+        else if (back)   //If back key is being held
         {
-            movePosition -= cam.transform.forward * movement; //Subtract forward transform from movePosition
-            moving = true;
+            ForwardMove -= startSpeed * Time.deltaTime;
+            ForwardMove = Mathf.Clamp(ForwardMove, -movement, 0);
         }
 
         if (left)   //If left key is being held    
         {
-            float rotate = 90.0f;
+            float rotate;
             if (forward)
                 rotate = 45.0f;
-            if (back)
+            else if (back)
                 rotate = -45.0f;
+            else
+                rotate = 90.0f;
+
+            HorizontalMove -= startSpeed * Time.deltaTime;
+            HorizontalMove = Mathf.Clamp(HorizontalMove, -movement, 0);
 
             Vector3 rot = cam.transform.rotation.eulerAngles - new Vector3(0.0f, rotate, 0.0f);
             rb.MoveRotation(Quaternion.Lerp(transform.rotation, Quaternion.Euler(rot), 0.1f * Time.time));
-            movePosition += -cam.transform.right * movement; //Add forward transform to movePosition
-            moving = true;
         }
- 
 
-        if (right)  //If right key is being held
+
+        else if (right)  //If right key is being held
         {
-            float rotate = 90.0f;
+            float rotate;
             if (forward)
                 rotate = 45.0f;
-            if (back)
+            else if (back)
                 rotate = -45.0f;
+            else
+                rotate = 90.0f;
+
+            HorizontalMove += startSpeed * Time.deltaTime;
+            HorizontalMove = Mathf.Clamp(HorizontalMove, 0, movement);
 
             Vector3 rot = cam.transform.rotation.eulerAngles + new Vector3(0.0f, rotate, 0.0f);
             rb.MoveRotation(Quaternion.Slerp(transform.rotation, Quaternion.Euler(rot), 0.05f * Time.time));
-            //movePosition += -cam.transform.right * movement; //Add forward transform to movePosition
-            moving = true;
-
-
-            movePosition += cam.transform.right * movement; //Add right transform from movePosition
-            moving = true;
         }
+
+        moving = forward || back || right || left;
+
+        if (!moving)
+        {
+            if (ForwardMove < 0)
+                if (ForwardMove > -0.001)
+                    ForwardMove = 0;
+                else
+                    ForwardMove += endSpeed * Time.deltaTime;
+
+            else if (ForwardMove > 0)
+                if (ForwardMove < 0.001)
+                    ForwardMove = 0;
+
+                else
+                    ForwardMove -= endSpeed * Time.deltaTime;
+
+            if (HorizontalMove < 0)
+                if (HorizontalMove > -0.001)
+                    HorizontalMove = 0;
+                else
+                    HorizontalMove += endSpeed * Time.deltaTime;
+
+            else if (HorizontalMove > 0)
+                if (HorizontalMove < 0.001)
+                    HorizontalMove = 0;
+
+                else
+                    HorizontalMove -= endSpeed * Time.deltaTime;
+
+        }
+
+        moveVec = new Vector3(HorizontalMove, 0, ForwardMove);
+        transform.position += moveVec;
 
         if (roll)   //If roll key has been pressed
         {
@@ -130,9 +191,9 @@ public class PlayerController : MonoBehaviour
         {
             setState("Mode", mode = !mode); //Switch modes
             if (!mode)
-                movement = speed;           //Adjust speed for free mode
+                movement = speed * Time.deltaTime;           //Adjust speed for free mode
             else
-                movement = combatspeed;     //Adjust speed for combat mode
+                movement = combatspeed * Time.deltaTime;     //Adjust speed for combat mode
         }
 
         if (moving)
@@ -144,47 +205,11 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (Time.time > lastAttackTime + animinfo.length)
-        {
-            if (onHand || offHand)
-            {
-                setState("Mode", true);
-                atkseq++;
-                setInt("Attack_OneHand_1", atkseq);
-                lastAttackTime = Time.time;
-                animinfo = anim.GetCurrentAnimatorStateInfo(1);
-            }
-
-            if (Time.time > animinfo.length + lastAttackTime + attackWait)
-            {
-                atkseq = 0;
-                setInt("Attack_OneHand_1", atkseq);
-            }
-        }
-
-        if (atkseq == 2)
-            atkseq = 0;
-
         setMovementState(forward, back, left, right);       //Update animator based on movement
-        if (toggleMove)
-        rb.MovePosition(movePosition * Time.deltaTime);     //Move player through rigidbody(free)
+        setState("Attack_OneHand_1", onHand);
     }
 
-    void Start()
-    {
-        Cursor.lockState = CursorLockMode.Locked;   //Lock cursor
-        Cursor.visible = false;                     //Turn off cursor
-
-        rb = GetComponent<Rigidbody>();         //Get rigidbody
-        inputs = new InputManager();            //Initialize input manager
-        anim = GetComponent<Animator>();        //Get animator
-        cam = GameObject.Find("CameraFollower"); //Get Camera
-
-        movePosition = transform.position;  //Set movePosition to player's initial position
-        anim.SetBool("Empty", true);        //Player initially has no weapon
-
-        movement = speed;                   //Set movement speed == free mode speed
-    }
+    
     #endregion
 
     #region Animation Control
