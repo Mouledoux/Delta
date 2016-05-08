@@ -8,35 +8,41 @@ using System.Collections.Generic;
 [CustomEditor (typeof(ColliderClass))]
 public class ColliderInspector : Editor{
 
-    public List<ColliderProperties> colProp;    //Used for getting and setting values of collider properties
+    public List<ColliderProperties> colProp;    //Reference of ColliderClass.Colliders
 
     public override void OnInspectorGUI()
     {
-        ColliderClass colClass = (ColliderClass)target;
-        float defaultScale = colClass.defaultScale;
-        //Number of colliders on the character
+        ColliderClass colClass = (ColliderClass)target; //Reference to the Collider Class
+        float defaultScale = colClass.defaultScale;     //Get the default scale from the Collider Class
+
+        //Number of colliders on the entity
         colClass.numOfColliders = EditorGUILayout.IntSlider("Generate", colClass.numOfColliders, 0, 30);
+
+        //Default scale of each collider
         colClass.defaultScale = EditorGUILayout.FloatField("Default Scale", defaultScale);
 
         for (int i = 0; i < colProp.Count; i++)
         {
-            GameObject col = colProp[i].collider;
+            GameObject col = colProp[i].collider;   //Use a reference for the collider's gameobject
             /*
-            1. Is the collider active?
-            2. Collider Name
-            3. Shows field for game obj that collider is built around. Not necessary since object is empty
-            4. Shows field for collider position
-            5. Shows field for collider scale
+            EditorGUILayout is used for custom inspector fields
+
+            1. Is the collider active?  (Toggable boolean field)
+            2. Collider Name            (Text field)
+            3. Vector3 Position         (Vector3 Field)
+            4. Vector3 Scale            (Vector3 Field)
             */
             colProp[i].active = EditorGUILayout.BeginToggleGroup(col.name, colProp[i].active);          //1
             colProp[i].collider.name = EditorGUILayout.TextField(colProp[i].collider.name);             //2
-            //EditorGUILayout.ObjectField(colProp[i].collider, typeof(GameObject), true);               //3
-            colProp[i].position = EditorGUILayout.Vector3Field("Position", colProp[i].position);        //4
-            colProp[i].scale = EditorGUILayout.FloatField("Scale", colProp[i].scale);                   //5
+            colProp[i].position = EditorGUILayout.Vector3Field("Position", colProp[i].position);        //3
+            colProp[i].scale = EditorGUILayout.FloatField("Scale", colProp[i].scale);                   //4
             EditorGUILayout.EndToggleGroup();
-            col.transform.position = colProp[i].position;
-            Vector3 scale = new Vector3(colProp[i].scale, colProp[i].scale, colProp[i].scale);
 
+            //Override the collider's position with the one in the inspector
+            col.transform.position = colProp[i].position;
+
+            //Override the collider's scale with the one in the inspector
+            Vector3 scale = new Vector3(colProp[i].scale, colProp[i].scale, colProp[i].scale);
             col.transform.localScale = scale;
         }
 
@@ -44,56 +50,60 @@ public class ColliderInspector : Editor{
 
     void OnSceneGUI()
     {
-        ColliderClass colClass = (ColliderClass)target;
-        float defaultScale = colClass.defaultScale;
+        ColliderClass colClass = (ColliderClass)target;         //Reference to Collider Class
+        float defaultScale = colClass.defaultScale;             //Get default scale
 
-        checkColliderList(colClass);
-        colProp = colClass.Colliders;
+        checkColliderList(colClass);                            //Make sure we have all colliders
+        colProp = colClass.Colliders;                           //Reference Collider List
 
-        int collidersInScene = colProp.Count;
+        int collidersInScene = colProp.Count;                   //Number of colliders in scene    
 
-        if (collidersInScene < colClass.numOfColliders)
+        if (collidersInScene < colClass.numOfColliders)         //If colliders in scene are less than number wanted
         {
-            ColliderProperties collider = new ColliderProperties();
+            ColliderProperties collider = new ColliderProperties();                         //Create new collider
 
-            collider.collider = new GameObject("Collider " + colProp.Count);
-            collider.collider.transform.parent = colClass.gameObject.transform;
-            collider.position = colClass.gameObject.transform.position;
-            collider.scale = defaultScale / 10;
-            collider.collider.transform.position = collider.position;
-            Vector3 scale = new Vector3(collider.scale, collider.scale, collider.scale);
-            collider.collider.transform.localScale = scale;
+            collider.collider = new GameObject("Collider " + colProp.Count);                //Name collider
+            collider.collider.transform.parent = colClass.gameObject.transform;             //Set parent to gameobject
+            collider.position = colClass.gameObject.transform.position;                     //Set position
+            collider.scale = defaultScale / 10;                                             //Set scale
+            collider.collider.transform.position = collider.position;                       //Collider position = position
+            Vector3 scale = new Vector3(collider.scale, collider.scale, collider.scale);    //Collider scale = scale   
+            collider.collider.transform.localScale = scale;                                 //^^^^^^^^^^^^^^^^^^^^^^
 
-            colProp.Add(collider);
+            colProp.Add(collider);                                                          //Add collider to list
         }
 
-        else if (collidersInScene > colClass.numOfColliders)
+        else if (collidersInScene > colClass.numOfColliders)    //If colliders in scene are more than number wanted
         {
-            ColliderProperties collider = colProp[colProp.Count - 1];
-            collider.collider.transform.parent = null;
-            DestroyImmediate(collider.collider);
-            colProp.RemoveAt(colProp.Count - 1);
+            ColliderProperties collider = colProp[colProp.Count - 1];   //Reference to collider last in list
+            collider.collider.transform.parent = null;                  //Set parent to null
+            DestroyImmediate(collider.collider);                        //Destroy the gameobject
+            colProp.RemoveAt(colProp.Count - 1);                        //Remove from list
         }
 
-        for (int i = 0; i < colProp.Count; i++)
+        for (int i = 0; i < colProp.Count; i++)                 //While i is less than list of colliders
         {
-            ColliderProperties collider = colProp[i];
-            collider.position = collider.collider.transform.position;
-            collider.scale = collider.collider.transform.localScale.x;
-            colProp[i] = collider;
+            ColliderProperties collider = colProp[i];                   //reference current collider in iteration
+            collider.position = collider.collider.transform.position;   //set position to game object's position
+            collider.scale = collider.collider.transform.localScale.x;  //set scale to gameobjects scale
+            colProp[i] = collider;                                      //finalize the values
         }
-        colClass.Colliders = colProp;
+
+        colClass.Colliders = colProp;                                   //Set the real list equal to the reference
     }
 
     void checkColliderList(ColliderClass colClass)
     {
-        for (int i = 0; i < colClass.Colliders.Count; i++)
+        //Used to detect if any colliders have been deleted from scene view as opposed to the inspector
+
+        for (int i = 0; i < colClass.Colliders.Count; i++)  //While i is less than list of colliders
         {
-            if (!colClass.Colliders[i].collider)
+            if (!colClass.Colliders[i].collider)                //If the current collider iteration has null gameobject
             {
-                colClass.Colliders.RemoveAt(i);
-                colClass.numOfColliders--;
-                i--;
+                colClass.Colliders.RemoveAt(i);                     //Remove from the list
+                colClass.numOfColliders--;                          //Subtract from the number of colliders so another
+                                                                    //doesn't get generated
+                i--;                                                //Move up a step to properly detect other elements
             }
         }
     }
