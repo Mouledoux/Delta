@@ -488,7 +488,7 @@ MonoBehaviour:
   seed: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   seeddisplay: 
   seedGen: 1
-  realTimeGen: 1
+  realTimeGen: 0
   numberofRooms: 0
   minRoomSize: 4
   maxRoomSize: 7
