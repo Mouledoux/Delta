@@ -273,7 +273,7 @@ public class StructuralGeneration : MonoBehaviour
         #endregion
 
         #region Position Default Dungeon
-        for (int i = 0; i < defaultlayout.Length || i < 9; i++)  //While i < the number of rooms per quadrant or 9
+        for (int i = 0; i < defaultlayout.Length && i < 9; i++)  //While i < the number of rooms per quadrant or 9
         {
             defaultlayout[i] = i + 4;                   //Set the default position of each room in the quadrant
 

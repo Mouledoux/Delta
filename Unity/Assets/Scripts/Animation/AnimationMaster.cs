@@ -5,25 +5,18 @@ using System.Collections.Generic;
 
 public class AnimationMaster : MonoBehaviour
 {
+    Animation anim;
+    Animator a;
+    Motion motion;
 
-    public Transform LeftFoot;
-    public Transform RightFoot;
-    public Animator Anim;
-    private Quaternion LeftFootRot;
-
-    public void InitializeFeet()
+    void Start()
     {
-        LeftFootRot = LeftFoot.localRotation;
+        anim = GetComponent<Animation>();
+        a = GetComponent<Animator>();
     }
 
-    public void CheckFoot()
+    void Update()
     {
-        if (LeftFootRot != LeftFoot.localRotation)
-        {
-        }
-    }
-
-    void MoveEntity()
-    {
+        a.Play("", 0, 0.3f);
     }
 }

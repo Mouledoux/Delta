@@ -29,7 +29,9 @@ public class PlayerCamera : MonoBehaviour {
             originalPos = player.transform.position;
         }
 
-        transform.RotateAround(player.transform.position, player.transform.up, 20.0f * HorizontalRot * H_rotSpeed * Time.deltaTime);
+        Vector3 rot = new Vector3(0, HorizontalRot * H_rotSpeed, 0);
+        transform.Rotate(rot);
+        //transform.RotateAround(player.transform.position, player.transform.up, 20.0f * HorizontalRot * H_rotSpeed * Time.deltaTime);
         //transform.Rotate(new Vector3(-1.0f * VerticalRot * V_rotSpeed, 0, 0));
         //transform.RotateAround(-player.transform.position, player.transform.right, 20.0f * VerticalRot * V_rotSpeed * Time.deltaTime);
         Vector3 tem = transform.rotation.eulerAngles;

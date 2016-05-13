@@ -5,6 +5,7 @@ using System;
 public class ControllerExperiment : AnimationMaster
 {
     private InputManager inputs; //Used to create instance of Input Manager
+    Animator Anim;
 
     private bool forward;   //Track state of forward key
     private bool back;      //Track state of back key
