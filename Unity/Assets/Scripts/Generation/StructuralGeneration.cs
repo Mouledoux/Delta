@@ -125,7 +125,7 @@ public class StructuralGeneration : MonoBehaviour
 
     #region Global Variables
         //Cells and Grid
-    public bool Generate;           //Determines whether or not to generate past the grid
+    public bool Generate;           //Determines whether or not to generate
     public int x_cells, z_cells;    //Number of cells generated along x and z axis
     public int roomsPerQuadrant;    //Number of rooms allowed per quadrant
     public int QuadrantsWanted;     //Number of quadrants to generate
@@ -145,7 +145,6 @@ public class StructuralGeneration : MonoBehaviour
     //Seed and Generation
     public int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };        //stores seed
     public string seeddisplay;                                          //controls seed
-    public bool seedGen;                                                //Generate a seed
     public bool realTimeGen;                                            //Coroutine vs Instant
     public float numberofRooms;                                         //Outputs number of rooms (debugging)
 
@@ -160,92 +159,43 @@ public class StructuralGeneration : MonoBehaviour
 
     #endregion
 
-    #region Start and Update
+    #region Update
 
-    void Start()
-    {
-        //Generating Cells
-        cells = generateGrid();                 //generate grid
-        parentObject(cells, "Cells");           //Parent every cell generated under a game object named "Cells"
-
-        boundaries = furthestDirections(cells); //Get the furthest world positions of the grid in each direction
-        generateQuadrants();                    //Divide the grid into quadrants
-
-        //Generating Rooms and Halls
-        // if (Generate) //If we want to generate walls, rooms, and hallways
-        // {
-        generateCellWalls(cells); //Generate walls around each cell
-
-        //     GenerateDungeon();                  //Generate Dungeon
-        //     Destroy(GameObject.Find("Cells")); //Destroy whatever cells aren't used
-
-        //     GameObject Rooms = GameObject.Find("Rooms");
-
-        //     for (int i = 0; i < Rooms.transform.childCount; i++)
-        //    {
-        //        Rooms.transform.GetChild(i).name = "Room " + i;
-        //    }
-        //  }
-        // Generate = false;
-    }
     public int s1, s2;  //stair 1 and 2. Testing purposes
     public float h;     //elevate. Testing purposes
 
     void Update()
     {
-        if (Generate)   //If we're generating past the grid
+        if (Generate)   //If we're generating
         {
+            GenerateGrid();             //Generate  the grid and get the boundaries
+            generateQuadrants();        //Divide the grid into quadrants
+            generateCellWalls(cells);   //Generate walls around each cell on the grid
+
             StartCoroutine(WaitSeconds(1.0f, GenerateDungeon)); //Begin dungeon generation process
             Generate = false;                                   //Set generate to false
         }
 
-        if (Input.GetKeyDown(KeyCode.G))                        //Used to generate a new dungeon during runtime
+        if (Input.GetKeyDown(KeyCode.G))    //Used to generate a new dungeon during runtime
         {
-            if (GameObject.Find("Cells"))                       //If the Cells Gameobject isn't destroyed
-                Destroy(GameObject.Find("Cells"));              //Destroy it
-
-            if (GameObject.Find("Rooms"))                       //If Rooms aren't destroyed
-                Destroy(GameObject.Find("Rooms"));              //Destroy them
-
-            cells = generateGrid();                             //List of cells now equal a new list
-            boundaries = furthestDirections(cells);             //Recalculate the boundaries of the grid
-            parentObject(cells, "Cells");                       //Parent cells under Cells gameobject
-            generateQuadrants();                                //Regenerate the quadrants
-            generateCellWalls(cells);                           //Regenerate the walls around cells
-            Generate = true;                                    //Set generate to true
-            seeddisplay = "";                                   //Clear the seed display
+            ClearDungeon();                 //Clear everything
+            GenerateGrid();                 //Generate the grid
+            generateQuadrants();            //Regenerate the quadrants
+            generateCellWalls(cells);       //Regenerate the walls around cells
+            Generate = true;                //Set generate to true
+            seeddisplay = "";               //Clear the seed display
         }
 
         if (Input.GetKeyDown(KeyCode.H))    //Used to test stair building
         {
-            List<GameObject> raise = new List<GameObject>();    //The cells we want to raise
-            raise.Add(cells[s2]);                               //Add whatever gameobject is in s2
-            destroyWalls(cells[s1], boundaries);                //Destroy walls around gameobject in s1
-            destroyWalls(cells[s2], boundaries);                //Destroy walls around gameobject in s2
-            ElevateDungeon(raise, h);                           //Elevate the cells we want to raise (s2)
-            //ElevateDungeon(raise, cellWallHeight);
-            BuildStair(cells[s2], cells[s1]);                   //Build a stair between s1 and s2
-            raise.Add(cells[s1]);                               //Add s1 to raise (so I can parent it for testing)
-
-            parentObject(raise, "Stairs", "test");              //Parent objects in raise
-            Destroy(GameObject.Find("Cells"));                  //Destroy everything except the stairs
+            BuildStairTest();
 
         }
 
-        if (Input.GetKeyDown(KeyCode.C))    //Clears the dungeon and creates a new grid
+        if (Input.GetKeyDown(KeyCode.C))    //Clear the grid
         {
-            if (GameObject.Find("Cells"))           //If cells exist, destroy them
-                Destroy(GameObject.Find("Cells"));
-
-            if (GameObject.Find("Rooms"))           //If rooms exist, destroy them
-                Destroy(GameObject.Find("Rooms"));
-
-            if (GameObject.Find("Stairs"))          //If stairs exist, destroy them
-             Destroy(GameObject.Find("Stairs"));
-
-            cells = generateGrid();                 //Generate new list of cells
-            boundaries = furthestDirections(cells); //Recalculate boundaries of grid
-            parentObject(cells, "Cells");           //Parent cells
+            ClearDungeon();
+            GenerateGrid();
             generateQuadrants();                    //Generate new quadrants
             generateCellWalls(cells);               //Generate cell walls
             seeddisplay = "";                       //Clear the seed display
@@ -253,26 +203,67 @@ public class StructuralGeneration : MonoBehaviour
 
     }
 
+    private void BuildStairTest()
+    {
+        List<GameObject> raise = new List<GameObject>();    //The cells we want to raise
+        raise.Add(cells[s2]);                               //Add whatever gameobject is in s2
+        destroyWalls(cells[s1], boundaries);                //Destroy walls around gameobject in s1
+        destroyWalls(cells[s2], boundaries);                //Destroy walls around gameobject in s2
+        ElevateDungeon(raise, h);                           //Elevate the cells we want to raise (s2)
+                                                            //ElevateDungeon(raise, cellWallHeight);
+        BuildStair(cells[s2], cells[s1]);                   //Build a stair between s1 and s2
+        raise.Add(cells[s1]);                               //Add s1 to raise (so I can parent it for testing)
+
+        parentObject(raise, "Stairs", "test");              //Parent objects in raise
+        Destroy(GameObject.Find("Cells"));                  //Destroy everything except the stairs
+    }
+
+    private void GenerateGrid()
+    {
+        cells = generateGrid();                 //generate grid
+        parentObject(cells, "Cells");           //Parent every cell generated under a game object named "Cells"
+        boundaries = furthestDirections(cells); //Get the furthest world positions of the grid in each direction
+    }
+
+    private static void ClearDungeon()
+    {
+        if (GameObject.Find("Cells"))           //If cells exist, destroy them
+            Destroy(GameObject.Find("Cells"));
+
+        if (GameObject.Find("Rooms"))           //If rooms exist, destroy them
+            Destroy(GameObject.Find("Rooms"));
+
+        if (GameObject.Find("Stairs"))          //If stairs exist, destroy them
+            Destroy(GameObject.Find("Stairs"));
+    }
+
     #endregion
 
     #region Generate Dungeon
     private void GenerateDungeon()
     {
-        #region Initial Variables
+        /*
+        - The 9 default room positions in each quadrant are: 
+                //////////////////////////////////////////////////////  
+                //// Top Left        Top Middle      Top Right,   ////      
+                //// Middle Left     Center          Middle Right ////     
+                //// Bottom Left     Bottom Middle   Bottom Right ////
+                //////////////////////////////////////////////////////
+
+        This means that there can be a maximum of 9 rooms in a quadrant.
+        */
         if (roomsPerQuadrant > 9)                                           //Ensure roomsPerQuadrant <= 9
             roomsPerQuadrant = 9;                                           //since there are only 9 default positions
 
         List<Vector3> roomPositions = new List<Vector3>();                  //Store positions for rooms
 
-        int[] defaultlayout = new int[roomsPerQuadrant];                    //How many of the default positions are used?
+        int[] defaultlayout = new int[roomsPerQuadrant];                    //Get necessary default positions
         int[] roomNum = new int[roomsPerQuadrant * QuadrantsWanted];        //Tracks room numbers
 
-        int[] roomSizes = new int[roomsPerQuadrant * QuadrantsWanted];      //Track room sizes
-        int[] allRooms = getRoomSizes();                                    //Get the list of room sizes
+        int[] curRoomSizes = new int[roomsPerQuadrant * QuadrantsWanted];   //Track room sizes
+        int[] roomSizes = getRoomSizes();                                    //Get the list of room sizes
 
-        #endregion
-
-        #region Position Default Dungeon
+        #region Default Layout
         for (int i = 0; i < defaultlayout.Length && i < 9; i++)  //While i < the number of rooms per quadrant or 9
         {
             defaultlayout[i] = i + 4;                   //Set the default position of each room in the quadrant
@@ -291,7 +282,7 @@ public class StructuralGeneration : MonoBehaviour
             for (int x = 0; x < roomsPerQuadrant; x++)  //for every room in each quadrant
             {
                 roomPositions.Add(positions[defaultlayout[x]]); //Add the default positions
-                roomSizes[s] = 0;                               //Set the room size equal to the smallest size
+                curRoomSizes[s] = 0;                               //Set the room size equal to the smallest size
                 roomNum[s] = s;                                 //Room number is equal to s
                 s++;                                            //increment s
 
@@ -302,33 +293,29 @@ public class StructuralGeneration : MonoBehaviour
         #endregion
 
         #region Generate and Breakdown Seed
-        if (seedGen)                                //If we are generating a seed
+        if (!string.IsNullOrEmpty(seeddisplay))     //If manual seed is input
         {
-            if (!string.IsNullOrEmpty(seeddisplay))     //If manual seed is input
-            {
-                seed = seedReturn();                        //Use it
-            }
-
-            else                                        //Otherwise
-                seed = generateSeed();                      //Generate new seed
+            seed = seedReturn();                        //Use it
         }
 
-        int elevationNum;                               //Used to elevate rooms
+        else                                        //Otherwise
+            seed = generateSeed();                      //Generate new seed
+
         int rotationNum;                                //Used to rotate the grid
 
         //Determine final room positions
-        roomPositions = breakdownSeed(roomPositions, roomNum, roomSizes, allRooms.Length, out elevationNum, out rotationNum);
+        roomPositions = breakdownSeed(roomPositions, roomNum, curRoomSizes, roomSizes.Length, out rotationNum);
         #endregion
 
         #region Generate Rooms
         if (realTimeGen)    //If we're generating in real time, generate in coroutine
-            StartCoroutine(RealTimeGenerator(roomPositions, allRooms, roomSizes, elevationNum, rotationNum));
+            StartCoroutine(RealTimeGenerator(roomPositions, roomSizes, curRoomSizes, rotationNum));
 
         else            //Otherwise generate everything instantly
         {
             for (int i = 0; i < roomPositions.Count; i++)   //For each room position
             {
-                string temp = allRooms[roomSizes[i]].ToString();
+                string temp = roomSizes[curRoomSizes[i]].ToString();
 
                 //Find room size
                 int[] roomsize = new int[] { Convert.ToInt32(temp[0].ToString()), Convert.ToInt32(temp[1].ToString()) };
@@ -370,16 +357,32 @@ public class StructuralGeneration : MonoBehaviour
 
             Destroy(GameObject.Find("Cells"));                          //Destroy all cells not in rooms
             PushFromCenter();                                           //Push all rooms away from center
-            ElevateRooms(elevationNum, AllRooms);                       //Elevate rooms as necessary
         }
         #endregion
 
     }
 
-    private List<Vector3> breakdownSeed(List<Vector3> positions, int[] roomNum, int[] roomSizes, int totalRoomSizes,
-        out int elevationNum, out int rotationNum)
+    private int[] getRoomSizes()
     {
-        elevationNum = 0;                       //Number of times to elevate
+        if (maxRoomSize > 10)       //Max room size is currently 10 due to the way the seed is read.
+            maxRoomSize = 10;
+
+        List<int> sizes = new List<int>();
+        for (int i = minRoomSize; i <= maxRoomSize; i++)
+        {
+            for (int x = minRoomSize; x < maxRoomSize; x++)
+            {
+                string Num = i.ToString() + x.ToString();
+                sizes.Add(Convert.ToInt32(Num));
+            }
+        }
+        int[] RoomSizes = sizes.ToArray();
+        return RoomSizes;
+    }
+
+    private List<Vector3> breakdownSeed(List<Vector3> positions, int[] roomNum, int[] roomSizes, int totalRoomSizes,
+        out int rotationNum)
+    {
         rotationNum = 0;                        //Number of times to rotate
         for (int i = 0; i < seed.Length; i++)   //While i < than seed length
         {
@@ -424,7 +427,6 @@ public class StructuralGeneration : MonoBehaviour
 
             else if (seed[i] == 6)  //If the position is 6
             {
-                elevationNum += 1;                          //Add 1 to elevation (This is only for testing now)
             }
 
             else if (seed[i] == 7)  //If the position is 7
@@ -1432,26 +1434,8 @@ public class StructuralGeneration : MonoBehaviour
         return RoomNumbers;
     }
 
-    private int[] getRoomSizes()
-    {
-        if (maxRoomSize > 10)
-            maxRoomSize = 10;
-        List<int> sizes = new List<int>();
-        for (int i = minRoomSize; i <= maxRoomSize; i++)
-        {
-            for (int x = minRoomSize; x < maxRoomSize; x++)
-            {
-                string Num = i.ToString() + x.ToString();
-                sizes.Add(Convert.ToInt32(Num));
-            }
-        }
-        int[] RoomSizes = sizes.ToArray();
-        return RoomSizes;
-    }
-
     private void ElevateRooms(int elevationNum, List<GameObject> Rooms)
     {
-        Debug.Log("ran");
         for (int i = 0; i < elevationNum; i++)
         {
             for (int x = i; x < Rooms.Count; x += 2)
@@ -1469,13 +1453,16 @@ public class StructuralGeneration : MonoBehaviour
         Vector3 mid = new Vector3(XgridMid, 0.0f, ZgridMid);
 
         for (int i = 0; i < rotationNum; i++)
+        {
             GameObject.Find("Rooms").transform.RotateAround(mid, transform.forward, 90);
+            GameObject.Find("Cells").transform.RotateAround(mid, transform.forward, 90);
+        }
     }
     #endregion
 
     #region Coroutines
 
-    IEnumerator RealTimeGenerator(List<Vector3> roomPositions, int[] allRooms, int[] roomSizes, int elevationNum, int rotationNum)
+    IEnumerator RealTimeGenerator(List<Vector3> roomPositions, int[] allRooms, int[] roomSizes, int rotationNum)
     {
         for (int i = 0; i < roomPositions.Count; i++)
         {
@@ -1524,10 +1511,7 @@ public class StructuralGeneration : MonoBehaviour
         Rooms.transform.GetChild(largestRoom).name = "Boss Room";
         numberofRooms = Rooms.transform.childCount;
 
-        Destroy(GameObject.Find("Cells"));
         yield return new WaitForSeconds(5.0f * Time.deltaTime);
-        PushFromCenter();
-        ElevateRooms(elevationNum, AllRooms);
         yield return new WaitForSeconds(2.0f * Time.deltaTime);
         generateMainRoom();
         RotateGrid(rotationNum);
