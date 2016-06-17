@@ -124,7 +124,7 @@ public class ObjectGeneration : MonoBehaviour
             EnemySpawns.Add(spawn);
         }
 
-        StructuralGeneration.parentObject(EnemySpawns, "Spawns");
+        UniversalHelper.parentObject(EnemySpawns, "Spawns");
 
         placeEnemies();
 
@@ -144,6 +144,6 @@ public class ObjectGeneration : MonoBehaviour
             }
         }
 
-        StructuralGeneration.parentObject(enemies, "Enemies");
+        UniversalHelper.parentObject(enemies, "Enemies");
     }
 }

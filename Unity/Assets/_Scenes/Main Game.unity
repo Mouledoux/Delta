@@ -3338,9 +3338,9 @@ MonoBehaviour:
   z_cells: 25
   roomsPerQuadrant: 2
   QuadrantsWanted: 9
-  cellSize: {x: 0.4, y: 0.04, z: 0.4}
-  cellWallHeight: 10
-  cellWallWidth: 0.4
+  cellSize: {x: 0.3, y: 0.04, z: 0.3}
+  cellWallHeight: 7
+  cellWallWidth: 0.2
   FLOOR: {fileID: 128230, guid: f64179c10419a2e4d9b023507275a861, type: 2}
   WALL: {fileID: 110836, guid: 77c791a8fc3bca64fb428347e310cc1d, type: 2}
   seed: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
