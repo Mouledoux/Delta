@@ -119,7 +119,7 @@ public class StructuralGeneration : MonoBehaviour
      * 
      * 
      */
-    //After Global Variables, scroll to Start to begin tracking code.
+    //After Global Variables, scroll to Update to begin tracking code.
     #endregion
 
     #region Global Variables
@@ -159,10 +159,12 @@ public class StructuralGeneration : MonoBehaviour
     #endregion
 
     #region Update
+    //Contains functions that check for inputs pertaining to generating
 
     public int s1, s2;  //stair 1 and 2. Testing purposes
     public float h;     //elevate. Testing purposes
 
+    //Checks for inputs for generating new dungeons or clearing old ones
     void Update()
     {
         if (Generate)   //If we're generating
@@ -202,6 +204,7 @@ public class StructuralGeneration : MonoBehaviour
 
     }
 
+    //Stair building test
     private void BuildStairTest()
     {
         List<GameObject> raise = new List<GameObject>();    //The cells we want to raise
@@ -217,6 +220,11 @@ public class StructuralGeneration : MonoBehaviour
         Destroy(GameObject.Find("Cells"));                  //Destroy everything except the stairs
     }
 
+    #endregion
+
+    #region Generate Dungeon
+
+    //Runs necessary functions to generate a grid
     private void GenerateGrid()
     {
         cells = generateGrid();                 //generate grid
@@ -224,6 +232,7 @@ public class StructuralGeneration : MonoBehaviour
         boundaries = furthestDirections(cells); //Get the furthest world positions of the grid in each direction
     }
 
+    //Runs necessary checks to clear everything
     private static void ClearDungeon()
     {
         if (GameObject.Find("Cells"))           //If cells exist, destroy them
@@ -236,33 +245,115 @@ public class StructuralGeneration : MonoBehaviour
             Destroy(GameObject.Find("Stairs"));
     }
 
-    #endregion
-
-    #region Generate Dungeon
+    //Runs necessary functions to build the dungeon
     private void GenerateDungeon()
     {
-        /*
-        - The 9 default room positions in each quadrant are: 
-                //////////////////////////////////////////////////////  
-                //// Top Left        Top Middle      Top Right,   ////      
-                //// Middle Left     Center          Middle Right ////     
-                //// Bottom Left     Bottom Middle   Bottom Right ////
-                //////////////////////////////////////////////////////
+        List<Vector3> roomPositions;    //Track room positions
+        int rotationNum;                //Determines how many times the grid will rotate after generation
+        int[] defaultlayout;            //Used for getting the default layout positions
+        int[] roomNum;                  //Track room numbers
+        int[] curRoomSizes;             //Track current room sizes
+        List<RoomSizes> roomSizes;      //Get list of allowed room sizes
 
-        This means that there can be a maximum of 9 rooms in a quadrant.
-        */
+        //Initialize the above variables
+        InitializeGeneration(out roomPositions, out defaultlayout, out roomNum, out curRoomSizes, out roomSizes);
+
+        //Get the default quadrant positions for rooms
+        GetDefaultPositions(roomPositions, defaultlayout, roomNum, curRoomSizes);
+
+        //Shuffle room numbers
+        roomNum = UniversalHelper.Shuffle(roomNum);
+
+        //Generate the seed
+        GenerateSeed();
+
+        //Determine final room positions
+        roomPositions = breakdownSeed(roomPositions, roomNum, curRoomSizes, roomSizes.Count, out rotationNum);
+
+        #region Generate Rooms
+        if (realTimeGen)    //If we're generating in real time, generate in coroutine
+            StartCoroutine(RealTimeGenerator(roomPositions, roomSizes, curRoomSizes, rotationNum));
+
+        else            //Otherwise generate everything instantly
+        {
+            GenerateRooms(roomPositions, curRoomSizes, roomSizes);
+        }
+        #endregion
+
+    }
+
+    //Used by Generate Dungeon to generate rooms
+    private void GenerateRooms(List<Vector3> roomPositions, int[] curRoomSizes, List<RoomSizes> roomSizes)
+    {
+        for (int i = 0; i < roomPositions.Count; i++)   //For each room position
+        {
+            //Find room size
+            int[] roomsize = new int[] { roomSizes[curRoomSizes[i]].sizeX, roomSizes[curRoomSizes[i]].sizeZ };
+
+            Vector3 returnPos = roomPositions[i];   //Get the rooms center position
+            List<GameObject> MergedRooms;           //Any rooms that share the cells of this room will be merged
+                                                    //into this one
+
+            //Generate the room and store the cells in a list
+            List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
+
+            if (MergedRooms.Count != 0) //If there are rooms to merge with this room
+            {
+                List<GameObject> newRoom = parent;          //Create a reference to the created room
+                for (int x = 0; x < MergedRooms.Count; x++) //For each room in the list of rooms to be merged
+                {
+                    foreach (Transform cell in MergedRooms[x].transform)    //For each cell in those rooms
+                    {
+                        newRoom.Add(cell.gameObject);                           //Add them to the new room
+                    }
+                    GameObject.Destroy(MergedRooms[x]);                     //Destroy the old room objects
+                }
+            }
+
+            UniversalHelper.parentObject(parent, "Rooms", "Rooms " + i);                    //Parent the room under Rooms
+        }   //End of for loop
+
+        GameObject Rooms = GameObject.Find("Rooms");            //Create reference to all rooms
+        List<GameObject> AllRooms = new List<GameObject>();     //Create a fresh list
+
+        for (int i = 0; i < Rooms.transform.childCount; i++)    //For each room in Rooms  
+        {
+            Rooms.transform.GetChild(i).name = "Room " + i;         //Get the room and rename it so that it's orderly
+            AllRooms.Add(Rooms.transform.GetChild(i).gameObject);   //Add the room to the new list
+        }
+
+        numberofRooms = Rooms.transform.childCount;                 //Set the number of rooms generated
+    }
+
+    //Used by Generate Dungeon to generate seed
+    private void GenerateSeed()
+    {
+        if (!string.IsNullOrEmpty(seeddisplay))     //If manual seed is input
+        {
+            seed = getSeed();                        //Use it
+        }
+
+        else                                        //Otherwise
+            seed = generateSeed();                      //Generate new seed
+    }
+
+    //Used by Generate Dungeon to initialize variables
+    private void InitializeGeneration(out List<Vector3> roomPositions, out int[] defaultlayout, out int[] roomNum, out int[] curRoomSizes, out List<RoomSizes> roomSizes)
+    {
         if (roomsPerQuadrant > 9)                                           //Ensure roomsPerQuadrant <= 9
             roomsPerQuadrant = 9;                                           //since there are only 9 default positions
 
-        List<Vector3> roomPositions = new List<Vector3>();                  //Store positions for rooms
+        roomPositions = new List<Vector3>();
+        defaultlayout = new int[roomsPerQuadrant];
+        roomNum = new int[roomsPerQuadrant * QuadrantsWanted];
+        curRoomSizes = new int[roomsPerQuadrant * QuadrantsWanted];
+        roomSizes = getRoomSizes();
+        //Get the list of room sizes
+    }
 
-        int[] defaultlayout = new int[roomsPerQuadrant];                    //Get necessary default positions
-        int[] roomNum = new int[roomsPerQuadrant * QuadrantsWanted];        //Tracks room numbers
-
-        int[] curRoomSizes = new int[roomsPerQuadrant * QuadrantsWanted];   //Track room sizes
-        List<RoomSizes> roomSizes = getRoomSizes();                                   //Get the list of room sizes
-
-        #region Default Layout
+    //Used by Generate Dungeon to get default room positions
+    private void GetDefaultPositions(List<Vector3> roomPositions, int[] defaultlayout, int[] roomNum, int[] curRoomSizes)
+    {
         for (int i = 0; i < defaultlayout.Length && i < 9; i++)  //While i < the number of rooms per quadrant or 9
         {
             defaultlayout[i] = i + 4;                   //Set the default position of each room in the quadrant
@@ -275,110 +366,35 @@ public class StructuralGeneration : MonoBehaviour
 
         for (int i = 0; i < QuadrantsWanted; i++)   //while i < the number of quadrants wanted
         {
-            List<Vector3> positions = findRoomPositions(QuadrantBoundaries[i]); //Get the default room positions based on
-                                                                                //quadrant size and number of quadrants
+            List<Vector3> positions = getDefaultRooms(QuadrantBoundaries[i]); //Get the default room positions based on
+                                                                              //quadrant size and number of quadrants
 
             for (int x = 0; x < roomsPerQuadrant; x++)  //for every room in each quadrant
             {
                 roomPositions.Add(positions[defaultlayout[x]]); //Add the default positions
-                curRoomSizes[s] = 0;                               //Set the room size equal to the smallest size
+                curRoomSizes[s] = 0;                            //Set the room size equal to the smallest size
                 roomNum[s] = s;                                 //Room number is equal to s
                 s++;                                            //increment s
 
             }
         }
-
-        roomNum = UniversalHelper.Shuffle(roomNum);                             //Shuffle room numbers
-        #endregion
-
-        #region Generate and Breakdown Seed
-        if (!string.IsNullOrEmpty(seeddisplay))     //If manual seed is input
-        {
-            seed = getSeed();                        //Use it
-        }
-
-        else                                        //Otherwise
-            seed = generateSeed();                      //Generate new seed
-
-        int rotationNum;                                //Used to rotate the grid
-
-        //Determine final room positions
-        roomPositions = breakdownSeed(roomPositions, roomNum, curRoomSizes, roomSizes.Count, out rotationNum);
-        #endregion
-
-        #region Generate Rooms
-        if (realTimeGen)    //If we're generating in real time, generate in coroutine
-            StartCoroutine(RealTimeGenerator(roomPositions, roomSizes, curRoomSizes, rotationNum));
-
-        else            //Otherwise generate everything instantly
-        {
-            for (int i = 0; i < roomPositions.Count; i++)   //For each room position
-            {
-
-                //Find room size
-                int[] roomsize = new int[] { roomSizes[curRoomSizes[i]].sizeX, roomSizes[curRoomSizes[i]].sizeZ };
-                Debug.Log(roomsize[0] + " " + roomsize[1]);
-
-
-                Vector3 returnPos = roomPositions[i];   //Get the rooms center position
-                List<GameObject> MergedRooms;           //Any rooms that share the cells of this room will be merged
-                                                        //into this one
-
-                //Generate the room and store the cells in a list
-                List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
-
-                if (MergedRooms.Count != 0) //If there are rooms to merge with this room
-                {
-                    List<GameObject> newRoom = parent;          //Create a reference to the created room
-                    for (int x = 0; x < MergedRooms.Count; x++) //For each room in the list of rooms to be merged
-                    {
-                        foreach (Transform cell in MergedRooms[x].transform)    //For each cell in those rooms
-                        {
-                            newRoom.Add(cell.gameObject);                           //Add them to the new room
-                        }
-                        GameObject.Destroy(MergedRooms[x]);                     //Destroy the old room objects
-                    }
-                }
-
-                UniversalHelper.parentObject(parent, "Rooms", "Rooms " + i);                    //Parent the room under Rooms
-            }   //End of for loop
-
-            GameObject Rooms = GameObject.Find("Rooms");            //Create reference to all rooms
-            List<GameObject> AllRooms = new List<GameObject>();     //Create a fresh list
-
-            for (int i = 0; i < Rooms.transform.childCount; i++)    //For each room in Rooms  
-            {
-                Rooms.transform.GetChild(i).name = "Room " + i;         //Get the room and rename it so that it's orderly
-                AllRooms.Add(Rooms.transform.GetChild(i).gameObject);   //Add the room to the new list
-            }
-
-            numberofRooms = Rooms.transform.childCount;                 //Set the number of rooms generated
-
-            Destroy(GameObject.Find("Cells"));                          //Destroy all cells not in rooms
-            PushFromCenter();                                           //Push all rooms away from center
-        }
-        #endregion
-
     }
 
-    private List<RoomSizes> getRoomSizes()
+    //Used by Generate Seed to generate the seed
+    private int[] generateSeed()
     {
+        //Function generates the seed
 
-        List<RoomSizes> roomSizes = new List<RoomSizes>();
-        for (int i = minRoomSize; i <= maxRoomSize; i++)
+        for (int i = 0; i < seed.Length; i++)   //While i is < than seed length
         {
-            for (int x = minRoomSize; x <= maxRoomSize; x++)
-            {
-                RoomSizes rs = new RoomSizes();
-                rs.sizeX = i;
-                rs.sizeZ = x;
-                roomSizes.Add(rs);
-            }
+            seed[i] = UniversalHelper.randomGenerator(0, 7);    //Generate a number between 0 and 7. Will be 9 with all transformations
+            seeddisplay += seed[i].ToString();  //Display the seed
         }
 
-        return roomSizes;
+        return seed;    //Return the seed
     }
 
+    //Used by Generate Dungeon to break down the seed
     private List<Vector3> breakdownSeed(List<Vector3> positions, int[] roomNum, int[] curRoomSizes, int roomSizeList,
         out int rotationNum)
     {
@@ -447,60 +463,6 @@ public class StructuralGeneration : MonoBehaviour
         return positions;   //return new positions
     }
 
-    private List<Vector3> findRoomPositions(float[] quadrant)
-    {
-        //Function is used to find the: Top Left, Top Middle, Top Right, Middle Left, Center, Middle Right
-        //                              Bottom Left, Bottom Middle, and Bottom Right
-
-        //                              cells of a quadrant
-
-        List<Vector3> roomPositions = new List<Vector3>();  //Stores room positions for quadrant
-
-        float north = quadrant[0];                  //Store north quadrant boundary
-        float south = quadrant[1];                  //Store south quadrant boundary
-        float east = quadrant[2];                  //Store east  quadrant boundary
-        float west = quadrant[3];                  //Store west  quadrant boundary
-
-        float totalHeight = north - south;          //total height of quadrant
-        float totalWidth = Mathf.Abs(east - west);  //total width of quadrant
-
-        float xmid = ((totalWidth / 2) + west);     //mid width of quadrant
-        float zmid = ((totalHeight / 2) + south);   //mid height of quadrant
-        xmid = Mathf.Round(xmid);
-        zmid = Mathf.Round(zmid);
-
-        roomPositions.Add(new Vector3(west, 0.0f, north));  //Top Left      0
-        roomPositions.Add(new Vector3(xmid, 0.0f, north));  //Top Middle    1
-        roomPositions.Add(new Vector3(east, 0.0f, north));  //Top Right     2
-
-        roomPositions.Add(new Vector3(west, 0.0f, zmid));   //Middle Left   3
-        roomPositions.Add(new Vector3(xmid, 0.0f, zmid));   //Center        4
-        roomPositions.Add(new Vector3(east, 0.0f, zmid));   //Middle Right  5
-
-        roomPositions.Add(new Vector3(west, 0.0f, south));  //Bottom Left   6
-        roomPositions.Add(new Vector3(xmid, 0.0f, south));  //Bottom Middle 7
-        roomPositions.Add(new Vector3(east, 0.0f, south));  //Bottom Right  8
-
-
-        return roomPositions;
-    }
-
-    private int[] generateSeed()
-    {
-        //Function generates the seed
-
-        for (int i = 0; i < seed.Length; i++)   //While i is < than seed length
-        {
-            seed[i] = UniversalHelper.randomGenerator(0, 7);    //Generate a number between 0 and 7. Will be 9 with all transformations
-            seeddisplay += seed[i].ToString();  //Display the seed
-        }
-
-        return seed;    //Return the seed
-    }
-
-    private void generateMainRoom()
-    {
-    }
     #endregion
 
     #region Post Generation
@@ -1473,7 +1435,6 @@ public class StructuralGeneration : MonoBehaviour
 
         yield return new WaitForSeconds(5.0f * Time.deltaTime);
         yield return new WaitForSeconds(2.0f * Time.deltaTime);
-        generateMainRoom();
         RotateGrid(rotationNum);
 
         
@@ -1519,6 +1480,25 @@ public class StructuralGeneration : MonoBehaviour
     #endregion
 
     #region Get Functions
+
+    //Returns a list of Room Sizes containing integers for room sizes based on specified values
+    private List<RoomSizes> getRoomSizes()
+    {
+
+        List<RoomSizes> roomSizes = new List<RoomSizes>();
+        for (int i = minRoomSize; i <= maxRoomSize; i++)
+        {
+            for (int x = minRoomSize; x <= maxRoomSize; x++)
+            {
+                RoomSizes rs = new RoomSizes();
+                rs.sizeX = i;
+                rs.sizeZ = x;
+                roomSizes.Add(rs);
+            }
+        }
+
+        return roomSizes;
+    }
 
     //This function is used to get the quadrant of a position
     private int getQuadrant(Vector3 position)
@@ -1595,6 +1575,7 @@ public class StructuralGeneration : MonoBehaviour
         }
     }
 
+    //Return the seed for it to be displayed in the inspector
     private int[] getSeed()
     {
         seed = new int[seeddisplay.Length];
@@ -1605,11 +1586,50 @@ public class StructuralGeneration : MonoBehaviour
         }
         return seed;
     }
+
+    //Gets the default positions for rooms in a quadrant
+    private List<Vector3> getDefaultRooms(float[] quadrant)
+    {
+        //Function is used to find the: Top Left, Top Middle, Top Right, Middle Left, Center, Middle Right
+        //                              Bottom Left, Bottom Middle, and Bottom Right
+
+        //                              cells of a quadrant
+
+        List<Vector3> roomPositions = new List<Vector3>();  //Stores room positions for quadrant
+
+        float north = quadrant[0];                  //Store north quadrant boundary
+        float south = quadrant[1];                  //Store south quadrant boundary
+        float east = quadrant[2];                  //Store east  quadrant boundary
+        float west = quadrant[3];                  //Store west  quadrant boundary
+
+        float totalHeight = north - south;          //total height of quadrant
+        float totalWidth = Mathf.Abs(east - west);  //total width of quadrant
+
+        float xmid = ((totalWidth / 2) + west);     //mid width of quadrant
+        float zmid = ((totalHeight / 2) + south);   //mid height of quadrant
+        xmid = Mathf.Round(xmid);
+        zmid = Mathf.Round(zmid);
+
+        roomPositions.Add(new Vector3(west, 0.0f, north));  //Top Left      0
+        roomPositions.Add(new Vector3(xmid, 0.0f, north));  //Top Middle    1
+        roomPositions.Add(new Vector3(east, 0.0f, north));  //Top Right     2
+
+        roomPositions.Add(new Vector3(west, 0.0f, zmid));   //Middle Left   3
+        roomPositions.Add(new Vector3(xmid, 0.0f, zmid));   //Center        4
+        roomPositions.Add(new Vector3(east, 0.0f, zmid));   //Middle Right  5
+
+        roomPositions.Add(new Vector3(west, 0.0f, south));  //Bottom Left   6
+        roomPositions.Add(new Vector3(xmid, 0.0f, south));  //Bottom Middle 7
+        roomPositions.Add(new Vector3(east, 0.0f, south));  //Bottom Right  8
+
+
+        return roomPositions;
+    }
     #endregion
 }
 
 /// <summary>
-/// Contains information for room sizes
+/// Contains integer values for X by Z room sizes
 /// </summary>
 public class RoomSizes
 {

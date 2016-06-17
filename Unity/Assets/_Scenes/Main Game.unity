@@ -3347,8 +3347,8 @@ MonoBehaviour:
   seeddisplay: 
   realTimeGen: 1
   numberofRooms: 0
-  minRoomSize: 4
-  maxRoomSize: 7
+  minRoomSize: 3
+  maxRoomSize: 6
   largestRoomCount: 0
   minMainRoomCount: 45
   s1: 23
