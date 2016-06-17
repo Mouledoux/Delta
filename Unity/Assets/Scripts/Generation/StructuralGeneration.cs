@@ -173,8 +173,8 @@ public class StructuralGeneration : MonoBehaviour
             generateQuadrants();        //Divide the grid into quadrants
             generateCellWalls(cells);   //Generate walls around each cell on the grid
 
-            StartCoroutine(WaitSeconds(1.0f, GenerateDungeon)); //Begin dungeon generation process
-            Generate = false;                                   //Set generate to false
+            StartCoroutine(WaitSecondsVoid(1.0f, GenerateDungeon)); //Begin dungeon generation process
+            Generate = false;                                                       //Set generate to false
         }
 
         if (Input.GetKeyDown(KeyCode.G))    //Used to generate a new dungeon during runtime
@@ -270,15 +270,11 @@ public class StructuralGeneration : MonoBehaviour
         //Determine final room positions
         roomPositions = breakdownSeed(roomPositions, roomNum, curRoomSizes, roomSizes.Count, out rotationNum);
 
-        #region Generate Rooms
         if (realTimeGen)    //If we're generating in real time, generate in coroutine
             StartCoroutine(RealTimeGenerator(roomPositions, roomSizes, curRoomSizes, rotationNum));
 
         else            //Otherwise generate everything instantly
-        {
             GenerateRooms(roomPositions, curRoomSizes, roomSizes);
-        }
-        #endregion
 
     }
 
@@ -287,42 +283,54 @@ public class StructuralGeneration : MonoBehaviour
     {
         for (int i = 0; i < roomPositions.Count; i++)   //For each room position
         {
-            //Find room size
-            int[] roomsize = new int[] { roomSizes[curRoomSizes[i]].sizeX, roomSizes[curRoomSizes[i]].sizeZ };
-
-            Vector3 returnPos = roomPositions[i];   //Get the rooms center position
-            List<GameObject> MergedRooms;           //Any rooms that share the cells of this room will be merged
-                                                    //into this one
-
-            //Generate the room and store the cells in a list
-            List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
-
-            if (MergedRooms.Count != 0) //If there are rooms to merge with this room
-            {
-                List<GameObject> newRoom = parent;          //Create a reference to the created room
-                for (int x = 0; x < MergedRooms.Count; x++) //For each room in the list of rooms to be merged
-                {
-                    foreach (Transform cell in MergedRooms[x].transform)    //For each cell in those rooms
-                    {
-                        newRoom.Add(cell.gameObject);                           //Add them to the new room
-                    }
-                    GameObject.Destroy(MergedRooms[x]);                     //Destroy the old room objects
-                }
-            }
-
-            UniversalHelper.parentObject(parent, "Rooms", "Rooms " + i);                    //Parent the room under Rooms
-        }   //End of for loop
+                CreateRoom(roomPositions, curRoomSizes, roomSizes, i);  //Create the room
+        }
 
         GameObject Rooms = GameObject.Find("Rooms");            //Create reference to all rooms
         List<GameObject> AllRooms = new List<GameObject>();     //Create a fresh list
 
+        FinalizeList(Rooms, AllRooms);
+
+        numberofRooms = Rooms.transform.childCount;                 //Set the number of rooms generated
+    }
+
+    //Used by GenerateRooms to organize game objects
+    private static void FinalizeList(GameObject Rooms, List<GameObject> AllRooms)
+    {
         for (int i = 0; i < Rooms.transform.childCount; i++)    //For each room in Rooms  
         {
             Rooms.transform.GetChild(i).name = "Room " + i;         //Get the room and rename it so that it's orderly
             AllRooms.Add(Rooms.transform.GetChild(i).gameObject);   //Add the room to the new list
         }
+    }
 
-        numberofRooms = Rooms.transform.childCount;                 //Set the number of rooms generated
+    //Used by GenerateRooms to create a room
+    private void CreateRoom(List<Vector3> roomPositions, int[] curRoomSizes, List<RoomSizes> roomSizes, int i)
+    {
+        //Find room size
+        int[] roomsize = new int[] { roomSizes[curRoomSizes[i]].sizeX, roomSizes[curRoomSizes[i]].sizeZ };
+
+        Vector3 returnPos = roomPositions[i];   //Get the rooms center position
+        List<GameObject> MergedRooms;           //Any rooms that share the cells of this room will be merged
+                                                //into this one
+
+        //Generate the room and store the cells in a list
+        List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
+
+        if (MergedRooms.Count != 0) //If there are rooms to merge with this room
+        {
+            List<GameObject> newRoom = parent;          //Create a reference to the created room
+            for (int x = 0; x < MergedRooms.Count; x++) //For each room in the list of rooms to be merged
+            {
+                foreach (Transform cell in MergedRooms[x].transform)    //For each cell in those rooms
+                {
+                    newRoom.Add(cell.gameObject);                           //Add them to the new room
+                }
+                GameObject.Destroy(MergedRooms[x]);                     //Destroy the old room objects
+            }
+        }
+
+        UniversalHelper.parentObject(parent, "Rooms", "Rooms " + i);                    //Parent the room under Rooms
     }
 
     //Used by Generate Dungeon to generate seed
@@ -1440,7 +1448,7 @@ public class StructuralGeneration : MonoBehaviour
         
     }
 
-    IEnumerator WaitSeconds(float seconds, Action FunctionName)
+    public static IEnumerator WaitSecondsVoid(float seconds, Action FunctionName)
     {
         //Function waits for a predetermined number of seconds and then calls another function
         yield return new WaitForSeconds(seconds);
@@ -1627,6 +1635,8 @@ public class StructuralGeneration : MonoBehaviour
     }
     #endregion
 }
+
+#region Other Classes
 
 /// <summary>
 /// Contains integer values for X by Z room sizes
@@ -1834,3 +1844,5 @@ public static class UniversalHelper
 
 
 }
+
+#endregion
