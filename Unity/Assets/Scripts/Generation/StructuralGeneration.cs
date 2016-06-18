@@ -471,6 +471,33 @@ public class StructuralGeneration : MonoBehaviour
         return positions;   //return new positions
     }
 
+    //Determines which rooms get priority during hall generation
+    private int[] determineHallGen()
+    {
+        int[] numOfRooms = new int[GameObject.Find("Rooms").transform.childCount]; //Get the number of rooms generated
+        return UniversalHelper.Shuffle(numOfRooms);
+    }
+
+    private void DetectAdjacentRooms()
+    {
+
+    }
+
+    private void CreateHalls(List<GameObject> Rooms)
+    {
+        //Check if room to be connected already has a hallway on the same side.
+        //If it does, connect the hallway to the one that is already connected
+        //Else, build a hallway using the simplest path
+        for (int i = 0; i < Rooms.Count; i++)
+        {
+
+        }
+    }
+
+    private void DetermineHallPath(Vector3 roomPosOne, Vector3 roomPosTwo)
+    {
+
+    }
     #endregion
 
     #region Post Generation
@@ -1846,3 +1873,13 @@ public static class UniversalHelper
 }
 
 #endregion
+
+/// <summary>
+/// Contains data for creating a path between two cells in a straight line
+/// </summary>
+public class Hallway
+{
+    List<Vector3> path;     //Positions the hallway will use to create the path
+    int cellWidth;          //How many cells wide the hallway will be
+    string direction;       //In which direction does the hallway face
+}
