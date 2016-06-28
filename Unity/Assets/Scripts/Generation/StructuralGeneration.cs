@@ -163,7 +163,7 @@ public class StructuralGeneration : MonoBehaviour
 
     public int s1, s2;  //stair 1 and 2. Testing purposes
     public float h;     //elevate. Testing purposes
-
+    public GameObject one, two;
     //Checks for inputs for generating new dungeons or clearing old ones
     void Update()
     {
@@ -189,8 +189,8 @@ public class StructuralGeneration : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.H))    //Used to test stair building
         {
-            BuildStairTest();
-
+            //BuildStairTest();
+            CreateHall(one, two);
         }
 
         if (Input.GetKeyDown(KeyCode.C))    //Clear the grid
@@ -478,25 +478,161 @@ public class StructuralGeneration : MonoBehaviour
         return UniversalHelper.Shuffle(numOfRooms);
     }
 
-    private void DetectAdjacentRooms()
+    //Takes two game cells and creates a hall using the grid
+    void CreateHall(GameObject start, GameObject end)
     {
+        Vector3 startVec = start.transform.position;
+        Vector3 endVec = end.transform.position;
 
-    }
+        float xDistance, zDistance;
 
-    private void CreateHalls(List<GameObject> Rooms)
-    {
-        //Check if room to be connected already has a hallway on the same side.
-        //If it does, connect the hallway to the one that is already connected
-        //Else, build a hallway using the simplest path
-        for (int i = 0; i < Rooms.Count; i++)
+        xDistance = Mathf.Abs(startVec.x - endVec.x) / returnCellSizex; //Number of x cells to travel
+        zDistance = Mathf.Abs(startVec.z - endVec.z) / returnCellSizez; //Number of z cells to travel
+
+        char[] direction = UniversalHelper.detectDirection(start, end);
+
+        List<GameObject> travelCells = new List<GameObject>();
+
+        DetermineTravelCells(startVec, xDistance, zDistance, direction, travelCells);
+
+        for (int i = 0; i < travelCells.Count - 1; i++)
         {
-
+            ConnectCell(travelCells[i], travelCells[i + 1]);
         }
     }
 
-    private void DetermineHallPath(Vector3 roomPosOne, Vector3 roomPosTwo)
+    //Determines route through grid to create a hallway
+    private void DetermineTravelCells(Vector3 startVec, float xDistance, float zDistance, char[] direction, List<GameObject> travelCells)
     {
+        if (xDistance > zDistance)
+        {
+            if (direction[1] == 'n')
+                for (int i = 0; i < zDistance; i++)
+                {
+                    travelCells.Add(findCell(startVec + new Vector3(0, 0, startVec.z + returnCellSizez * i)));
+                }
 
+            else if (direction[1] == 's')
+                for (int i = 0; i < zDistance; i++)
+                {
+                    travelCells.Add(findCell(startVec + new Vector3(0, 0, startVec.z - returnCellSizez * i)));
+                }
+
+            if (direction[0] == 'e')
+                for (int i = 0; i < xDistance; i++)
+                {
+                    float pos = travelCells[travelCells.Count - 1].transform.position.x;
+                    travelCells.Add(findCell(startVec + new Vector3(pos + returnCellSizex, 0, 0)));
+                }
+
+            else if (direction[0] == 'w')
+                for (int i = 0; i < xDistance; i++)
+                {
+                    float pos = travelCells[travelCells.Count - 1].transform.position.x;
+                    travelCells.Add(findCell(startVec + new Vector3(pos - returnCellSizex, 0, 0)));
+                }
+        }
+
+        else    //Reverse the process
+        {
+            if (direction[0] == 'e')
+                for (int i = 0; i < xDistance; i++)
+                {
+                    travelCells.Add(findCell(startVec + new Vector3(startVec.x + returnCellSizex * i, 0, 0)));
+                }
+
+            else if (direction[0] == 'w')
+                for (int i = 0; i < xDistance; i++)
+                {
+                    travelCells.Add(findCell(startVec + new Vector3(startVec.x - returnCellSizex * i, 0, 0)));
+                }
+
+            if (direction[1] == 'n')
+                for (int i = 0; i < zDistance; i++)
+                {
+                    float pos = travelCells[travelCells.Count - 1].transform.position.z;
+                    travelCells.Add(findCell(startVec + new Vector3(0, 0, pos + returnCellSizez)));
+                }
+
+            else if (direction[1] == 's')
+                for (int i = 0; i < zDistance; i++)
+                {
+                    float pos = travelCells[travelCells.Count - 1].transform.position.z;
+                    travelCells.Add(findCell(startVec + new Vector3(0, 0, pos + returnCellSizez)));
+                }
+        }
+    }
+
+    //Takes two cells and removes the walls between them. Use this iteratively to connect hallways
+    void ConnectCell(GameObject cellOne, GameObject cellTwo)
+    {
+        char[] directions = UniversalHelper.detectDirection(cellOne, cellTwo);  //Directional relation between cells
+        int directionRet = directions.Length;                                   //get how many directions are returned
+
+        if (directionRet > 1)
+        {
+            return;
+        }
+
+        switch (directions[0])
+        {
+            case 'e':                                               //East
+                if (cellOne.transform.Find("east_wall"))            //Destroy cell one's east wall if it exists
+                {
+                    Destroy(cellOne.transform.Find("east_wall"));
+                }
+
+                if (cellTwo.transform.Find("west_wall"))            //Destroy cell two's west wall if it exists
+                {
+                    Destroy(cellTwo.transform.Find("west_wall"));
+                }
+                break;
+
+            case 'w':                                               //West
+                if (cellOne.transform.Find("west_wall"))            //Destroy cell one's west wall if it exists
+                {
+                    Destroy(cellOne.transform.Find("west_wall"));
+                }
+
+                if (cellTwo.transform.Find("east_wall"))            //Destroy cell two's east wall if it exists
+                {
+                    Destroy(cellTwo.transform.Find("east_wall"));
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        switch (directions[1])
+        {
+            case 'n':
+                if (cellOne.transform.Find("north_wall"))            //Destroy cell one's north wall if it exists
+                {
+                    Destroy(cellOne.transform.Find("north_wall"));
+                }
+
+                if (cellTwo.transform.Find("south_wall"))            //Destroy cell two's south wall if it exists
+                {
+                    Destroy(cellTwo.transform.Find("south_wall"));
+                }
+                break;
+
+            case 's':
+                if (cellOne.transform.Find("south_wall"))            //Destroy cell one's south wall if it exists
+                {
+                    Destroy(cellOne.transform.Find("south_wall"));
+                }
+
+                if (cellTwo.transform.Find("north_wall"))            //Destroy cell two's north wall if it exists
+                {
+                    Destroy(cellTwo.transform.Find("north_wall"));
+                }
+                break;
+
+            default:
+                break;
+        }
     }
     #endregion
 
@@ -1867,6 +2003,56 @@ public static class UniversalHelper
         int result = rand.Next(minValue, (maxValue + 1));
 
         return result;
+    }
+
+    /// <summary>
+    /// Determines the directions needed to get from object one to object one. 
+    /// Returns array of length two. First value is x. Second value is z.
+    /// u = undefined. n s e w = north south east west
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    public static char[] detectDirection(GameObject one, GameObject two)
+    {
+        //n,e,s,w = north, east, south, and west respectively
+        // u = undefined
+
+        char[] direction = new char[3];
+
+        Vector3 oneVec = one.transform.position;
+        Vector3 twoVec = two.transform.position;
+
+        if (oneVec.x > twoVec.x)
+        {
+            direction[0] = 'w';
+        }
+
+        else if (oneVec.x < twoVec.x)
+        {
+            direction[0] = 'e';
+        }
+
+        else
+        {
+            direction[0] = 'u';
+        }
+
+        if (oneVec.z > twoVec.z)
+        {
+            direction[1] = 's';
+        }
+
+        else if (oneVec.z < twoVec.z)
+        {
+            direction[1] = 'n';
+        }
+
+        else
+        {
+            direction[1] = 'u';
+        }
+        return direction;
     }
 
 
