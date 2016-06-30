@@ -163,7 +163,6 @@ public class StructuralGeneration : MonoBehaviour
 
     public int s1, s2;  //stair 1 and 2. Testing purposes
     public float h;     //elevate. Testing purposes
-    public GameObject one, two;
     //Checks for inputs for generating new dungeons or clearing old ones
     void Update()
     {
@@ -189,6 +188,8 @@ public class StructuralGeneration : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.H))    //Used to test stair building
         {
+            GameObject one = cells[187];
+            GameObject two = cells[261];
             //BuildStairTest();
             CreateHall(one, two);
         }
@@ -481,6 +482,7 @@ public class StructuralGeneration : MonoBehaviour
     //Takes two game cells and creates a hall using the grid
     void CreateHall(GameObject start, GameObject end)
     {
+        Debug.Log("start hall");
         Vector3 startVec = start.transform.position;
         Vector3 endVec = end.transform.position;
 
@@ -494,11 +496,13 @@ public class StructuralGeneration : MonoBehaviour
         List<GameObject> travelCells = new List<GameObject>();
 
         DetermineTravelCells(startVec, xDistance, zDistance, direction, travelCells);
-
+        Debug.Log("determined travel cells");
         for (int i = 0; i < travelCells.Count - 1; i++)
         {
             ConnectCell(travelCells[i], travelCells[i + 1]);
         }
+        Debug.Log("connected cells");
+        UniversalHelper.parentObject(travelCells, "Hall");
     }
 
     //Determines route through grid to create a hallway
@@ -519,11 +523,15 @@ public class StructuralGeneration : MonoBehaviour
                 }
 
             if (direction[0] == 'e')
+            {
                 for (int i = 0; i < xDistance; i++)
                 {
+                    Debug.Log(i + " " + travelCells.Count);
+                    Debug.Log(travelCells[0].name);
                     float pos = travelCells[travelCells.Count - 1].transform.position.x;
                     travelCells.Add(findCell(startVec + new Vector3(pos + returnCellSizex, 0, 0)));
                 }
+            }
 
             else if (direction[0] == 'w')
                 for (int i = 0; i < xDistance; i++)
@@ -533,7 +541,7 @@ public class StructuralGeneration : MonoBehaviour
                 }
         }
 
-        else    //Reverse the process
+        else if (zDistance > xDistance)    //Reverse the process
         {
             if (direction[0] == 'e')
                 for (int i = 0; i < xDistance; i++)
@@ -1421,6 +1429,7 @@ public class StructuralGeneration : MonoBehaviour
             }
         }
 
+        Debug.LogException(new Exception("Could not find cell at position: " + cellPosition));
         return null;
     }
 

@@ -3316,7 +3316,7 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 964184250}
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: -0.7071068}
   m_LocalPosition: {x: 0, y: 97.36, z: -0}
   m_LocalScale: {x: 0.0508, y: 0.0508, z: 0.0508}
   m_Children: []
@@ -3344,7 +3344,7 @@ MonoBehaviour:
   FLOOR: {fileID: 128230, guid: f64179c10419a2e4d9b023507275a861, type: 2}
   WALL: {fileID: 110836, guid: 77c791a8fc3bca64fb428347e310cc1d, type: 2}
   seed: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-  seeddisplay: 
+  seeddisplay: 4056151050
   realTimeGen: 1
   numberofRooms: 0
   minRoomSize: 3
@@ -3793,7 +3793,7 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1349654109}
-  m_LocalRotation: {x: 0.64125276, y: 0.15475452, z: -0.060089912, w: 0.7491563}
+  m_LocalRotation: {x: 0.64125365, y: 0.15475406, z: -0.06009078, w: 0.7491556}
   m_LocalPosition: {x: -6.86, y: 14.51, z: 11.88}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
