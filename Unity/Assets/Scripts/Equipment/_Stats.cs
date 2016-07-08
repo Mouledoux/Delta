@@ -105,11 +105,11 @@ public class _Stats : MonoBehaviour
 
         Rarity();                           // Sets item's m_Rarity
 
-        m_Speed     += Random.Range(0, 5);  // Random buff to m_Speed
-        m_Attack    += Random.Range(0, 5);  // Random buff to m_Strength
-        m_Defence   += Random.Range(0, 5);  // Random buff to m_Defence
-        m_Stealth   += Random.Range(0, 5);  // Random buff to m_Stealth
-        m_Dextarity += Random.Range(0, 5);  // Random buff to m_Dextarity
+        m_Speed     += Random.Range(-1, 6);  // Random (de)buff to m_Speed
+        m_Attack    += Random.Range(-1, 6);  // Random (de)buff to m_Strength
+        m_Defence   += Random.Range(-1, 6);  // Random (de)buff to m_Defence
+        m_Stealth   += Random.Range(-1, 6);  // Random (de)buff to m_Stealth
+        m_Dextarity += Random.Range(-1, 6);  // Random (de)buff to m_Dextarity
 
         m_Speed     *= m_Level * m_RareMod; // Sets m_Speed to      (level n stat * m_Level * m_RareMod)
         m_Attack    *= m_Level * m_RareMod; // Sets m_Strength to   (level n stat * m_Level * m_RareMod)
