@@ -12,8 +12,10 @@ public class StructuralGeneration : MonoBehaviour
         How dungeon generation works:
         First a little lingo:
             Cell = a single rectangular FLOOR gameobject prefab (primitive cube with a texture for the floor)
-            Grid = A large rectangular plane made up of all cells. It is divided into even quadrants.
-            Quadrant = A section of the grid made up of a group of cells.
+            Grid = The large rectangular plane created from placing cells along adjacent X by Z positions. It is divided into even quadrants.
+            Quadrant = A section of the grid containing a group of cells.
+            Default Dungeon = A dungeon made up of the default room positions. It's further explained in the How the Seed Works section
+
         Alright, now onto the steps.
         Step 1: Generate a grid
         Step 2: Divide grid into even quadrants (specified as a variable)
@@ -23,33 +25,32 @@ public class StructuralGeneration : MonoBehaviour
         Step 5: Define the main rooms
         Step 6: Connect the main rooms using a main hall
         Step 7: Ensure every other room is connected in some way to the main hall, either directly or indirectly
-        How the seed works
+        HOW THE SEED WORKS
     
             Step 1: Generate the quadrants of the grid
             Step 2: Find default room positions in each quadrant of the grid.
-                - The default room positions are: 
+                - The 9 default room positions in a quadrant are: 
                 //////////////////////////////////////////////////////  
                 //// Top Left        Top Middle      Top Right,   ////      
                 //// Middle Left     Center          Middle Right ////     
                 //// Bottom Left     Bottom Middle   Bottom Right ////
                 //////////////////////////////////////////////////////
                                                                         
-                - Room's default positions are placed in these positions
+                - Rooms are placed in these positions first (using a shuffle to random things up), and then transformed.
+
             Step 3: Execute transformations and exchanges based on numbers 0-9 to shift, scale, and switch rooms
-            The seed is currently an int array with length 12.
-            The first nine numbers are used to transform the dungeon
-            The tenth and eleventh numbers determine which rooms (every room is numbered from 0 - number of rooms)
-                will be considered the main rooms
-            The twelfth number determines the boss that spawns
+            The seed is currently an int array with length 10.
+            The first nine places are used to transform the dungeon
+            The tenth place determines the boss that spawns
             This array may be expanded to help with object generation if wanted (more details when I get to that)
-            As stated previously, numbers 0-9 are used for transformations and whatnot.
+            As stated previously, numbers 0-9 will be used for transformations and whatnot.
             They are currently used in the following manner:
-            0 - shifts every room up in their quadrant by room number
-            1 - shifts every number right in their quadrant room number (if it reaches side, it goes to other side)
-            2 - shifts every room up on the entire grid by room number (same rules as 0)
-            3 - shifts every room right on the entire grid by room number (same rules as 1)
-            4 - switches room numbers and sizes within quadrant
-            5 - switches room numbers and sizes among the grid
+            0 - shifts every room up in their QUADRANT by room number (if it reaches the top, it goes to the bottom)
+            1 - shifts every number right in their QUADRANT room number (if it reaches the side, it goes to other the side)
+            2 - shifts every room up on the entire GRID by room number (same rules as 0)
+            3 - shifts every room right on the entire GRID by room number (same rules as 1)
+            4 - switches room numbers and sizes within QUADRANT
+            5 - switches room numbers and sizes among the GRID
             6 - Elevates rooms
             7 - Rotates the grid 90 degrees
             8 - Not currently in use
@@ -97,7 +98,6 @@ public class StructuralGeneration : MonoBehaviour
      *  - Grid is simply going to be x and y (z for unity) number of dungeon cells put together to make a large rectangle
      * Generate dungeon cells
      *  - Determine what objects go in each cell if any
-     *  - Deform cells so they don't all form perfect rectangles
      *  - Subdivide the cells after creation
      * Generate path
      *  - Remove walls to create hallways and rooms
@@ -109,7 +109,7 @@ public class StructuralGeneration : MonoBehaviour
      * Generate basic cells
      * Generate walls around cells
      * Generate rooms
-     * Generate hallways
+     * Generae hallway (un-automated)
      * Generate Seed
      * Generate Dungeon during runtime
      * 
@@ -123,6 +123,7 @@ public class StructuralGeneration : MonoBehaviour
     #endregion
 
     #region Global Variables
+
     //Cells and Grid
     public bool Generate;           //Determines whether or not to generate
     public int x_cells, z_cells;    //Number of cells generated along x and z axis
@@ -135,25 +136,23 @@ public class StructuralGeneration : MonoBehaviour
     //Game Objects
     public GameObject FLOOR;                //Floor gameobject
     public GameObject WALL;                 //Wall gameobject
-    private static List<GameObject> cells;  //Tracks all of the physical cells used in the game
+    private static List<GameObject> cells;  //Tracks all of the cell gameobjects used in the game
 
     //Boundary Tracking
-    private float[] boundaries = new float[] { 0, 0, 0, 0 };            //Tracks the furthest points of the grid
+    public float[] boundaries = new float[] { 0, 0, 0, 0 };             //Tracks the furthest points of the grid
     private List<float[]> QuadrantBoundaries;                           //Tracks furthest points of each quadrant
-    public float[] gridBounds;
 
     //Seed and Generation
-    private int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };        //stores seed
+    private int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };       //stores seed
     public string seeddisplay;                                          //controls seed
-    public bool realTimeGen;                                            //Coroutine vs Instant
+    public bool realTimeGen;                                            //Coroutine vs Instant generation
     public float numberofRooms;                                         //Outputs number of rooms (debugging)
 
     //Rooms | Halls | Stairs
     public int minRoomSize;                                             //minimum room size
-    public int maxRoomSize;                                             //max room size
+    public int maxRoomSize;                                             //maximum room size
 
     public int largestRoomCount;                                        //displays the number of cells in largest room
-    public int minMainRoomCount;                                        //minimum room size for main room
 
 
 
@@ -164,6 +163,7 @@ public class StructuralGeneration : MonoBehaviour
 
     public int s1, s2;  //stair 1 and 2. Testing purposes
     public float h;     //elevate. Testing purposes
+
     //Checks for inputs for generating new dungeons or clearing old ones
     void Update()
     {
@@ -180,14 +180,11 @@ public class StructuralGeneration : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.G))    //Used to generate a new dungeon during runtime
         {
             ClearDungeon();                 //Clear everything
-            GenerateGrid();                 //Generate the grid
-            generateQuadrants();            //Regenerate the quadrants
-            generateCellWalls(cells);       //Regenerate the walls around cells
             Generate = true;                //Set generate to true
             seeddisplay = "";               //Clear the seed display
         }
 
-        if (Input.GetKeyDown(KeyCode.H))    //Used to test stair building
+        if (Input.GetKeyDown(KeyCode.H))    //Used to test hall building
         {
             GameObject one = cells[356];
             GameObject two = cells[103];
@@ -232,7 +229,6 @@ public class StructuralGeneration : MonoBehaviour
         cells = generateGrid();                 //generate grid
         UniversalHelper.parentObject(cells, "Cells");           //Parent every cell generated under a game object named "Cells"
         boundaries = furthestDirections(cells); //Get the furthest world positions of the grid in each direction
-        gridBounds = boundaries;
     }
 
     //Runs necessary checks to clear everything
@@ -294,10 +290,10 @@ public class StructuralGeneration : MonoBehaviour
 
         FinalizeList(Rooms, AllRooms);
 
-        numberofRooms = Rooms.transform.childCount;                 //Set the number of rooms generated
+        numberofRooms = Rooms.transform.childCount;                 //Display the number of rooms generated
     }
 
-    //Used by GenerateRooms to organize game objects
+    //Used by GenerateRooms to organize game objects in the hierarchy
     private static void FinalizeList(GameObject Rooms, List<GameObject> AllRooms)
     {
         for (int i = 0; i < Rooms.transform.childCount; i++)    //For each room in Rooms  
@@ -354,11 +350,11 @@ public class StructuralGeneration : MonoBehaviour
         if (roomsPerQuadrant > 9)                                           //Ensure roomsPerQuadrant <= 9
             roomsPerQuadrant = 9;                                           //since there are only 9 default positions
 
-        roomPositions = new List<Vector3>();
-        defaultlayout = new int[roomsPerQuadrant];
-        roomNum = new int[roomsPerQuadrant * QuadrantsWanted];
-        curRoomSizes = new int[roomsPerQuadrant * QuadrantsWanted];
-        roomSizes = getRoomSizes();
+        roomPositions = new List<Vector3>();                                //Create a list of Vector3s to store positions in world
+        defaultlayout = new int[roomsPerQuadrant];                          //Determines how many of the default layouts are used
+        roomNum = new int[roomsPerQuadrant * QuadrantsWanted];              //Total number of rooms to generate
+        curRoomSizes = new int[roomsPerQuadrant * QuadrantsWanted];         //For each room there is a room size
+        roomSizes = getRoomSizes();                                         //Get room sizes
         //Get the list of room sizes
     }
 
@@ -1689,8 +1685,8 @@ public class StructuralGeneration : MonoBehaviour
     private List<RoomSizes> getRoomSizes()
     {
 
-        List<RoomSizes> roomSizes = new List<RoomSizes>();
-        for (int i = minRoomSize; i <= maxRoomSize; i++)
+        List<RoomSizes> roomSizes = new List<RoomSizes>();      //Create a new list of the room sizes class
+        for (int i = minRoomSize; i <= maxRoomSize; i++)        
         {
             for (int x = minRoomSize; x <= maxRoomSize; x++)
             {
@@ -2091,14 +2087,8 @@ public static class UniversalHelper
 
 }
 
-#endregion
-
 /// <summary>
 /// Contains data for creating a path between two cells in a straight line
 /// </summary>
-public class Hallway
-{
-    List<Vector3> path;     //Positions the hallway will use to create the path
-    int cellWidth;          //How many cells wide the hallway will be
-    string direction;       //In which direction does the hallway face
-}
+#endregion
+
