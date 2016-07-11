@@ -140,9 +140,10 @@ public class StructuralGeneration : MonoBehaviour
     //Boundary Tracking
     private float[] boundaries = new float[] { 0, 0, 0, 0 };            //Tracks the furthest points of the grid
     private List<float[]> QuadrantBoundaries;                           //Tracks furthest points of each quadrant
+    public float[] gridBounds;
 
     //Seed and Generation
-    public int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };        //stores seed
+    private int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };        //stores seed
     public string seeddisplay;                                          //controls seed
     public bool realTimeGen;                                            //Coroutine vs Instant
     public float numberofRooms;                                         //Outputs number of rooms (debugging)
@@ -188,8 +189,8 @@ public class StructuralGeneration : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.H))    //Used to test stair building
         {
-            GameObject one = cells[187];
-            GameObject two = cells[261];
+            GameObject one = cells[356];
+            GameObject two = cells[103];
             //BuildStairTest();
             CreateHall(one, two);
         }
@@ -231,6 +232,7 @@ public class StructuralGeneration : MonoBehaviour
         cells = generateGrid();                 //generate grid
         UniversalHelper.parentObject(cells, "Cells");           //Parent every cell generated under a game object named "Cells"
         boundaries = furthestDirections(cells); //Get the furthest world positions of the grid in each direction
+        gridBounds = boundaries;
     }
 
     //Runs necessary checks to clear everything
@@ -497,6 +499,7 @@ public class StructuralGeneration : MonoBehaviour
 
         DetermineTravelCells(startVec, xDistance, zDistance, direction, travelCells);
         Debug.Log("determined travel cells");
+
         for (int i = 0; i < travelCells.Count - 1; i++)
         {
             ConnectCell(travelCells[i], travelCells[i + 1]);
@@ -508,78 +511,93 @@ public class StructuralGeneration : MonoBehaviour
     //Determines route through grid to create a hallway
     private void DetermineTravelCells(Vector3 startVec, float xDistance, float zDistance, char[] direction, List<GameObject> travelCells)
     {
+        Vector3 n = new Vector3(0, 0, returnCellSizez);
+        Vector3 s = new Vector3(0, 0, -returnCellSizez);
+        Vector3 e = new Vector3(returnCellSizex, 0, 0);
+        Vector3 w = new Vector3(-returnCellSizex, 0, 0);
+
+        Vector3 pos = startVec;
+
         if (xDistance > zDistance)
         {
-            if (direction[1] == 'n')
-                for (int i = 0; i < zDistance; i++)
-                {
-                    travelCells.Add(findCell(startVec + new Vector3(0, 0, startVec.z + returnCellSizez * i)));
-                }
-
-            else if (direction[1] == 's')
-                for (int i = 0; i < zDistance; i++)
-                {
-                    travelCells.Add(findCell(startVec + new Vector3(0, 0, startVec.z - returnCellSizez * i)));
-                }
-
-            if (direction[0] == 'e')
-            {
-                for (int i = 0; i < xDistance; i++)
-                {
-                    Debug.Log(i + " " + travelCells.Count);
-                    Debug.Log(travelCells[0].name);
-                    float pos = travelCells[travelCells.Count - 1].transform.position.x;
-                    travelCells.Add(findCell(startVec + new Vector3(pos + returnCellSizex, 0, 0)));
-                }
-            }
-
-            else if (direction[0] == 'w')
-                for (int i = 0; i < xDistance; i++)
-                {
-                    float pos = travelCells[travelCells.Count - 1].transform.position.x;
-                    travelCells.Add(findCell(startVec + new Vector3(pos - returnCellSizex, 0, 0)));
-                }
+            pos = AddNSCells(zDistance, direction, travelCells, n, s, pos);
+            pos = AddEWCells(xDistance, direction, travelCells, e, w, pos);
         }
 
         else if (zDistance > xDistance)    //Reverse the process
         {
-            if (direction[0] == 'e')
-                for (int i = 0; i < xDistance; i++)
-                {
-                    travelCells.Add(findCell(startVec + new Vector3(startVec.x + returnCellSizex * i, 0, 0)));
-                }
-
-            else if (direction[0] == 'w')
-                for (int i = 0; i < xDistance; i++)
-                {
-                    travelCells.Add(findCell(startVec + new Vector3(startVec.x - returnCellSizex * i, 0, 0)));
-                }
-
-            if (direction[1] == 'n')
-                for (int i = 0; i < zDistance; i++)
-                {
-                    float pos = travelCells[travelCells.Count - 1].transform.position.z;
-                    travelCells.Add(findCell(startVec + new Vector3(0, 0, pos + returnCellSizez)));
-                }
-
-            else if (direction[1] == 's')
-                for (int i = 0; i < zDistance; i++)
-                {
-                    float pos = travelCells[travelCells.Count - 1].transform.position.z;
-                    travelCells.Add(findCell(startVec + new Vector3(0, 0, pos + returnCellSizez)));
-                }
+            pos = AddNSCells(zDistance, direction, travelCells, n, s, pos);
+            pos = AddEWCells(xDistance, direction, travelCells, e, w, pos);
         }
+    }
+
+    private Vector3 AddEWCells(float xDistance, char[] direction, List<GameObject> travelCells, Vector3 e, Vector3 w, Vector3 pos)
+    {
+        if (direction[0] == 'e')
+        {
+            for (int i = 0; i < xDistance; i++)
+            {
+                travelCells.Add(findCell(pos + e));
+                pos = travelCells[travelCells.Count - 1].transform.position;
+            }
+        }
+
+        else if (direction[0] == 'w')
+        {
+            for (int i = 0; i < xDistance; i++)
+            {
+                travelCells.Add(findCell(pos + w));
+                pos = travelCells[travelCells.Count - 1].transform.position;
+            }
+        }
+
+        return pos;
+    }
+
+    private Vector3 AddNSCells(float zDistance, char[] direction, List<GameObject> travelCells, Vector3 n, Vector3 s, Vector3 pos)
+    {
+        if (direction[1] == 'n')
+        {
+            for (int i = 0; i < zDistance; i++)
+            {
+                travelCells.Add(findCell(pos + n));
+                pos = travelCells[travelCells.Count - 1].transform.position;
+            }
+        }
+
+        else if (direction[1] == 's')
+        {
+            for (int i = 0; i < zDistance; i++)
+            {
+                travelCells.Add(findCell(pos + s));
+                pos = travelCells[travelCells.Count - 1].transform.position;
+            }
+        }
+
+        return pos;
     }
 
     //Takes two cells and removes the walls between them. Use this iteratively to connect hallways
     void ConnectCell(GameObject cellOne, GameObject cellTwo)
     {
         char[] directions = UniversalHelper.detectDirection(cellOne, cellTwo);  //Directional relation between cells
-        int directionRet = directions.Length;                                   //get how many directions are returned
+        Debug.Log("direction 0: " + directions[0] + " direction 1: " + directions[1]);
 
-        if (directionRet > 1)
+        if (directions[0] == 'u' && directions[1] != 'u')
         {
-            return;
+
+        }
+
+        else if (directions[1] == 'u' && directions[0] != 'u')
+        {
+
+        }
+
+        else
+        {
+            Debug.Log(cellOne.name + " " + cellOne.transform.position);
+            Debug.Log(cellTwo.name + " " + cellTwo.transform.position);
+            throw new Exception("can't connect walls");
         }
 
         switch (directions[0])
@@ -587,28 +605,29 @@ public class StructuralGeneration : MonoBehaviour
             case 'e':                                               //East
                 if (cellOne.transform.Find("east_wall"))            //Destroy cell one's east wall if it exists
                 {
-                    Destroy(cellOne.transform.Find("east_wall"));
+                    Destroy(cellOne.transform.Find("east_wall").gameObject);
                 }
 
                 if (cellTwo.transform.Find("west_wall"))            //Destroy cell two's west wall if it exists
                 {
-                    Destroy(cellTwo.transform.Find("west_wall"));
+                    Destroy(cellTwo.transform.Find("west_wall").gameObject);
                 }
                 break;
 
             case 'w':                                               //West
                 if (cellOne.transform.Find("west_wall"))            //Destroy cell one's west wall if it exists
                 {
-                    Destroy(cellOne.transform.Find("west_wall"));
+                    Destroy(cellOne.transform.Find("west_wall").gameObject);
                 }
 
                 if (cellTwo.transform.Find("east_wall"))            //Destroy cell two's east wall if it exists
                 {
-                    Destroy(cellTwo.transform.Find("east_wall"));
+                    Destroy(cellTwo.transform.Find("east_wall").gameObject);
                 }
                 break;
 
             default:
+                Debug.Log("Nothing destroyed");
                 break;
         }
 
@@ -617,28 +636,35 @@ public class StructuralGeneration : MonoBehaviour
             case 'n':
                 if (cellOne.transform.Find("north_wall"))            //Destroy cell one's north wall if it exists
                 {
-                    Destroy(cellOne.transform.Find("north_wall"));
+                    Destroy(cellOne.transform.Find("north_wall").gameObject);
+                    Debug.Log("destroyed");
                 }
 
                 if (cellTwo.transform.Find("south_wall"))            //Destroy cell two's south wall if it exists
                 {
-                    Destroy(cellTwo.transform.Find("south_wall"));
+                    Destroy(cellTwo.transform.Find("south_wall").gameObject);
+                    Debug.Log("destroyed");
                 }
+                Debug.Log("ran n");
                 break;
 
             case 's':
                 if (cellOne.transform.Find("south_wall"))            //Destroy cell one's south wall if it exists
                 {
-                    Destroy(cellOne.transform.Find("south_wall"));
+                    Destroy(cellOne.transform.Find("south_wall").gameObject);
+                    Debug.Log("destroyed");
                 }
 
                 if (cellTwo.transform.Find("north_wall"))            //Destroy cell two's north wall if it exists
                 {
-                    Destroy(cellTwo.transform.Find("north_wall"));
+                    Destroy(cellTwo.transform.Find("north_wall").gameObject);
+                    Debug.Log("destroyed");
                 }
+                Debug.Log("ran s");
                 break;
 
             default:
+                Debug.Log("Nothing destroyed");
                 break;
         }
     }
@@ -1429,8 +1455,7 @@ public class StructuralGeneration : MonoBehaviour
             }
         }
 
-        Debug.LogException(new Exception("Could not find cell at position: " + cellPosition));
-        return null;
+        throw new Exception("Could not find cell at position: " + cellPosition);
     }
 
     private float confineRoom(float point, int roomSize, float check1, float check2, string var)
@@ -1570,7 +1595,6 @@ public class StructuralGeneration : MonoBehaviour
         for (int i = 0; i < roomPositions.Count; i++)
         {
             int[] roomsize = new int[] { sizes[roomSizes[i]].sizeX, sizes[roomSizes[i]].sizeZ };
-            Debug.Log(roomsize[0] + " " + roomsize[1]);
 
             Vector3 returnPos = roomPositions[i];
             List<GameObject> MergedRooms;

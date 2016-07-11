@@ -526,7 +526,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &292994159
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3343,7 +3343,7 @@ MonoBehaviour:
   cellWallWidth: 0.2
   FLOOR: {fileID: 128230, guid: f64179c10419a2e4d9b023507275a861, type: 2}
   WALL: {fileID: 110836, guid: 77c791a8fc3bca64fb428347e310cc1d, type: 2}
-  seed: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  gridBounds: []
   seeddisplay: 4056151050
   realTimeGen: 1
   numberofRooms: 0
