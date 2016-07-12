@@ -25,6 +25,7 @@ public class StructuralGeneration : MonoBehaviour
         Step 5: Define the main rooms
         Step 6: Connect the main rooms using a main hall
         Step 7: Ensure every other room is connected in some way to the main hall, either directly or indirectly
+
         HOW THE SEED WORKS
     
             Step 1: Generate the quadrants of the grid
@@ -109,9 +110,9 @@ public class StructuralGeneration : MonoBehaviour
      * Generate basic cells
      * Generate walls around cells
      * Generate rooms
-     * Generae hallway (un-automated)
      * Generate Seed
      * Generate Dungeon during runtime
+     * Generae hallway (un-automated)
      * 
      * 
      * 
