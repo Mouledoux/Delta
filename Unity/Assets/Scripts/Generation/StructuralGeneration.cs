@@ -243,6 +243,8 @@ public class StructuralGeneration : MonoBehaviour
 
         if (GameObject.Find("Stairs"))          //If stairs exist, destroy them
             Destroy(GameObject.Find("Stairs"));
+        if (GameObject.Find("Halls"))
+            Destroy(GameObject.Find("Halls"));
     }
 
     //Runs necessary functions to build the dungeon
@@ -474,16 +476,32 @@ public class StructuralGeneration : MonoBehaviour
     //Determines which rooms get priority during hall generation
     private int[] determineHallGen()
     {
-        int[] numOfRooms = new int[GameObject.Find("Rooms").transform.childCount]; //Get the number of rooms generated
+        int[] numOfRooms = Enumerable.Range(0, GameObject.Find("Rooms").transform.childCount).ToArray(); //Get the number of rooms generated
         return UniversalHelper.Shuffle(numOfRooms);
+    }
+
+    void GenerateHalls(int[] numOfRooms)
+    {
+        for (int i = 0; i < numOfRooms.Length - 1; i++)
+        {
+            GameObject start = GameObject.Find("Room " + numOfRooms[i]);
+            GameObject end = GameObject.Find("Room " + numOfRooms[i+1]);
+
+            CreateHall(start, end);
+        }
     }
 
     //Takes two game cells and creates a hall using the grid
     void CreateHall(GameObject start, GameObject end)
     {
         Debug.Log("start hall");
+
         Vector3 startVec = start.transform.position;
         Vector3 endVec = end.transform.position;
+        Debug.Log("start: " + start.name + " " + start.transform.position);
+        Debug.Log("end: " + end.name + " " + end.transform.position);
+
+
 
         float xDistance, zDistance;
 
@@ -495,14 +513,14 @@ public class StructuralGeneration : MonoBehaviour
         List<GameObject> travelCells = new List<GameObject>();
 
         DetermineTravelCells(startVec, xDistance, zDistance, direction, travelCells);
-        Debug.Log("determined travel cells");
+        Debug.Log("determined travel cells " + travelCells.Count);
 
         for (int i = 0; i < travelCells.Count - 1; i++)
         {
             ConnectCell(travelCells[i], travelCells[i + 1]);
         }
         Debug.Log("connected cells");
-        UniversalHelper.parentObject(travelCells, "Hall");
+        UniversalHelper.parentObject(travelCells, "Halls", start.name + " | " + end.name + " Hall");
     }
 
     //Determines route through grid to create a hallway
@@ -1255,7 +1273,7 @@ public class StructuralGeneration : MonoBehaviour
 
         returnCenter = roomCenter;  //store the new room center
 
-        findCell(returnCenter).name += " Center";   //Name center cell
+        findCell(returnCenter).name = "Center";   //Name center cell
         cellsInRoom.Add(findCell(roomCenter));      //Add roomcenter to list of cells in room
 
         //calculates starting position for generating the room (bottom left corner of room)
@@ -1580,7 +1598,7 @@ public class StructuralGeneration : MonoBehaviour
         for (int i = 0; i < rotationNum; i++)
         {
             GameObject.Find("Rooms").transform.RotateAround(mid, transform.forward, 90);
-            GameObject.Find("Cells").transform.RotateAround(mid, transform.forward, 90);
+            GameObject.Find("Halls").transform.RotateAround(mid, transform.forward, 90);
         }
     }
     #endregion
@@ -1631,14 +1649,14 @@ public class StructuralGeneration : MonoBehaviour
             }
         }
 
-        Rooms.transform.GetChild(largestRoom).name = "Boss Room";
+        //Rooms.transform.GetChild(largestRoom).name = "Boss Room";
         numberofRooms = Rooms.transform.childCount;
 
+        GenerateHalls(determineHallGen());
+        Destroy(GameObject.Find("Cells"));
         yield return new WaitForSeconds(5.0f * Time.deltaTime);
         yield return new WaitForSeconds(2.0f * Time.deltaTime);
         RotateGrid(rotationNum);
-
-        
     }
 
     public static IEnumerator WaitSecondsVoid(float seconds, Action FunctionName)

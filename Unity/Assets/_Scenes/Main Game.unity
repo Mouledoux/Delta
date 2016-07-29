@@ -2996,7 +2996,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &854831328
 Transform:
   m_ObjectHideFlags: 0
@@ -3259,8 +3259,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Generate: 1
-  x_cells: 25
-  z_cells: 25
+  x_cells: 33
+  z_cells: 33
   roomsPerQuadrant: 2
   QuadrantsWanted: 9
   cellSize: {x: 0.3, y: 0.04, z: 0.3}
@@ -3273,7 +3273,7 @@ MonoBehaviour:
   - 0
   - 0
   - 0
-  seeddisplay: 4056151050
+  seeddisplay: 
   realTimeGen: 1
   numberofRooms: 0
   minRoomSize: 3
