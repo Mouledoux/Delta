@@ -494,12 +494,9 @@ public class StructuralGeneration : MonoBehaviour
     //Takes two game cells and creates a hall using the grid
     void CreateHall(GameObject start, GameObject end)
     {
-        Debug.Log("start hall");
 
         Vector3 startVec = start.transform.position;
         Vector3 endVec = end.transform.position;
-        Debug.Log("start: " + start.name + " " + start.transform.position);
-        Debug.Log("end: " + end.name + " " + end.transform.position);
 
 
 
@@ -513,14 +510,16 @@ public class StructuralGeneration : MonoBehaviour
         List<GameObject> travelCells = new List<GameObject>();
 
         DetermineTravelCells(startVec, xDistance, zDistance, direction, travelCells);
-        Debug.Log("determined travel cells " + travelCells.Count);
 
-        for (int i = 0; i < travelCells.Count - 1; i++)
+        if (travelCells.Count > 1)
         {
-            ConnectCell(travelCells[i], travelCells[i + 1]);
+
+            for (int i = 0; i < travelCells.Count - 1; i++)
+            {
+                ConnectCell(travelCells[i], travelCells[i + 1]);
+            }
+            UniversalHelper.parentObject(travelCells, "Halls", start.name + " | " + end.name + " Hall");
         }
-        Debug.Log("connected cells");
-        UniversalHelper.parentObject(travelCells, "Halls", start.name + " | " + end.name + " Hall");
     }
 
     //Determines route through grid to create a hallway
@@ -596,7 +595,7 @@ public class StructuralGeneration : MonoBehaviour
     void ConnectCell(GameObject cellOne, GameObject cellTwo)
     {
         char[] directions = UniversalHelper.detectDirection(cellOne, cellTwo);  //Directional relation between cells
-        Debug.Log("direction 0: " + directions[0] + " direction 1: " + directions[1]);
+
 
         if (directions[0] == 'u' && directions[1] != 'u')
         {
@@ -610,8 +609,7 @@ public class StructuralGeneration : MonoBehaviour
 
         else
         {
-            Debug.Log(cellOne.name + " " + cellOne.transform.position);
-            Debug.Log(cellTwo.name + " " + cellTwo.transform.position);
+
             throw new Exception("can't connect walls");
         }
 
@@ -642,7 +640,7 @@ public class StructuralGeneration : MonoBehaviour
                 break;
 
             default:
-                Debug.Log("Nothing destroyed");
+             //   Debug.Log("Nothing destroyed");
                 break;
         }
 
@@ -652,34 +650,33 @@ public class StructuralGeneration : MonoBehaviour
                 if (cellOne.transform.Find("north_wall"))            //Destroy cell one's north wall if it exists
                 {
                     Destroy(cellOne.transform.Find("north_wall").gameObject);
-                    Debug.Log("destroyed");
+                  //  Debug.Log("destroyed");
                 }
 
                 if (cellTwo.transform.Find("south_wall"))            //Destroy cell two's south wall if it exists
                 {
                     Destroy(cellTwo.transform.Find("south_wall").gameObject);
-                    Debug.Log("destroyed");
+               //     Debug.Log("destroyed");
                 }
-                Debug.Log("ran n");
                 break;
 
             case 's':
                 if (cellOne.transform.Find("south_wall"))            //Destroy cell one's south wall if it exists
                 {
                     Destroy(cellOne.transform.Find("south_wall").gameObject);
-                    Debug.Log("destroyed");
+                 //   Debug.Log("destroyed");
                 }
 
                 if (cellTwo.transform.Find("north_wall"))            //Destroy cell two's north wall if it exists
                 {
                     Destroy(cellTwo.transform.Find("north_wall").gameObject);
-                    Debug.Log("destroyed");
+                 //   Debug.Log("destroyed");
                 }
-                Debug.Log("ran s");
+               // Debug.Log("ran s");
                 break;
 
             default:
-                Debug.Log("Nothing destroyed");
+
                 break;
         }
     }
@@ -1696,6 +1693,11 @@ public class StructuralGeneration : MonoBehaviour
         get { return Convert.ToInt32(cellSize.x * 10); }
     }
 
+    public int[] getCurSeed
+    {
+        get { return seed; }
+    }
+
     #endregion
 
     #region Get Functions
@@ -1845,6 +1847,12 @@ public class StructuralGeneration : MonoBehaviour
         return roomPositions;
     }
     #endregion
+
+    public static void seedTransformation()
+    {
+        
+        
+    }
 }
 
 #region Other Classes
@@ -1871,7 +1879,7 @@ public static class UniversalHelper
     /// <param name="subParentName"></param>
     public static void parentObject(List<GameObject> child, string parentName, string subParentName = "")
     {
-        if (child != null)
+        if (child.Count > 1)
         {
             List<GameObject> childObjects = child;
             //Used to create subparents
@@ -1908,6 +1916,11 @@ public static class UniversalHelper
                 parent.transform.position = childObjects[0].transform.position;
                 addChild(childObjects, parent);
             }
+        }
+
+        else
+        {
+            throw new Exception("Could not parent child. Child object cannot be empty");
         }
     }
 
