@@ -30,7 +30,7 @@ public class ObjectGeneration : MonoBehaviour
     public int lootDistance;            //Any loot objects must maintain this distance from each other when spawning
 
     bool done = false;
-    bool creation = true; //CHANGE THIS TO FALSE WHEN YOU USE STRUCTURAL GENERATION
+    bool creation = false;
 
     List<GameObject> EnemySpawns = new List<GameObject>();
 
@@ -63,48 +63,32 @@ public class ObjectGeneration : MonoBehaviour
 
     void Start()
     {
+        StartCoroutine(checkStructure());
     }
 
     void Update()
     {
-
-        /*if (!StructuralGeneration.structuredone)
-        {
-            StartCoroutine(checkStructure());
-        }
-
-        else if (creation)
+        if (creation)
         {
             CreateSpawn();
-        }*/
+        }
         //UNCOMMENT THIS AND DELETE EVERYTHING BELOW WHEN YOU USE STRUCTURAL GENERATION
 
-        if (GenerationRevamped.structuredone)
-        {
-            if (creation)
-                CreateSpawn();
-        }
     }
 
     IEnumerator checkStructure()
     {
         Debug.Log("here");
         int x = 0;
-        /*while (!StructuralGeneration.structuredone)
+        while (!StructuralGeneration.structureDone)
         {
-            yield return new WaitForSeconds(1);
-            x++;
-        }*/
-
-        while (!GenerationRevamped.structuredone)
-        {
+            Debug.Log("waiting");
             yield return new WaitForSeconds(1);
             x++;
         }
+        creation = true;
 
         StopAllCoroutines();
-        done = true;
-        creation = true;
     }
 
     void CreateSpawn()

@@ -155,6 +155,7 @@ public class StructuralGeneration : MonoBehaviour
 
     public int largestRoomCount;                                        //displays the number of cells in largest room
 
+    public static bool structureDone;
 
 
     #endregion
@@ -174,7 +175,7 @@ public class StructuralGeneration : MonoBehaviour
             generateQuadrants();        //Divide the grid into quadrants
             generateCellWalls(cells);   //Generate walls around each cell on the grid
 
-            StartCoroutine(WaitSecondsVoid(1.0f, GenerateDungeon)); //Begin dungeon generation process
+            StartCoroutine(WaitSecondsVoid(1.0f, GenerateDungeon));                 //Begin dungeon generation process
             Generate = false;                                                       //Set generate to false
         }
 
@@ -183,14 +184,6 @@ public class StructuralGeneration : MonoBehaviour
             ClearDungeon();                 //Clear everything
             Generate = true;                //Set generate to true
             seeddisplay = "";               //Clear the seed display
-        }
-
-        if (Input.GetKeyDown(KeyCode.H))    //Used to test hall building
-        {
-            GameObject one = cells[356];
-            GameObject two = cells[103];
-            //BuildStairTest();
-            CreateHall(one, two);
         }
 
         if (Input.GetKeyDown(KeyCode.C))    //Clear the grid
@@ -1654,6 +1647,7 @@ public class StructuralGeneration : MonoBehaviour
         yield return new WaitForSeconds(5.0f * Time.deltaTime);
         yield return new WaitForSeconds(2.0f * Time.deltaTime);
         RotateGrid(rotationNum);
+        structureDone = true;                                                   //Set structure done to true
     }
 
     public static IEnumerator WaitSecondsVoid(float seconds, Action FunctionName)
@@ -2118,9 +2112,5 @@ public static class UniversalHelper
 
 
 }
-
-/// <summary>
-/// Contains data for creating a path between two cells in a straight line
-/// </summary>
 #endregion
 
