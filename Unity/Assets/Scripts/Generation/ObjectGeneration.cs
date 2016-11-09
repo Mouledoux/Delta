@@ -27,12 +27,12 @@ public class ObjectGeneration : MonoBehaviour
     public GameObject Altar;
 
     public float tileSizes = 0.25f;     //Subdives cells as necessary
-    public int lootDistance;            //Any loot objects must maintain this distance from each other when spawning
+    public float lootChance;            //Chance of loot spawning
 
     bool done = false;
     bool creation = false;
 
-    List<GameObject> EnemySpawns = new List<GameObject>();
+    List<GameObject> EnemySpawns;
 
     public int EnemiesPerRoom;
 
@@ -72,17 +72,21 @@ public class ObjectGeneration : MonoBehaviour
         {
             CreateSpawn();
         }
-        //UNCOMMENT THIS AND DELETE EVERYTHING BELOW WHEN YOU USE STRUCTURAL GENERATION
+
+        if (!StructuralGeneration.structureDone && GameObject.Find("Spawns"))
+        {
+            creation = false;
+            Destroy(GameObject.Find("Spawns"));
+            StartCoroutine(checkStructure());
+        }
 
     }
 
     IEnumerator checkStructure()
     {
-        Debug.Log("here");
         int x = 0;
         while (!StructuralGeneration.structureDone)
         {
-            Debug.Log("waiting");
             yield return new WaitForSeconds(1);
             x++;
         }
@@ -93,6 +97,7 @@ public class ObjectGeneration : MonoBehaviour
 
     void CreateSpawn()
     {
+        EnemySpawns = new List<GameObject>();
         List<Vector3> roomCenters = new List<Vector3>();
         GameObject Rooms = GameObject.Find("Rooms");
         for (int i = 0; i < Rooms.transform.childCount; i++)

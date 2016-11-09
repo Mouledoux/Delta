@@ -3533,7 +3533,7 @@ MonoBehaviour:
   HealingWell: {fileID: 0}
   Altar: {fileID: 0}
   tileSizes: 0.25
-  lootDistance: 0
+  lootChance: 0
   EnemiesPerRoom: 3
 --- !u!4 &964184252
 Transform:
@@ -3560,10 +3560,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Generate: 1
-  x_cells: 33
-  z_cells: 33
-  roomsPerQuadrant: 2
-  QuadrantsWanted: 9
+  x_cells: 21
+  z_cells: 21
+  roomsPerQuadrant: 1
+  QuadrantsWanted: 4
   cellSize: {x: 0.5, y: 0.04, z: 0.5}
   cellWallHeight: 7
   cellWallWidth: 0.8
@@ -4310,7 +4310,7 @@ MonoBehaviour:
   HealingWell: {fileID: 0}
   Altar: {fileID: 0}
   tileSizes: 0.25
-  lootDistance: 0
+  lootChance: 0
   EnemiesPerRoom: 2
 --- !u!1 &1876860820
 GameObject:

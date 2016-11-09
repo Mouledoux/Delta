@@ -101,8 +101,8 @@ public class PlayerController : MonoBehaviour
         {
             //Debug.Log(LeftFoot.localPosition.z);
 
-            ForwardMove += startSpeed * cam.transform.forward.z * Time.deltaTime;
-            ForwardMove = Mathf.Clamp(ForwardMove, 0, movement);
+            //ForwardMove += startSpeed * cam.transform.forward.z * Time.deltaTime;
+            //ForwardMove = Mathf.Clamp(ForwardMove, 0, movement);
         }
 
         else if (back)   //If back key is being held

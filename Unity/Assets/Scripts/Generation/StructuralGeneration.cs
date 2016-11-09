@@ -41,6 +41,12 @@ public class StructuralGeneration : MonoBehaviour
 
             Step 3: Execute transformations and exchanges based on numbers 0-9 to shift, scale, and switch rooms
             The seed is currently an int array with length 10.
+            The first number is the current floor.
+            Floors have an effect on the seed in a variety of ways:
+            1. Grid size
+            2. Rooms per quadrant
+            3. Quadrants wanted
+            4. Default Orientation
             The first nine places are used to transform the dungeon
             The tenth place determines the boss that spawns
             This array may be expanded to help with object generation if wanted (more details when I get to that)
@@ -144,7 +150,7 @@ public class StructuralGeneration : MonoBehaviour
     private List<float[]> QuadrantBoundaries;                           //Tracks furthest points of each quadrant
 
     //Seed and Generation
-    private int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };       //stores seed
+    private int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };    //stores seed
     public string seeddisplay;                                          //controls seed
     public bool realTimeGen;                                            //Coroutine vs Instant generation
     public float numberofRooms;                                         //Outputs number of rooms (debugging)
@@ -156,6 +162,7 @@ public class StructuralGeneration : MonoBehaviour
     public int largestRoomCount;                                        //displays the number of cells in largest room
 
     public static bool structureDone;
+    public static bool regenerate;
 
 
     #endregion
@@ -171,6 +178,7 @@ public class StructuralGeneration : MonoBehaviour
     {
         if (Generate)   //If we're generating
         {
+            structureDone = false;
             GenerateGrid();             //Generate  the grid and get the boundaries
             generateQuadrants();        //Divide the grid into quadrants
             generateCellWalls(cells);   //Generate walls around each cell on the grid
@@ -193,6 +201,7 @@ public class StructuralGeneration : MonoBehaviour
             generateQuadrants();                    //Generate new quadrants
             generateCellWalls(cells);               //Generate cell walls
             seeddisplay = "";                       //Clear the seed display
+            structureDone = false;
         }
 
     }
@@ -254,7 +263,7 @@ public class StructuralGeneration : MonoBehaviour
         InitializeGeneration(out roomPositions, out defaultlayout, out roomNum, out curRoomSizes, out roomSizes);
 
         //Get the default quadrant positions for rooms
-        GetDefaultPositions(roomPositions, defaultlayout, roomNum, curRoomSizes);
+        getDefaultPositions(roomPositions, defaultlayout, roomNum, curRoomSizes);
 
         //Shuffle room numbers
         roomNum = UniversalHelper.Shuffle(roomNum);
@@ -273,6 +282,132 @@ public class StructuralGeneration : MonoBehaviour
 
     }
 
+    //Used by Generate Dungeon to initialize variables
+    private void InitializeGeneration(out List<Vector3> roomPositions, out int[] defaultlayout, out int[] roomNum, out int[] curRoomSizes, out List<RoomSizes> roomSizes)
+    {
+        if (roomsPerQuadrant > 9)                                           //Ensure roomsPerQuadrant <= 9
+            roomsPerQuadrant = 9;                                           //since there are only 9 default positions
+
+        roomPositions = new List<Vector3>();                                //Create a list of Vector3s to store positions in world
+        defaultlayout = new int[roomsPerQuadrant];                          //Determines how many of the default layouts are used
+        roomNum = new int[roomsPerQuadrant * QuadrantsWanted];              //Total number of rooms to generate
+        curRoomSizes = new int[roomsPerQuadrant * QuadrantsWanted];         //For each room there is a room size
+        roomSizes = getRoomSizes();                                         //Get room sizes
+        //Get the list of room sizes
+    }
+
+    //Used by Generate Dungeon to get default room positions
+    private void getDefaultPositions(List<Vector3> roomPositions, int[] defaultlayout, int[] roomNum, int[] curRoomSizes)
+    {
+        for (int i = 0; i < defaultlayout.Length && i < 9; i++)  //While i < the number of rooms per quadrant or 9
+        {
+            defaultlayout[i] = i + 4;                   //Set the default position of each room in the quadrant
+
+            if (defaultlayout[i] > 8)                   //If i is greater than 8
+                defaultlayout[i] -= 9;                  //Subtract 9
+        }
+
+        int s = 0;                                  //Tracks the room numbers to be assigned
+
+        for (int i = 0; i < QuadrantsWanted; i++)   //while i < the number of quadrants wanted
+        {
+            List<Vector3> positions = getDefaultRooms(QuadrantBoundaries[i]); //Get the default room positions based on
+                                                                              //quadrant size and number of quadrants
+
+            for (int x = 0; x < roomsPerQuadrant; x++)  //for every room in each quadrant
+            {
+                roomPositions.Add(positions[defaultlayout[x]]); //Add the default positions
+                curRoomSizes[s] = 0;                            //Set the room size equal to the smallest size
+                roomNum[s] = s;                                 //Room number is equal to s
+                s++;                                            //increment s
+
+            }
+        }
+    }
+
+
+    //Used by Generate Dungeon to generate seed
+    private void GenerateSeed()
+    {
+        if (!string.IsNullOrEmpty(seeddisplay))     //If manual seed is input
+        {
+            seed = getSeed();                        //Use it
+        }
+
+        else                                        //Otherwise
+        {
+            for (int i = 1; i < seed.Length; i++)   //While i is < than seed length
+            {
+                seed[i] = UniversalHelper.randomGenerator(0, 7);    //Generate a number between 0 and 7. Will be 9 with all transformations
+                seeddisplay += seed[i].ToString();  //Display the seed
+            }
+        }
+
+    }
+
+    //Used by Generate Dungeon to break down the seed
+    private List<Vector3> breakdownSeed(List<Vector3> positions, int[] roomNum, int[] curRoomSizes, int roomSizeList,
+        out int rotationNum)
+    {
+        rotationNum = 0;                        //Number of times to rotate
+        for (int i = 1; i < seed.Length; i++)   //While i < than seed length
+        {
+            switch (seed[i])
+            {
+                case 0:
+                    positions = ShiftRooms(positions, roomNum.ToList(), 0, true);   //Shift rooms up in quadrant
+                    curRoomSizes = ScaleRooms(curRoomSizes, roomNum, roomSizeList);     //Scale rooms
+                    break;
+
+                case 1:
+                    positions = ShiftRooms(positions, roomNum.ToList(), 1, true);   //Shift rooms right in quadrant
+                    curRoomSizes = ScaleRooms(curRoomSizes, roomNum, roomSizeList);     //Scale rooms
+                    break;
+
+                case 2:
+                    positions = ShiftRooms(positions, roomNum.ToList(), 0, false);  //Shift rooms up on grid
+                    curRoomSizes = ScaleRooms(curRoomSizes, roomNum, roomSizeList);     //Scale rooms
+                    break;
+
+                case 3:
+                    positions = ShiftRooms(positions, roomNum.ToList(), 1, false);  //Shift rooms right on grid
+                    curRoomSizes = ScaleRooms(curRoomSizes, roomNum, roomSizeList);     //Scale rooms
+                    break;
+
+                case 4:
+                    if (roomsPerQuadrant > 3)   //If there are more than 3 rooms in a quadrant
+                        roomNum = ShuffleRooms(roomNum, true);  //Shuffle the room numbers in the quadrant
+
+                    else                        //Otherwise
+                        roomNum = ShuffleRooms(roomNum, false); //Shuffle the room numbers across the grid
+                    break;
+
+                case 5:
+                    roomNum = ShuffleRooms(roomNum, false);     //Shuffle the room numbers across the grid
+                    break;
+
+                case 6:
+                    break;
+
+                case 7:
+                    rotationNum += 1;                           //Add 1 to rotation
+                    break;
+
+                case 8:
+                    break;
+
+                case 9:
+                    break;
+
+                default:
+                    break;
+            }
+
+        }
+
+        return positions;   //return new positions
+    }
+
     //Used by Generate Dungeon to generate rooms
     private void GenerateRooms(List<Vector3> roomPositions, int[] curRoomSizes, List<RoomSizes> roomSizes)
     {
@@ -287,16 +422,6 @@ public class StructuralGeneration : MonoBehaviour
         FinalizeList(Rooms, AllRooms);
 
         numberofRooms = Rooms.transform.childCount;                 //Display the number of rooms generated
-    }
-
-    //Used by GenerateRooms to organize game objects in the hierarchy
-    private static void FinalizeList(GameObject Rooms, List<GameObject> AllRooms)
-    {
-        for (int i = 0; i < Rooms.transform.childCount; i++)    //For each room in Rooms  
-        {
-            Rooms.transform.GetChild(i).name = "Room " + i;         //Get the room and rename it so that it's orderly
-            AllRooms.Add(Rooms.transform.GetChild(i).gameObject);   //Add the room to the new list
-        }
     }
 
     //Used by GenerateRooms to create a room
@@ -328,149 +453,25 @@ public class StructuralGeneration : MonoBehaviour
         UniversalHelper.parentObject(parent, "Rooms", "Rooms " + i);                    //Parent the room under Rooms
     }
 
-    //Used by Generate Dungeon to generate seed
-    private void GenerateSeed()
+    //Used by GenerateRooms to organize game objects in the hierarchy
+    private static void FinalizeList(GameObject Rooms, List<GameObject> AllRooms)
     {
-        if (!string.IsNullOrEmpty(seeddisplay))     //If manual seed is input
+        for (int i = 0; i < Rooms.transform.childCount; i++)    //For each room in Rooms  
         {
-            seed = getSeed();                        //Use it
+            Rooms.transform.GetChild(i).name = "Room " + i;         //Get the room and rename it so that it's orderly
+            AllRooms.Add(Rooms.transform.GetChild(i).gameObject);   //Add the room to the new list
         }
-
-        else                                        //Otherwise
-            seed = generateSeed();                      //Generate new seed
-    }
-
-    //Used by Generate Dungeon to initialize variables
-    private void InitializeGeneration(out List<Vector3> roomPositions, out int[] defaultlayout, out int[] roomNum, out int[] curRoomSizes, out List<RoomSizes> roomSizes)
-    {
-        if (roomsPerQuadrant > 9)                                           //Ensure roomsPerQuadrant <= 9
-            roomsPerQuadrant = 9;                                           //since there are only 9 default positions
-
-        roomPositions = new List<Vector3>();                                //Create a list of Vector3s to store positions in world
-        defaultlayout = new int[roomsPerQuadrant];                          //Determines how many of the default layouts are used
-        roomNum = new int[roomsPerQuadrant * QuadrantsWanted];              //Total number of rooms to generate
-        curRoomSizes = new int[roomsPerQuadrant * QuadrantsWanted];         //For each room there is a room size
-        roomSizes = getRoomSizes();                                         //Get room sizes
-        //Get the list of room sizes
-    }
-
-    //Used by Generate Dungeon to get default room positions
-    private void GetDefaultPositions(List<Vector3> roomPositions, int[] defaultlayout, int[] roomNum, int[] curRoomSizes)
-    {
-        for (int i = 0; i < defaultlayout.Length && i < 9; i++)  //While i < the number of rooms per quadrant or 9
-        {
-            defaultlayout[i] = i + 4;                   //Set the default position of each room in the quadrant
-
-            if (defaultlayout[i] > 8)                   //If i is greater than 8
-                defaultlayout[i] -= 9;                  //Subtract 9
-        }
-
-        int s = 0;                                  //Tracks the room numbers to be assigned
-
-        for (int i = 0; i < QuadrantsWanted; i++)   //while i < the number of quadrants wanted
-        {
-            List<Vector3> positions = getDefaultRooms(QuadrantBoundaries[i]); //Get the default room positions based on
-                                                                              //quadrant size and number of quadrants
-
-            for (int x = 0; x < roomsPerQuadrant; x++)  //for every room in each quadrant
-            {
-                roomPositions.Add(positions[defaultlayout[x]]); //Add the default positions
-                curRoomSizes[s] = 0;                            //Set the room size equal to the smallest size
-                roomNum[s] = s;                                 //Room number is equal to s
-                s++;                                            //increment s
-
-            }
-        }
-    }
-
-    //Used by Generate Seed to generate the seed
-    private int[] generateSeed()
-    {
-        //Function generates the seed
-
-        for (int i = 0; i < seed.Length; i++)   //While i is < than seed length
-        {
-            seed[i] = UniversalHelper.randomGenerator(0, 7);    //Generate a number between 0 and 7. Will be 9 with all transformations
-            seeddisplay += seed[i].ToString();  //Display the seed
-        }
-
-        return seed;    //Return the seed
-    }
-
-    //Used by Generate Dungeon to break down the seed
-    private List<Vector3> breakdownSeed(List<Vector3> positions, int[] roomNum, int[] curRoomSizes, int roomSizeList,
-        out int rotationNum)
-    {
-        rotationNum = 0;                        //Number of times to rotate
-        for (int i = 0; i < seed.Length; i++)   //While i < than seed length
-        {
-
-            if (seed[i] == 0)       //If the position is 0
-            {
-                positions = ShiftRooms(positions, roomNum.ToList(), 0, true);   //Shift rooms up in quadrant
-                curRoomSizes = ScaleRooms(curRoomSizes, roomNum, roomSizeList);     //Scale rooms
-            }
-
-            else if (seed[i] == 1)  //If the position is 1
-            {
-                positions = ShiftRooms(positions, roomNum.ToList(), 1, true);   //Shift rooms right in quadrant
-                curRoomSizes = ScaleRooms(curRoomSizes, roomNum, roomSizeList);     //Scale rooms
-            }
-
-            else if (seed[i] == 2)  //If the position is 2
-            {
-                positions = ShiftRooms(positions, roomNum.ToList(), 0, false);  //Shift rooms up on grid
-                curRoomSizes = ScaleRooms(curRoomSizes, roomNum, roomSizeList);     //Scale rooms
-            }
-
-            else if (seed[i] == 3)  //If the position is 3
-            {
-                positions = ShiftRooms(positions, roomNum.ToList(), 1, false);  //Shift rooms right on grid
-                curRoomSizes = ScaleRooms(curRoomSizes, roomNum, roomSizeList);     //Scale rooms
-            }
-
-            else if (seed[i] == 4)  //If the position is 4
-            {
-                if (roomsPerQuadrant > 3)   //If there are more than 3 rooms in a quadrant
-                    roomNum = ShuffleRooms(roomNum, true);  //Shuffle the room numbers in the quadrant
-
-                else                        //Otherwise
-                    roomNum = ShuffleRooms(roomNum, false); //Shuffle the room numbers across the grid
-            }
-
-            else if (seed[i] == 5)  //If the position is 5
-            {
-                roomNum = ShuffleRooms(roomNum, false);     //Shuffle the room numbers across the grid
-            }
-
-            else if (seed[i] == 6)  //If the position is 6
-            {
-            }
-
-            else if (seed[i] == 7)  //If the position is 7
-            {
-                rotationNum += 1;                           //Add 1 to rotation
-            }
-
-            else if (seed[i] == 8)  //If the position is 8
-            {
-
-            }
-
-            else if (seed[i] == 9)  //If the position is 9
-            {
-
-            }
-        }
-
-        return positions;   //return new positions
     }
 
     //Determines which rooms get priority during hall generation
     private int[] determineHallGen()
     {
         int[] numOfRooms = Enumerable.Range(0, GameObject.Find("Rooms").transform.childCount).ToArray(); //Get the number of rooms generated
-        return UniversalHelper.Shuffle(numOfRooms);
+
+        if (numOfRooms.Length >= 4)
+            return UniversalHelper.Shuffle(numOfRooms);
+
+        return numOfRooms;
     }
 
     void GenerateHalls(int[] numOfRooms)
@@ -1648,6 +1649,7 @@ public class StructuralGeneration : MonoBehaviour
         yield return new WaitForSeconds(2.0f * Time.deltaTime);
         RotateGrid(rotationNum);
         structureDone = true;                                                   //Set structure done to true
+        StopAllCoroutines();
     }
 
     public static IEnumerator WaitSecondsVoid(float seconds, Action FunctionName)
