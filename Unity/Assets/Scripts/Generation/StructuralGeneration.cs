@@ -154,6 +154,7 @@ public class StructuralGeneration : MonoBehaviour
     public string seeddisplay;                                          //controls seed
     public bool realTimeGen;                                            //Coroutine vs Instant generation
     public float numberofRooms;                                         //Outputs number of rooms (debugging)
+    public int startFloor = 0;
 
     //Rooms | Halls | Stairs
     public int minRoomSize;                                             //minimum room size
@@ -339,7 +340,6 @@ public class StructuralGeneration : MonoBehaviour
             for (int i = 1; i < seed.Length; i++)   //While i is < than seed length
             {
                 seed[i] = UniversalHelper.randomGenerator(0, 7);    //Generate a number between 0 and 7. Will be 9 with all transformations
-                seeddisplay += seed[i].ToString();  //Display the seed
             }
         }
 
@@ -1692,6 +1692,7 @@ public class StructuralGeneration : MonoBehaviour
     public int[] getCurSeed
     {
         get { return seed; }
+        set { seed = value; }
     }
 
     #endregion
