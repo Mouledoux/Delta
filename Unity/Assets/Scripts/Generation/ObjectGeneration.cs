@@ -70,7 +70,7 @@ public class ObjectGeneration : MonoBehaviour
     {
         if (creation)
         {
-            CreateSpawn();
+            //CreateSpawn();
         }
 
         if (!StructuralGeneration.structureDone && GameObject.Find("Spawns"))

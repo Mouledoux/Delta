@@ -151,7 +151,7 @@ public class StructuralGeneration : MonoBehaviour
 
     //Seed and Generation
     private int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };    //stores seed
-    public string seeddisplay;                                          //controls seed
+    public string seedString;                                           //Displays seed as a string
     public bool realTimeGen;                                            //Coroutine vs Instant generation
     public float numberofRooms;                                         //Outputs number of rooms (debugging)
     public double floorFactor;
@@ -193,7 +193,8 @@ public class StructuralGeneration : MonoBehaviour
         {
             ClearDungeon();                 //Clear everything
             Generate = true;                //Set generate to true
-            seeddisplay = "";               //Clear the seed display
+            seedString = getDefaultSeed();
+            seedStringToSeed();
         }
 
         if (Input.GetKeyDown(KeyCode.C))    //Clear the grid
@@ -202,7 +203,6 @@ public class StructuralGeneration : MonoBehaviour
             GenerateGrid();
             generateQuadrants();                    //Generate new quadrants
             generateCellWalls(cells);               //Generate cell walls
-            seeddisplay = "";                       //Clear the seed display
             structureDone = false;
         }
 
@@ -237,7 +237,7 @@ public class StructuralGeneration : MonoBehaviour
     }
 
     //Runs necessary checks to clear everything
-    private static void ClearDungeon()
+    public static void ClearDungeon()
     {
         if (GameObject.Find("Cells"))           //If cells exist, destroy them
             Destroy(GameObject.Find("Cells"));
@@ -331,9 +331,9 @@ public class StructuralGeneration : MonoBehaviour
     //Used by Generate Dungeon to generate seed
     private void GenerateSeed()
     {
-        if (!string.IsNullOrEmpty(seeddisplay))     //If manual seed is input
+        if (seedString != getDefaultSeed())     //If manual seed is input
         {
-            seed = getSeed();                        //Use it
+            //Do nothing. Seed is already set
         }
 
         else                                        //Otherwise
@@ -401,6 +401,8 @@ public class StructuralGeneration : MonoBehaviour
                     break;
 
                 default:
+                    positions = ShiftRooms(positions, roomNum.ToList(), 0, true);   //Shift rooms up in quadrant
+                    curRoomSizes = ScaleRooms(curRoomSizes, roomNum, roomSizeList);     //Scale rooms
                     break;
             }
 
@@ -1702,10 +1704,22 @@ public class StructuralGeneration : MonoBehaviour
         get { return Convert.ToInt32(cellSize.x * 10); }
     }
 
+    /// <summary>
+    /// Return the current seed
+    /// </summary>
     public int[] getCurSeed
     {
         get { return seed; }
-        set { seed = value; }
+    }
+
+    /// <summary>
+    /// Return the value stored in seed at index
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="value"></param>
+    public void setSeedAt(int index, int value)
+    {
+        seed[index] = value;
     }
 
     #endregion
@@ -1806,16 +1820,49 @@ public class StructuralGeneration : MonoBehaviour
         }
     }
 
-    //Return the seed for it to be displayed in the inspector
-    private int[] getSeed()
+    //Takes the string in the inspector, converts it to an int[], and sets seed equal to it.
+    public void seedStringToSeed()
     {
-        seed = new int[seeddisplay.Length];
 
-        for (int i = 0; i < seeddisplay.Length; i++)
+        int x = 1;
+        for (int i = floor.ToString().Length; i < seedString.Length; i++)
         {
-            seed[i] = int.Parse(seeddisplay[i].ToString());
+            int test;
+            try
+            {
+                if (int.TryParse(seedString[i].ToString(), out test))
+                {
+                    try
+                    {
+                        seed[x] = test;
+                        x++;
+                    }
+
+                    catch
+                    {
+                        Debug.LogException(new Exception("Invalid seed"));
+                    }
+                }
+            }
+
+            catch
+            {
+                Debug.LogException(new Exception("String cannot be parsed"));
+            }
         }
-        return seed;
+
+    }
+
+    //Return the default seed. (Default seed is 10000...where num of zeroes is determined by seed length - 1.
+    public string getDefaultSeed()
+    {
+        string defaultSeed = floor.ToString();
+        for (int i = 1; i < seed.Length; i++)
+        {
+            defaultSeed += "0";
+        }
+
+        return defaultSeed;
     }
 
     //Gets the default positions for rooms in a quadrant

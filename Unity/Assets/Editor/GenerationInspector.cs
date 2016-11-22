@@ -6,27 +6,74 @@ using System.Collections.Generic;
 [CustomEditor (typeof(StructuralGeneration))]
 public class GenerationInspector : Editor {
 
+    static List<string> savedSeeds = new List<string>();
+    List<string> saveSeeds = savedSeeds;
+    static int index = 0;
+
     public override void OnInspectorGUI()
     {
+        savedSeeds = saveSeeds;
         StructuralGeneration sg = (StructuralGeneration)target;
-
         sg.realTimeGen = EditorGUILayout.Toggle("Real Time Generation", sg.realTimeGen);
         sg.x_cells = EditorGUILayout.IntSlider("X size", sg.x_cells, 21, 100);
         sg.z_cells = EditorGUILayout.IntSlider("Z size", sg.z_cells, 21, 100);
         EditorGUILayout.Space();
 
-        int[] seedArray = sg.getCurSeed;
-        string seed = "";
-        for (int i = 0; i < seedArray.Length; i++)
+        index = EditorGUILayout.Popup(index, savedSeeds.ToArray());
+
+        if (GUILayout.Button("Use Seed"))
         {
-            seed += seedArray[i];
+            sg.seedString = savedSeeds[index].ToString();
+            sg.seedStringToSeed();
+            StructuralGeneration.ClearDungeon();
+            sg.Generate = true;
         }
 
-        sg.seeddisplay = EditorGUILayout.TextField("Seed:", seed);
-        
+        if (GUILayout.Button("Clear Seeds"))
+        {
+            index = 0;
+            savedSeeds = new List<string>();
+            saveSeeds = new List<string>();
+        }
+
+
+        sg.seedString = "";
+        foreach (int s in sg.getCurSeed)
+        {
+            sg.seedString += s.ToString();
+        }
+
+        bool resetSeed = false;
+        resetSeed = EditorGUILayout.Toggle("Reset Seed?", resetSeed);
+
+        if (resetSeed)
+        {
+            sg.seedString = sg.getDefaultSeed();
+        }
+
+        bool resetFloor = false;
+        resetFloor = EditorGUILayout.Toggle("Reset Floor?", resetFloor);
+
+        if (resetFloor)
+        {
+            sg.floor = 0;
+        }
+
+        sg.seedString = EditorGUILayout.TextField("Seed:", sg.seedString);
+        sg.seedStringToSeed();
+
+        if (GUILayout.Button("Save Seed"))
+        {
+            if (!savedSeeds.Contains(sg.seedString))
+            {
+                savedSeeds.Add(sg.seedString);
+                index = savedSeeds.Count - 1;
+            }
+        }
+
         sg.floor = EditorGUILayout.IntSlider("Floor", sg.floor, 1, 100);
-        seedArray[0] = sg.floor;
-        sg.getCurSeed = seedArray;
+
+        sg.setSeedAt(0, sg.floor);
 
         sg.QuadrantsWanted = (sg.x_cells + sg.z_cells) / 8;
         sg.QuadrantsWanted = sg.evenQuadrant() - sg.roomsPerQuadrant;
