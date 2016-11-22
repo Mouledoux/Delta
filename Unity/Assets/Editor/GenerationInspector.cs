@@ -11,8 +11,8 @@ public class GenerationInspector : Editor {
         StructuralGeneration sg = (StructuralGeneration)target;
 
         sg.realTimeGen = EditorGUILayout.Toggle("Real Time Generation", sg.realTimeGen);
-        sg.x_cells = EditorGUILayout.IntSlider("X size", sg.x_cells, 15, 100);
-        sg.z_cells = EditorGUILayout.IntSlider("Z size", sg.z_cells, 15, 100);
+        sg.x_cells = EditorGUILayout.IntSlider("X size", sg.x_cells, 21, 100);
+        sg.z_cells = EditorGUILayout.IntSlider("Z size", sg.z_cells, 21, 100);
         EditorGUILayout.Space();
 
         int[] seedArray = sg.getCurSeed;
@@ -23,13 +23,16 @@ public class GenerationInspector : Editor {
         }
 
         sg.seeddisplay = EditorGUILayout.TextField("Seed:", seed);
-
-        sg.startFloor = EditorGUILayout.IntSlider("Starting Floor", sg.startFloor, 1, 100);
-        seedArray[0] = sg.startFloor;
+        
+        sg.floor = EditorGUILayout.IntSlider("Floor", sg.floor, 1, 100);
+        seedArray[0] = sg.floor;
         sg.getCurSeed = seedArray;
 
-        sg.QuadrantsWanted = EditorGUILayout.IntField("Quadrants Wanted", sg.QuadrantsWanted);
-        sg.roomsPerQuadrant = EditorGUILayout.IntSlider("Rooms per Quadrant", sg.roomsPerQuadrant, 2, 15);
+        sg.QuadrantsWanted = (sg.x_cells + sg.z_cells) / 8;
+        sg.QuadrantsWanted = sg.evenQuadrant() - sg.roomsPerQuadrant;
+        sg.QuadrantsWanted = sg.evenQuadrant();
+        EditorGUILayout.IntField("Quadrants Wanted", sg.QuadrantsWanted);
+        sg.roomsPerQuadrant = EditorGUILayout.IntSlider("Rooms per Quadrant", sg.roomsPerQuadrant, 2, (sg.QuadrantsWanted == 4) ? sg.roomsPerQuadrant : 2 + (sg.QuadrantsWanted / 4));
 
         sg.cellSize = EditorGUILayout.Vector3Field("Cell Size", sg.cellSize);
         sg.cellWallHeight = EditorGUILayout.FloatField("Wall Height", sg.cellWallHeight);
@@ -38,4 +41,5 @@ public class GenerationInspector : Editor {
         sg.WALL = (GameObject)EditorGUILayout.ObjectField("Wall Prefab", sg.WALL, typeof(GameObject), true);
         sg.FLOOR = (GameObject)EditorGUILayout.ObjectField("Floor Prefab", sg.FLOOR, typeof(GameObject), true);
     }
+
 }

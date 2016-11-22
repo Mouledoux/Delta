@@ -154,7 +154,8 @@ public class StructuralGeneration : MonoBehaviour
     public string seeddisplay;                                          //controls seed
     public bool realTimeGen;                                            //Coroutine vs Instant generation
     public float numberofRooms;                                         //Outputs number of rooms (debugging)
-    public int startFloor = 0;
+    public double floorFactor;
+    public int floor = 0;
 
     //Rooms | Halls | Stairs
     public int minRoomSize;                                             //minimum room size
@@ -1222,6 +1223,18 @@ public class StructuralGeneration : MonoBehaviour
         }
 
         return Quadrants;
+    }
+
+    public int evenQuadrant()
+    {
+        double temp = Math.Sqrt(QuadrantsWanted);
+
+        if (QuadrantsWanted % 2 != 0 && temp % 1 != 0)
+        {
+            QuadrantsWanted++;
+        }
+
+        return QuadrantsWanted;
     }
     #endregion
 
