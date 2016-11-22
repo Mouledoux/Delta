@@ -1767,7 +1767,8 @@ public class StructuralGeneration : MonoBehaviour
                 return i;
         }
 
-        throw new Exception("Couldn't find quadrant for :" + position);
+        //throw new Exception("Couldn't find quadrant for :" + position);
+        return 0;
     }
 
     //This function takes two cells and determines their location in relation to each other
