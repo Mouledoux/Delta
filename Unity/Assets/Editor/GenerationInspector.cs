@@ -15,8 +15,10 @@ public class GenerationInspector : Editor {
         savedSeeds = saveSeeds;
         StructuralGeneration sg = (StructuralGeneration)target;
         sg.realTimeGen = EditorGUILayout.Toggle("Real Time Generation", sg.realTimeGen);
-        sg.x_cells = EditorGUILayout.IntSlider("X size", sg.x_cells, 21, 100);
-        sg.z_cells = EditorGUILayout.IntSlider("Z size", sg.z_cells, 21, 100);
+        sg.xCells = EditorGUILayout.IntSlider("X size", sg.xCells, 3, 60);
+        sg.zCells = EditorGUILayout.IntSlider("Z size", sg.zCells, 3, 60);
+        sg.xQuadrants = EditorGUILayout.IntSlider("X Quadrants", sg.xQuadrants, 2, 10);
+        sg.zQuadrants = EditorGUILayout.IntSlider("Z Quadrants", sg.zQuadrants, 2, 10);
         EditorGUILayout.Space();
 
         index = EditorGUILayout.Popup(index, savedSeeds.ToArray());
@@ -75,11 +77,9 @@ public class GenerationInspector : Editor {
 
         sg.setSeedAt(0, sg.floor);
 
-        sg.QuadrantsWanted = (sg.x_cells + sg.z_cells) / 8;
-        sg.QuadrantsWanted = sg.evenQuadrant() - sg.roomsPerQuadrant;
-        sg.QuadrantsWanted = sg.evenQuadrant();
-        EditorGUILayout.IntField("Quadrants Wanted", sg.QuadrantsWanted);
-        sg.roomsPerQuadrant = EditorGUILayout.IntSlider("Rooms per Quadrant", sg.roomsPerQuadrant, 2, (sg.QuadrantsWanted == 4) ? sg.roomsPerQuadrant : 2 + (sg.QuadrantsWanted / 4));
+        sg.minRoomSize = EditorGUILayout.IntSlider("Minimum Room Size", sg.minRoomSize, 1, 20);
+        sg.maxRoomSize = EditorGUILayout.IntSlider("Max Room Room Size", sg.maxRoomSize, 1, 20);
+        sg.roomsPerQuadrant = EditorGUILayout.IntSlider("Rooms per Quadrant", sg.roomsPerQuadrant, 2, 9);
 
         sg.cellSize = EditorGUILayout.Vector3Field("Cell Size", sg.cellSize);
         sg.cellWallHeight = EditorGUILayout.FloatField("Wall Height", sg.cellWallHeight);
