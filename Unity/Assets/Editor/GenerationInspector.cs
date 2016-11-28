@@ -19,6 +19,7 @@ public class GenerationInspector : Editor {
         sg.zCells = EditorGUILayout.IntSlider("Z size", sg.zCells, 3, 60);
         sg.xQuadrants = EditorGUILayout.IntSlider("X Quadrants", sg.xQuadrants, 2, 10);
         sg.zQuadrants = EditorGUILayout.IntSlider("Z Quadrants", sg.zQuadrants, 2, 10);
+        EditorGUILayout.IntField("Number of cells", sg.getCellCount());
         EditorGUILayout.Space();
 
         index = EditorGUILayout.Popup(index, savedSeeds.ToArray());

@@ -146,8 +146,9 @@ public class StructuralGeneration : MonoBehaviour
     private static List<GameObject> cells;  //Tracks all of the cell gameobjects used in the game
 
     //Boundary Tracking
-    public float[] boundaries = new float[] { 0, 0, 0, 0 };             //Tracks the furthest points of the grid
-    private List<float[]> QuadrantBoundaries = new List<float[]>();     //Tracks furthest points of each quadrant
+    public struct boundaries { public float north, south, east, west; }
+    boundaries gridBoundaries = new boundaries();
+    private List<boundaries> QuadrantBoundaries = new List<boundaries>();     //Tracks furthest points of each quadrant
 
     //Seed and Generation
     private int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };    //stores seed
@@ -181,10 +182,9 @@ public class StructuralGeneration : MonoBehaviour
         {
             structureDone = false;
             GenerateGrid();             //Generate  the grid and get the boundaries
-            //generateQuadrants();        //Divide the grid into quadrants
             generateCellWalls(cells);   //Generate walls around each cell on the grid
 
-            //StartCoroutine(WaitSecondsVoid(1.0f, GenerateDungeon));                 //Begin dungeon generation process
+            StartCoroutine(WaitSecondsVoid(1.0f, GenerateDungeon));                 //Begin dungeon generation process
             Generate = false;                                                       //Set generate to false
         }
 
@@ -207,22 +207,6 @@ public class StructuralGeneration : MonoBehaviour
 
     }
 
-    //Stair building test
-    private void BuildStairTest()
-    {
-        List<GameObject> raise = new List<GameObject>();    //The cells we want to raise
-        raise.Add(cells[s2]);                               //Add whatever gameobject is in s2
-        destroyWalls(cells[s1], boundaries);                //Destroy walls around gameobject in s1
-        destroyWalls(cells[s2], boundaries);                //Destroy walls around gameobject in s2
-        ElevateDungeon(raise, h);                           //Elevate the cells we want to raise (s2)
-                                                            //ElevateDungeon(raise, cellWallHeight);
-        BuildStair(cells[s2], cells[s1]);                   //Build a stair between s1 and s2
-        raise.Add(cells[s1]);                               //Add s1 to raise (so I can parent it for testing)
-
-        UniversalHelper.parentObject(raise, "Stairs", "test");              //Parent objects in raise
-        Destroy(GameObject.Find("Cells"));                  //Destroy everything except the stairs
-    }
-
     #endregion
 
     #region Generate Dungeon
@@ -231,7 +215,7 @@ public class StructuralGeneration : MonoBehaviour
     private void GenerateGrid()
     {
         generateQuadrants();
-        boundaries = furthestDirections(cells); //Get the furthest world positions of the grid in each direction
+        gridBoundaries = furthestDirections(cells); //Get the furthest world positions of the grid in each direction
     }
 
     //Runs necessary checks to clear everything
@@ -414,21 +398,23 @@ public class StructuralGeneration : MonoBehaviour
     //Used by Generate Dungeon to generate rooms
     private void GenerateRooms(List<Vector3> roomPositions, int[] curRoomSizes, List<RoomSizes> roomSizes)
     {
+        List<List<GameObject>> rooms = new List<List<GameObject>>();
+
         for (int i = 0; i < roomPositions.Count; i++)   //For each room position
         {
-                CreateRoom(roomPositions, curRoomSizes, roomSizes, i);  //Create the room
+                rooms.Add(CreateRoom(roomPositions, curRoomSizes, roomSizes, i));  //Create the room
         }
 
-        GameObject Rooms = GameObject.Find("Rooms");            //Create reference to all rooms
-        List<GameObject> AllRooms = new List<GameObject>();     //Create a fresh list
+        for (int i = 0; i < rooms.Count; i++)
+        {
+            UniversalHelper.parentObject(rooms[i], "Rooms", "Room " + i);
+        }
 
-        FinalizeList(Rooms, AllRooms);
-
-        numberofRooms = Rooms.transform.childCount;                 //Display the number of rooms generated
+        numberofRooms = rooms.Count;                 //Display the number of rooms generated
     }
 
     //Used by GenerateRooms to create a room
-    private void CreateRoom(List<Vector3> roomPositions, int[] curRoomSizes, List<RoomSizes> roomSizes, int i)
+    private List<GameObject> CreateRoom(List<Vector3> roomPositions, int[] curRoomSizes, List<RoomSizes> roomSizes, int i)
     {
         //Find room size
         int[] roomsize = new int[] { roomSizes[curRoomSizes[i]].sizeX, roomSizes[curRoomSizes[i]].sizeZ };
@@ -438,11 +424,11 @@ public class StructuralGeneration : MonoBehaviour
                                                 //into this one
 
         //Generate the room and store the cells in a list
-        List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
+        List<GameObject> room = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
 
         if (MergedRooms.Count != 0) //If there are rooms to merge with this room
         {
-            List<GameObject> newRoom = parent;          //Create a reference to the created room
+            List<GameObject> newRoom = room;          //Create a reference to the created room
             for (int x = 0; x < MergedRooms.Count; x++) //For each room in the list of rooms to be merged
             {
                 foreach (Transform cell in MergedRooms[x].transform)    //For each cell in those rooms
@@ -453,7 +439,7 @@ public class StructuralGeneration : MonoBehaviour
             }
         }
 
-        UniversalHelper.parentObject(parent, "Rooms", "Rooms " + i);                    //Parent the room under Rooms
+        return room;
     }
 
     //Used by GenerateRooms to organize game objects in the hierarchy
@@ -683,8 +669,8 @@ public class StructuralGeneration : MonoBehaviour
     void PushFromCenter()
     {
         //Function pushes all rooms away from center of grid
-        float NgridMid = (boundaries[0] + boundaries[1]) / 2;
-        float EgridMid = (boundaries[2] + boundaries[3]) / 2;
+        float NgridMid = (gridBoundaries.north + gridBoundaries.south) / 2;
+        float EgridMid = (gridBoundaries.east + gridBoundaries.west) / 2;
 
         GameObject Rooms = GameObject.Find("Rooms");
 
@@ -1060,38 +1046,38 @@ public class StructuralGeneration : MonoBehaviour
         return wall;    //return walls
     }
 
-    private float[] furthestDirections(List<GameObject> a_cells)
+    private boundaries furthestDirections(List<GameObject> a_cells)
     {
         //Function returns the furthest world positions in all directions
         //0 = north, 1 = south, 2 = east, 3 = west
 
-
-        float[] furthestPoints = new float[] { -500.0f, 500.0f, -500.0f, 500.0f };  //Initialize to something ridiculous
+        boundaries boundary = new boundaries();
+        boundary.north = boundary.south = boundary.east = boundary.west = 0;
 
         for (int i = 0; i < a_cells.Count; i++)
         {
-            if (a_cells[i].transform.position.x > furthestPoints[2])    //If the cell is furthest east
+            if (a_cells[i].transform.position.x > boundary.east)    //If the cell is furthest east
             {
-                furthestPoints[2] = a_cells[i].transform.position.x;        //set furthest east to cell position
+                boundary.east = a_cells[i].transform.position.x;        //set furthest east to cell position
             }
 
-            if (a_cells[i].transform.position.x < furthestPoints[3])    //If the cell is furthest west
+            if (a_cells[i].transform.position.x < boundary.west)    //If the cell is furthest west
             {
-                furthestPoints[3] = a_cells[i].transform.position.x;        //set furthest west to cell position
+                boundary.west = a_cells[i].transform.position.x;        //set furthest west to cell position
             }
 
-            if (a_cells[i].transform.position.z > furthestPoints[0])    //If the cell is furthest north
+            if (a_cells[i].transform.position.z > boundary.north)    //If the cell is furthest north
             {
-                furthestPoints[0] = a_cells[i].transform.position.z;        //set furthest north to cell position
+                boundary.north = a_cells[i].transform.position.z;        //set furthest north to cell position
             }
 
-            if (a_cells[i].transform.position.z < furthestPoints[1])    //If the cell is furthest south
+            if (a_cells[i].transform.position.z < boundary.south)    //If the cell is furthest south
             {
-                furthestPoints[1] = a_cells[i].transform.position.z;        //set furthest south to cell position
+                boundary.south = a_cells[i].transform.position.z;        //set furthest south to cell position
             }
         }
 
-        return furthestPoints;  //return furthest points
+        return boundary;  //return furthest points
     }
     #endregion
 
@@ -1104,12 +1090,12 @@ public class StructuralGeneration : MonoBehaviour
         Vector3 startPosition = Vector3.zero;
         startPosition.x -= xWidth;
         Vector3 currentPos = startPosition;
-        boundaries[2] = 0;
+        gridBoundaries.south = 0;
         for (int zQ = 0; zQ < zQuadrants; zQ++)
         {
             for (int xQ = 0; xQ < xQuadrants; xQ++)
             {
-                QuadrantBoundaries.Add(new float[4]);
+                QuadrantBoundaries.Add(new boundaries());
 
                 for (int z = 0; z < zCells; z++)
                 {
@@ -1130,8 +1116,7 @@ public class StructuralGeneration : MonoBehaviour
                     int count = QuadrantBoundaries.Count - 1;
                     QuadrantBoundaries[QuadrantBoundaries.Count - 1] = furthestDirections(Quadrant);
 
-                    Debug.Log("Quadrant " + xQ + zQ + "boundaries: n" + QuadrantBoundaries[count][0] + " e" +
-                        QuadrantBoundaries[count][1] + " s" + QuadrantBoundaries[count][2] + " w" + QuadrantBoundaries[count][3]);
+                    
                     UniversalHelper.parentObject(Quadrant, "Cells", "Quadrant " + zQ + xQ);
                 }
             }
@@ -1165,8 +1150,8 @@ public class StructuralGeneration : MonoBehaviour
 
         MergedRooms = new List<GameObject>();                       //Determines if rooms need to be merged
         Vector3 roomToMergePosition = Vector3.zero;                 //Gets room that needs to be merged
-        int roomSizezCheck = ((roomSizez) / 2) * returnCellSizez;   //Used for checking size of room from center along z
-        int roomSizexCheck = ((roomSizex) / 2) * returnCellSizex;   //Used for checking size of room from center along x
+        int zCheck = ((roomSizez) / 2) * returnCellSizez;   //Used for checking size of room from center along z
+        int xCheck = ((roomSizex) / 2) * returnCellSizex;   //Used for checking size of room from center along x
         List<GameObject> cellsInRoom = new List<GameObject>();      //Used to store cells of the room
         roomCenter = positionCorrection(roomCenter);                //Make sure position could be on grid
 
@@ -1174,20 +1159,13 @@ public class StructuralGeneration : MonoBehaviour
         //  (ex. Is not on the grid, exceeds boundaries of grid or quadrant)
         //...it will be shifted to the nearest valid position
 
-        //check against grid east and west boundaries
-        roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck, boundaries[2], boundaries[3], "x");
-
-        //check against grid north and south boundaries
-        roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, boundaries[0], boundaries[1], "z");
+        //Ensure the room is completely on the grid (as opposed to just the room center)
+        roomCenter = confineRoom(roomCenter, xCheck, zCheck, gridBoundaries);
 
         int Quadrant = getQuadrant(roomCenter);         //Get the quadrant of the roomcenter
 
-        //check against quadrant east and west boundaries
-        roomCenter.x = confineRoom(roomCenter.x, roomSizexCheck, QuadrantBoundaries[Quadrant][2], QuadrantBoundaries[Quadrant][3], "x");
-
-        //check against quadrant north and south boundaries
-        roomCenter.z = confineRoom(roomCenter.z, roomSizezCheck, QuadrantBoundaries[Quadrant][0], QuadrantBoundaries[Quadrant][1], "z");
-
+        //Ensure the room is completely within the boundary of a quadrant
+        roomCenter = confineRoom(roomCenter, xCheck, zCheck, QuadrantBoundaries[Quadrant]);
 
         returnCenter = roomCenter;  //store the new room center
 
@@ -1231,7 +1209,7 @@ public class StructuralGeneration : MonoBehaviour
             }
         }
 
-        float[] roomBoundaries = furthestDirections(cellsInRoom);   //gets the boundaries of the rooms
+        boundaries roomBoundaries = furthestDirections(cellsInRoom);   //gets the boundaries of the rooms
 
         foreach (GameObject cell in cellsInRoom)
         {
@@ -1281,7 +1259,7 @@ public class StructuralGeneration : MonoBehaviour
         return roomcenter;                              //return
     }
 
-    private void destroyWalls(GameObject cell, float[] roomBoundaries)
+    private void destroyWalls(GameObject cell, boundaries roomBoundaries)
     {
         //Function destroys the walls of a cell if they exist
         //Parameters:
@@ -1299,10 +1277,10 @@ public class StructuralGeneration : MonoBehaviour
         foreach (GameObject child in children)
         {
             //If cell position is not on the edge of the room, destroy the walls and set the parent to null
-            if (cell.transform.position.z != getBoundaries[1] && cell.transform.position.z != roomBoundaries[1] && child.name.Contains("south") ||
-                cell.transform.position.z != getBoundaries[0] && cell.transform.position.z != roomBoundaries[0] && child.name.Contains("north") ||
-                cell.transform.position.x != getBoundaries[2] && cell.transform.position.x != roomBoundaries[2] && child.name.Contains("east") ||
-                cell.transform.position.x != getBoundaries[3] && cell.transform.position.x != roomBoundaries[3] && child.name.Contains("west"))
+            if (cell.transform.position.z != gridBoundaries.south && cell.transform.position.z != roomBoundaries.south && child.name.Contains("south") ||
+                cell.transform.position.z != gridBoundaries.north && cell.transform.position.z != roomBoundaries.north && child.name.Contains("north") ||
+                cell.transform.position.x != gridBoundaries.east && cell.transform.position.x != roomBoundaries.east && child.name.Contains("east") ||
+                cell.transform.position.x != gridBoundaries.west && cell.transform.position.x != roomBoundaries.west && child.name.Contains("west"))
             {
                 GameObject.Destroy(child.gameObject);
                 child.transform.parent = null;
@@ -1323,10 +1301,10 @@ public class StructuralGeneration : MonoBehaviour
 
         int timesMoved = 0;
         int quadrant = getQuadrant(position);
-        float north = QuadrantBoundaries[quadrant][0];
-        float south = QuadrantBoundaries[quadrant][1];
-        float east = QuadrantBoundaries[quadrant][2];
-        float west = QuadrantBoundaries[quadrant][3];
+        float north = QuadrantBoundaries[quadrant].north;
+        float south = QuadrantBoundaries[quadrant].south;
+        float east = QuadrantBoundaries[quadrant].east;
+        float west = QuadrantBoundaries[quadrant].west;
 
         while (timesMoved < movement)
         {
@@ -1391,27 +1369,23 @@ public class StructuralGeneration : MonoBehaviour
         throw new Exception("Could not find cell at position: " + cellPosition);
     }
 
-    private float confineRoom(float point, int roomSize, float check1, float check2, string var)
+    private Vector3 confineRoom(Vector3 roomPosition, int xCheck, int zCheck, boundaries boundary)
     {
         //Function confines a point of a room within the parameters given
 
-        while (point + roomSize > check1)
-        {
-            if (var == "x")
-                point -= returnCellSizex;
-            else
-                point -= returnCellSizez;
-        }
+        while (roomPosition.x + xCheck > boundary.east)
+                roomPosition.x -= returnCellSizex;
 
-        while (point - roomSize < check2)
-        {
-            if (var == "x")
-                point += returnCellSizex;
-            else
-                point += returnCellSizez;
-        }
+        while (roomPosition.x - xCheck < boundary.west)
+            roomPosition.x += returnCellSizex;
 
-        return point;
+        while (roomPosition.z + zCheck > boundary.north)
+            roomPosition.z -= returnCellSizez;
+
+        while (roomPosition.z - zCheck < boundary.south)
+            roomPosition.z += returnCellSizez;
+
+        return roomPosition;
     }
 
     #endregion
@@ -1422,13 +1396,13 @@ public class StructuralGeneration : MonoBehaviour
 
     private List<Vector3> ShiftRooms(List<Vector3> positions, List<int> roomNumbers, int direction, bool quadrant)
     {
-        float[] boundaries;
+        boundaries roomBoundary;
         for (int i = 0; i < positions.Count; i++)
         {
             if (quadrant)
-                boundaries = QuadrantBoundaries[getQuadrant(positions[i])];
+                roomBoundary = QuadrantBoundaries[getQuadrant(positions[i])];
             else
-                boundaries = getBoundaries;
+                roomBoundary = getBoundaries;
 
             positions[i] = moveCellPosition(direction, positions[i], true, (int)roomNumbers[i]);
         }
@@ -1510,8 +1484,8 @@ public class StructuralGeneration : MonoBehaviour
 
     private void RotateGrid(int rotationNum)
     {
-        float ZgridMid = (boundaries[0] + boundaries[1]) / 2;
-        float XgridMid = (boundaries[2] + boundaries[3]) / 2;
+        float ZgridMid = (gridBoundaries.north + gridBoundaries.south) / 2;
+        float XgridMid = (gridBoundaries.east + gridBoundaries.west) / 2;
 
         Vector3 mid = new Vector3(XgridMid, 0.0f, ZgridMid);
 
@@ -1589,16 +1563,24 @@ public class StructuralGeneration : MonoBehaviour
     }
     #endregion
 
-    #region Properties
+    #region Special Functions
+
+    private Vector3 confineCell(Vector3 position)
+    {
+        if (position.x % returnCellSizex != 0)
+        {
+
+        }
+    }
 
     /// <summary>
     /// Return the furthest positions of the grid (read-only)
     /// </summary>
-    public float[] getBoundaries
+    public boundaries getBoundaries
     {
         get
         {
-            return boundaries;
+            return gridBoundaries;
         }
     }
 
@@ -1662,27 +1644,15 @@ public class StructuralGeneration : MonoBehaviour
     //This function is used to get the quadrant of a position
     private int getQuadrant(Vector3 position)
     {
-        int QuadrantsWanted = xQuadrants * zQuadrants;
-        for (int i = 0; i < QuadrantsWanted; i++)
+        GameObject Cells = GameObject.Find("Cells");
+        for (int i = 0; i < Cells.transform.childCount; i++)
         {
-            if (position.x > QuadrantBoundaries[i][2])
-                continue;
-
-            else if (position.x < QuadrantBoundaries[i][3])
-                continue;
-
-            else if (position.z > QuadrantBoundaries[i][0])
-                continue;
-
-            else if (position.z < QuadrantBoundaries[i][1])
-                continue;
-
-            else
+            if (findCell(position).transform.parent == Cells.transform.GetChild(i))
                 return i;
         }
 
-        //throw new Exception("Couldn't find quadrant for :" + position);
-        return 0;
+        throw new Exception("Could not find quadrant for cell. Ensure that cell is parented.");
+            
     }
 
     //This function takes two cells and determines their location in relation to each other
@@ -1781,7 +1751,7 @@ public class StructuralGeneration : MonoBehaviour
     }
 
     //Gets the default positions for rooms in a quadrant
-    private List<Vector3> getDefaultRooms(float[] quadrant)
+    private List<Vector3> getDefaultRooms(boundaries quadrant)
     {
         //Function is used to find the: Top Left, Top Middle, Top Right, Middle Left, Center, Middle Right
         //                              Bottom Left, Bottom Middle, and Bottom Right
@@ -1790,10 +1760,10 @@ public class StructuralGeneration : MonoBehaviour
 
         List<Vector3> roomPositions = new List<Vector3>();  //Stores room positions for quadrant
 
-        float north = quadrant[0];                  //Store north quadrant boundary
-        float south = quadrant[1];                  //Store south quadrant boundary
-        float east = quadrant[2];                  //Store east  quadrant boundary
-        float west = quadrant[3];                  //Store west  quadrant boundary
+        float north = quadrant.north;               //Store north quadrant boundary
+        float south = quadrant.south;               //Store south quadrant boundary
+        float east = quadrant.east;                 //Store east  quadrant boundary
+        float west = quadrant.west;                 //Store west  quadrant boundary
 
         float totalHeight = north - south;          //total height of quadrant
         float totalWidth = Mathf.Abs(east - west);  //total width of quadrant
@@ -1817,6 +1787,11 @@ public class StructuralGeneration : MonoBehaviour
 
 
         return roomPositions;
+    }
+
+    public int getCellCount()
+    {
+        return xCells * zCells * xQuadrants * zQuadrants;
     }
     #endregion
 
