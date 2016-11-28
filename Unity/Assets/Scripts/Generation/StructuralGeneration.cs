@@ -402,7 +402,9 @@ public class StructuralGeneration : MonoBehaviour
 
         for (int i = 0; i < roomPositions.Count; i++)   //For each room position
         {
-                rooms.Add(CreateRoom(roomPositions, curRoomSizes, roomSizes, i));  //Create the room
+            int[] roomSize = new int[] { roomSizes[curRoomSizes[i]].sizeX, roomSizes[curRoomSizes[i]].sizeZ };
+
+            rooms.Add(CreateRoom(roomPositions[i], roomSize));                  //Create the room
         }
 
         for (int i = 0; i < rooms.Count; i++)
@@ -414,17 +416,15 @@ public class StructuralGeneration : MonoBehaviour
     }
 
     //Used by GenerateRooms to create a room
-    private List<GameObject> CreateRoom(List<Vector3> roomPositions, int[] curRoomSizes, List<RoomSizes> roomSizes, int i)
+    private List<GameObject> CreateRoom(Vector3 roomPosition, int[] roomSize)
     {
-        //Find room size
-        int[] roomsize = new int[] { roomSizes[curRoomSizes[i]].sizeX, roomSizes[curRoomSizes[i]].sizeZ };
 
-        Vector3 returnPos = roomPositions[i];   //Get the rooms center position
+        Vector3 returnPos = roomPosition;   //Get the rooms center position
         List<GameObject> MergedRooms;           //Any rooms that share the cells of this room will be merged
                                                 //into this one
 
         //Generate the room and store the cells in a list
-        List<GameObject> room = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
+        List<GameObject> room = generateRoom(roomPosition, roomSize[0], roomSize[1], out returnPos, out MergedRooms);
 
         if (MergedRooms.Count != 0) //If there are rooms to merge with this room
         {
@@ -435,7 +435,7 @@ public class StructuralGeneration : MonoBehaviour
                 {
                     newRoom.Add(cell.gameObject);                           //Add them to the new room
                 }
-                GameObject.Destroy(MergedRooms[x]);                     //Destroy the old room objects
+                //GameObject.Destroy(MergedRooms[x]);                     //Destroy the old room objects
             }
         }
 
@@ -1100,7 +1100,7 @@ public class StructuralGeneration : MonoBehaviour
                 for (int z = 0; z < zCells; z++)
                 {
                     List<GameObject> Quadrant = new List<GameObject>();
-                    currentPos = startPosition + new Vector3((xCells * returnCellSizex * xQ) + returnCellSizex, 0, ((zCells * returnCellSizez * zQ)) + (returnCellSizez * z) + returnCellSizez);
+                    currentPos = startPosition + new Vector3((xCells * returnCellSizex * xQ) + returnCellSizex, 0, ((zCells * returnCellSizez * zQ)) + (returnCellSizez * z));
 
                     for (int x = 0; x < xCells; x++)
                     {
@@ -1357,7 +1357,7 @@ public class StructuralGeneration : MonoBehaviour
     private GameObject findCell(Vector3 cellPosition)
     {
         //Function returns the cell gameobject of the position given
-
+        cellPosition = confineCell(cellPosition);
         for (int i = 0; i < cells.Count; i++)   //iterate through cells
         {
             if (cells[i].transform.position == cellPosition)    //if a position matches the one given
@@ -1501,10 +1501,14 @@ public class StructuralGeneration : MonoBehaviour
 
     IEnumerator RealTimeGenerator(List<Vector3> roomPositions, List<RoomSizes> sizes, int[] roomSizes, int rotationNum)
     {
+        List<List<GameObject>> rooms = new List<List<GameObject>>();
+
         for (int i = 0; i < roomPositions.Count; i++)
         {
+            
             int[] roomsize = new int[] { sizes[roomSizes[i]].sizeX, sizes[roomSizes[i]].sizeZ };
-
+            rooms.Add(CreateRoom(roomPositions[i], roomsize));
+            /*
             Vector3 returnPos = roomPositions[i];
             List<GameObject> MergedRooms;
             List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
@@ -1520,31 +1524,19 @@ public class StructuralGeneration : MonoBehaviour
                     GameObject.Destroy(MergedRooms[x]);
                 }
             }
+            */
+            //UniversalHelper.parentObject(parent, "Rooms", "Rooms " + i);
 
-            UniversalHelper.parentObject(parent, "Rooms", "Rooms " + i);
             yield return new WaitForSeconds(0.3f * Time.deltaTime);
         }
 
-        GameObject Rooms = GameObject.Find("Rooms");
-        List<GameObject> AllRooms = new List<GameObject>();
-        int largestRoom = 0;
-        int largestCount = 0;
-        for (int i = 0; i < Rooms.transform.childCount; i++)
+        for (int i = 0; i < rooms.Count; i++)
         {
-            GameObject temp = Rooms.transform.GetChild(i).gameObject;
-            temp.name = "Room " + i;
-            AllRooms.Add(temp);
-
-            if (temp.transform.childCount > largestCount)
-            {
-                largestRoom = i;
-                largestCount = temp.transform.childCount;
-                largestRoomCount = largestCount;
-            }
+            UniversalHelper.parentObject(rooms[i], "Rooms", "Room " + i);
         }
 
         //Rooms.transform.GetChild(largestRoom).name = "Boss Room";
-        numberofRooms = Rooms.transform.childCount;
+        numberofRooms = rooms.Count;
 
         GenerateHalls(determineHallGen());
         Destroy(GameObject.Find("Cells"));
@@ -1569,8 +1561,39 @@ public class StructuralGeneration : MonoBehaviour
     {
         if (position.x % returnCellSizex != 0)
         {
+            float eastCheck = Mathf.Abs(position.x - gridBoundaries.east);
+            float westCheck = Mathf.Abs(position.x - gridBoundaries.west);
+            if (eastCheck >= westCheck)
+            {
+                while (position.x % returnCellSizex != 0)
+                    position.x++;
+            }
 
+            else
+            {
+                while (position.x % returnCellSizex != 0)
+                    position.x--;
+            }
         }
+
+        if (position.z % returnCellSizez != 0)
+        {
+            float northCheck = Mathf.Abs(position.z - gridBoundaries.north);
+            float southCheck = Mathf.Abs(position.z - gridBoundaries.south);
+            if (northCheck >= southCheck)
+            {
+                while (position.z % returnCellSizez != 0)
+                    position.z++;
+            }
+
+            else
+            {
+                while (position.z % returnCellSizez != 0)
+                    position.z--;
+            }
+        }
+
+        return position;
     }
 
     /// <summary>
@@ -1651,7 +1674,7 @@ public class StructuralGeneration : MonoBehaviour
                 return i;
         }
 
-        throw new Exception("Could not find quadrant for cell. Ensure that cell is parented.");
+        throw new Exception("Could not find quadrant for cell at position " + position);
             
     }
 
