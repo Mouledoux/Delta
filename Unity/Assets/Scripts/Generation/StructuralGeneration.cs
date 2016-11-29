@@ -215,7 +215,7 @@ public class StructuralGeneration : MonoBehaviour
     private void GenerateGrid()
     {
         generateQuadrants();
-        gridBoundaries = furthestDirections(cells); //Get the furthest world positions of the grid in each direction
+        gridBoundaries = calculateBoundary(cells); //Get the furthest world positions of the grid in each direction
     }
 
     //Runs necessary checks to clear everything
@@ -1046,13 +1046,14 @@ public class StructuralGeneration : MonoBehaviour
         return wall;    //return walls
     }
 
-    private boundaries furthestDirections(List<GameObject> a_cells)
+    private boundaries calculateBoundary(List<GameObject> a_cells)
     {
         //Function returns the furthest world positions in all directions
         //0 = north, 1 = south, 2 = east, 3 = west
 
         boundaries boundary = new boundaries();
-        boundary.north = boundary.south = boundary.east = boundary.west = 0;
+        boundary.north = boundary.east = -2000;
+        boundary.west = boundary.south = 2000;
 
         for (int i = 0; i < a_cells.Count; i++)
         {
@@ -1080,7 +1081,6 @@ public class StructuralGeneration : MonoBehaviour
         return boundary;  //return furthest points
     }
     #endregion
-
     #region Generate Quadrants
     void generateQuadrants()
     {
@@ -1096,10 +1096,11 @@ public class StructuralGeneration : MonoBehaviour
             for (int xQ = 0; xQ < xQuadrants; xQ++)
             {
                 QuadrantBoundaries.Add(new boundaries());
+                List<GameObject> Quadrant = new List<GameObject>();
 
                 for (int z = 0; z < zCells; z++)
                 {
-                    List<GameObject> Quadrant = new List<GameObject>();
+                    
                     currentPos = startPosition + new Vector3((xCells * returnCellSizex * xQ) + returnCellSizex, 0, ((zCells * returnCellSizez * zQ)) + (returnCellSizez * z));
 
                     for (int x = 0; x < xCells; x++)
@@ -1112,13 +1113,11 @@ public class StructuralGeneration : MonoBehaviour
                         cells.Add(cell);                                //add cell to cells List
                         Quadrant.Add(cell);
                     }
-
-                    int count = QuadrantBoundaries.Count - 1;
-                    QuadrantBoundaries[QuadrantBoundaries.Count - 1] = furthestDirections(Quadrant);
-
-                    
-                    UniversalHelper.parentObject(Quadrant, "Cells", "Quadrant " + zQ + xQ);
                 }
+
+                QuadrantBoundaries[QuadrantBoundaries.Count - 1] = calculateBoundary(Quadrant);
+
+                UniversalHelper.parentObject(Quadrant, "Cells", "Quadrant " + zQ + xQ);
             }
         }
     }
@@ -1209,7 +1208,7 @@ public class StructuralGeneration : MonoBehaviour
             }
         }
 
-        boundaries roomBoundaries = furthestDirections(cellsInRoom);   //gets the boundaries of the rooms
+        boundaries roomBoundaries = calculateBoundary(cellsInRoom);   //gets the boundaries of the rooms
 
         foreach (GameObject cell in cellsInRoom)
         {
@@ -1541,7 +1540,6 @@ public class StructuralGeneration : MonoBehaviour
         GenerateHalls(determineHallGen());
         Destroy(GameObject.Find("Cells"));
         yield return new WaitForSeconds(5.0f * Time.deltaTime);
-        yield return new WaitForSeconds(2.0f * Time.deltaTime);
         RotateGrid(rotationNum);
         structureDone = true;                                                   //Set structure done to true
         StopAllCoroutines();

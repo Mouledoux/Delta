@@ -13,6 +13,7 @@ public class GenerationInspector : Editor {
     public override void OnInspectorGUI()
     {
         savedSeeds = saveSeeds;
+        saveSeeds = savedSeeds;
         StructuralGeneration sg = (StructuralGeneration)target;
         sg.realTimeGen = EditorGUILayout.Toggle("Real Time Generation", sg.realTimeGen);
         sg.xCells = EditorGUILayout.IntSlider("X size", sg.xCells, 3, 60);
