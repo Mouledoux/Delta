@@ -200,7 +200,6 @@ public class StructuralGeneration : MonoBehaviour
         {
             ClearDungeon();
             GenerateGrid();
-            generateQuadrants();                    //Generate new quadrants
             generateCellWalls(cells);               //Generate cell walls
             structureDone = false;
         }

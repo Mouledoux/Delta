@@ -40,19 +40,13 @@ public class GenerationInspector : Editor {
             saveSeeds = new List<string>();
         }
 
-
-        sg.seedString = "";
-        foreach (int s in sg.getCurSeed)
-        {
-            sg.seedString += s.ToString();
-        }
-
         bool resetSeed = false;
         resetSeed = EditorGUILayout.Toggle("Reset Seed?", resetSeed);
 
         if (resetSeed)
         {
             sg.seedString = sg.getDefaultSeed();
+            sg.seedStringToSeed();
         }
 
         bool resetFloor = false;
@@ -61,6 +55,12 @@ public class GenerationInspector : Editor {
         if (resetFloor)
         {
             sg.floor = 0;
+        }
+
+        sg.seedString = "";
+        foreach (int s in sg.getCurSeed)
+        {
+            sg.seedString += s.ToString();
         }
 
         sg.seedString = EditorGUILayout.TextField("Seed:", sg.seedString);
