@@ -132,13 +132,14 @@ public class StructuralGeneration : MonoBehaviour
     #region Global Variables
 
     //Cells and Grid
-    public bool Generate;           //Determines whether or not to generate
-    public int xCells, zCells;    //Number of cells generated along x and z axis
+    public bool Generate;                   //Determines whether or not to generate
+    public int xCells, zCells;              //Number of cells generated along x and z axis
     public int xQuadrants, zQuadrants;
-    public int roomsPerQuadrant;    //Number of rooms allowed per quadrant
-    public Vector3 cellSize;        //Determines the size of individual cells (testing only)
-    public float cellWallHeight;    //determines height of cell walls
-    public float cellWallWidth;     //determines width of cell walls
+    public int roomsPerQuadrant;            //Number of rooms allowed per quadrant
+    public int maxPerQuadrant;              //Number of rooms currently allowed per quadrant based on grid size
+    public Vector3 cellSize;                //Determines the size of individual cells (testing only)
+    public float cellWallHeight;            //determines height of cell walls
+    public float cellWallWidth;             //determines width of cell walls
 
     //Game Objects
     public GameObject FLOOR;                //Floor gameobject
@@ -191,9 +192,9 @@ public class StructuralGeneration : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.G))    //Used to generate a new dungeon during runtime
         {
             ClearDungeon();                 //Clear everything
-            Generate = true;                //Set generate to true
             seedString = getDefaultSeed();
             seedStringToSeed();
+            Generate = true;                //Set generate to true
         }
 
         if (Input.GetKeyDown(KeyCode.C))    //Clear the grid
@@ -935,47 +936,6 @@ public class StructuralGeneration : MonoBehaviour
 
     #region Generate Grid
 
-    /*private List<GameObject> generateGrid()
-    {
-        //Function generates the grid
-
-
-        List<GameObject> cells = new List<GameObject>(); //used for keeping track of individual cells
-
-        int x_halfcells = xCells / 2; //determines the distance from the center of the grid to the side edge.
-        int z_halfcells = zCells / 2; //determines the distance from the center of the grid to the top/bottom edge
-
-        Vector3 startingGridPosition = Vector3.zero;    //The grid's bottom edge cells will center on the origin
-        Vector3 cellSpace = cellSize * 10;              //calculate how much world space a single cell takes up
-
-        int cellName = 0;   //Initialize cell names
-
-        for (int i = 0; i < zCells; i++)       //Row
-        {
-            Vector3 currentGridPosition = startingGridPosition;     //keeps track of the current world position
-            currentGridPosition.x += (x_halfcells * cellSpace.x);   //starting from the bottom right corner of the grid
-
-            if (i != 0) //If it isn't the first row
-            {
-                currentGridPosition.z += cellSpace.z * i; //move the grid position up along z-axis
-            }
-
-            for (int x = 0; x < xCells; x++)   //Column
-            {
-                GameObject cell = Instantiate(FLOOR);           //Create new cell
-                cell.name = "cell " + cellName;                 //name the cell for easier reference
-                cellName++;                                     //Increment cellName  
-                cell.transform.position = currentGridPosition;  //bring cell to current position
-                cell.transform.localScale = cellSpace;          //set cell to the size determined
-                cells.Add(cell);                                //add cell to cells List
-                currentGridPosition.x -= cellSpace.x;           //update currentGridPosition to next empty spot
-            }
-
-        }
-
-        return cells;   //Return list of cells
-    }*/
-
     void generateCellWalls(List<GameObject> a_cells)
     {
         //Function correctly positions cell walls
@@ -1047,8 +1007,7 @@ public class StructuralGeneration : MonoBehaviour
 
     private boundaries calculateBoundary(List<GameObject> a_cells)
     {
-        //Function returns the furthest world positions in all directions
-        //0 = north, 1 = south, 2 = east, 3 = west
+        //Function determines the furthest positions of a set of gameobjects (furthest north, south, east and west)
 
         boundaries boundary = new boundaries();
         boundary.north = boundary.east = -2000;
@@ -1079,17 +1038,17 @@ public class StructuralGeneration : MonoBehaviour
 
         return boundary;  //return furthest points
     }
-    #endregion
-    #region Generate Quadrants
+
     void generateQuadrants()
     {
+        QuadrantBoundaries = new List<boundaries>();
         cells = new List<GameObject>();
         int xWidth = xQuadrants * (xCells * returnCellSizex);
         int Height = zQuadrants * (zCells * returnCellSizez);
         Vector3 startPosition = Vector3.zero;
         startPosition.x -= xWidth;
         Vector3 currentPos = startPosition;
-        gridBoundaries.south = 0;
+
         for (int zQ = 0; zQ < zQuadrants; zQ++)
         {
             for (int xQ = 0; xQ < xQuadrants; xQ++)
@@ -1636,6 +1595,28 @@ public class StructuralGeneration : MonoBehaviour
     public void setSeedAt(int index, int value)
     {
         seed[index] = value;
+        seed[index + 1] = 0;
+    }
+
+    public void roomCycle()
+    {
+        int i = 1;
+        roomsPerQuadrant = 2;
+        while (i < floor)
+        {
+            roomsPerQuadrant++;
+            if (roomsPerQuadrant > maxPerQuadrant)
+                roomsPerQuadrant = 2;
+
+            i++;
+        }
+
+    }
+
+    public void floorIncrement()
+    {
+        floor++;
+        roomCycle();
     }
 
     #endregion
@@ -1812,6 +1793,11 @@ public class StructuralGeneration : MonoBehaviour
     public int getCellCount()
     {
         return xCells * zCells * xQuadrants * zQuadrants;
+    }
+
+    public int getQuadrantSize
+    {
+        get { return xCells * zCells; }
     }
     #endregion
 

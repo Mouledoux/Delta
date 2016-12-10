@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEditor;
 using System.Collections.Generic;
+using System;
 
 [CustomEditor (typeof(StructuralGeneration))]
 public class GenerationInspector : Editor {
@@ -12,14 +13,21 @@ public class GenerationInspector : Editor {
 
     public override void OnInspectorGUI()
     {
-        savedSeeds = saveSeeds;
-        saveSeeds = savedSeeds;
+        savedSeeds  = saveSeeds;
+        saveSeeds   = savedSeeds;
+
         StructuralGeneration sg = (StructuralGeneration)target;
-        sg.realTimeGen = EditorGUILayout.Toggle("Real Time Generation", sg.realTimeGen);
-        sg.xCells = EditorGUILayout.IntSlider("X size", sg.xCells, 3, 60);
-        sg.zCells = EditorGUILayout.IntSlider("Z size", sg.zCells, 3, 60);
-        sg.xQuadrants = EditorGUILayout.IntSlider("X Quadrants", sg.xQuadrants, 2, 10);
-        sg.zQuadrants = EditorGUILayout.IntSlider("Z Quadrants", sg.zQuadrants, 2, 10);
+
+        sg.Generate     = EditorGUILayout.Toggle("Generate", sg.Generate);
+        sg.realTimeGen  = EditorGUILayout.Toggle("Real Time Generation", sg.realTimeGen);
+        sg.xCells       = EditorGUILayout.IntSlider("X size", sg.xCells, 9, 60);
+        sg.zCells       = EditorGUILayout.IntSlider("Z size", sg.zCells, 9, 60);
+        sg.xQuadrants   = EditorGUILayout.IntSlider("X Quadrants", sg.xQuadrants, 2, 10);
+        sg.zQuadrants   = EditorGUILayout.IntSlider("Z Quadrants", sg.zQuadrants, 2, 10);
+        sg.floor        = EditorGUILayout.IntSlider("Floor", sg.floor, 1, 100);
+
+        if (!Application.isPlaying)
+            sg.roomCycle();
         EditorGUILayout.IntField("Number of cells", sg.getCellCount());
         EditorGUILayout.Space();
 
@@ -65,6 +73,7 @@ public class GenerationInspector : Editor {
 
         sg.seedString = EditorGUILayout.TextField("Seed:", sg.seedString);
         sg.seedStringToSeed();
+        sg.setSeedAt(0, sg.floor);
 
         if (GUILayout.Button("Save Seed"))
         {
@@ -75,13 +84,15 @@ public class GenerationInspector : Editor {
             }
         }
 
-        sg.floor = EditorGUILayout.IntSlider("Floor", sg.floor, 1, 100);
+        sg.minRoomSize = EditorGUILayout.IntSlider("Min Room Size", sg.minRoomSize, 1, 20);
+        sg.maxRoomSize = EditorGUILayout.IntSlider("Max Room Size", sg.maxRoomSize, 1, 20);
+        float medianRoomSize = ((sg.maxRoomSize - sg.minRoomSize) / 2) + sg.minRoomSize;
+        sg.maxPerQuadrant = Mathf.RoundToInt((sg.getQuadrantSize / 2) / (medianRoomSize * medianRoomSize));
 
-        sg.setSeedAt(0, sg.floor);
+        if (sg.maxPerQuadrant < 2)
+            Debug.LogError("Dungeon size is too small. May cause unwanted behaviours");
 
-        sg.minRoomSize = EditorGUILayout.IntSlider("Minimum Room Size", sg.minRoomSize, 1, 20);
-        sg.maxRoomSize = EditorGUILayout.IntSlider("Max Room Room Size", sg.maxRoomSize, 1, 20);
-        sg.roomsPerQuadrant = EditorGUILayout.IntSlider("Rooms per Quadrant", sg.roomsPerQuadrant, 2, 9);
+        sg.roomsPerQuadrant = EditorGUILayout.IntSlider("Per Quadrant", sg.roomsPerQuadrant, 2, sg.maxPerQuadrant);
 
         sg.cellSize = EditorGUILayout.Vector3Field("Cell Size", sg.cellSize);
         sg.cellWallHeight = EditorGUILayout.FloatField("Wall Height", sg.cellWallHeight);
