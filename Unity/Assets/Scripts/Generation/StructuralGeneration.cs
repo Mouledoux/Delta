@@ -133,6 +133,7 @@ public class StructuralGeneration : MonoBehaviour
 
     //Cells and Grid
     public bool Generate;                   //Determines whether or not to generate
+    public bool firstGen = false;           //Is true after dungeon generates first time
     public int xCells, zCells;              //Number of cells generated along x and z axis
     public int xQuadrants, zQuadrants;
     public int roomsPerQuadrant;            //Number of rooms allowed per quadrant
@@ -187,14 +188,16 @@ public class StructuralGeneration : MonoBehaviour
 
             StartCoroutine(WaitSecondsVoid(1.0f, GenerateDungeon));                 //Begin dungeon generation process
             Generate = false;                                                       //Set generate to false
+            firstGen = true;
         }
 
-        if (Input.GetKeyDown(KeyCode.G))    //Used to generate a new dungeon during runtime
+        if (Input.GetKeyDown(KeyCode.G) || regenerate)  //Used to generate a new dungeon during runtime
         {
-            ClearDungeon();                 //Clear everything
-            seedString = getDefaultSeed();
-            seedStringToSeed();
-            Generate = true;                //Set generate to true
+            ClearDungeon();                             //Clear everything
+            seedString = getDefaultSeed();              //Reset the inspector variable
+            seedStringToSeed();                         //Reset the seed
+            Generate = true;                            //Set generate to true
+            regenerate = false;
         }
 
         if (Input.GetKeyDown(KeyCode.C))    //Clear the grid
@@ -1595,7 +1598,6 @@ public class StructuralGeneration : MonoBehaviour
     public void setSeedAt(int index, int value)
     {
         seed[index] = value;
-        seed[index + 1] = 0;
     }
 
     public void roomCycle()
@@ -1714,26 +1716,26 @@ public class StructuralGeneration : MonoBehaviour
         for (int i = floor.ToString().Length; i < seedString.Length; i++)
         {
             int test;
-            try
-            {
-                if (int.TryParse(seedString[i].ToString(), out test))
-                {
-                    try
-                    {
-                        seed[x] = test;
-                        x++;
-                    }
 
-                    catch
-                    {
-                        Debug.LogException(new Exception("Invalid seed"));
-                    }
+            if (int.TryParse(seedString[i].ToString(), out test))
+            {
+                try
+                {
+                    seed[x] = test;
+                    x++;
+                }
+
+                catch
+                {
+                    Debug.LogException(new Exception("Invalid seed"));
+                    seedString = getDefaultSeed();
                 }
             }
 
-            catch
+            else
             {
                 Debug.LogException(new Exception("String cannot be parsed"));
+                seedString = getDefaultSeed();
             }
         }
 

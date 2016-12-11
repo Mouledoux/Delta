@@ -10,6 +10,7 @@ public class GenerationInspector : Editor {
     static List<string> savedSeeds = new List<string>();
     List<string> saveSeeds = savedSeeds;
     static int index = 0;
+    bool firstGen;
 
     public override void OnInspectorGUI()
     {
@@ -26,8 +27,11 @@ public class GenerationInspector : Editor {
         sg.zQuadrants   = EditorGUILayout.IntSlider("Z Quadrants", sg.zQuadrants, 2, 10);
         sg.floor        = EditorGUILayout.IntSlider("Floor", sg.floor, 1, 100);
 
+        sg.setSeedAt(0, sg.floor);
+
         if (!Application.isPlaying)
             sg.roomCycle();
+
         EditorGUILayout.IntField("Number of cells", sg.getCellCount());
         EditorGUILayout.Space();
 
@@ -47,33 +51,18 @@ public class GenerationInspector : Editor {
             savedSeeds = new List<string>();
             saveSeeds = new List<string>();
         }
+        EditorGUILayout.Space();
 
-        bool resetSeed = false;
-        resetSeed = EditorGUILayout.Toggle("Reset Seed?", resetSeed);
-
-        if (resetSeed)
+        if (!firstGen && sg.seedString == sg.getDefaultSeed())
         {
-            sg.seedString = sg.getDefaultSeed();
-            sg.seedStringToSeed();
+            sg.seedString = "";
+            foreach (int s in sg.getCurSeed)
+            {
+                sg.seedString += s.ToString();
+            }
         }
-
-        bool resetFloor = false;
-        resetFloor = EditorGUILayout.Toggle("Reset Floor?", resetFloor);
-
-        if (resetFloor)
-        {
-            sg.floor = 0;
-        }
-
-        sg.seedString = "";
-        foreach (int s in sg.getCurSeed)
-        {
-            sg.seedString += s.ToString();
-        }
-
         sg.seedString = EditorGUILayout.TextField("Seed:", sg.seedString);
         sg.seedStringToSeed();
-        sg.setSeedAt(0, sg.floor);
 
         if (GUILayout.Button("Save Seed"))
         {
@@ -83,6 +72,18 @@ public class GenerationInspector : Editor {
                 index = savedSeeds.Count - 1;
             }
         }
+
+        if (GUILayout.Button("Reset Seed"))
+        {
+            sg.seedString = sg.getDefaultSeed();
+            sg.seedStringToSeed();
+        }
+
+        if (GUILayout.Button("Reset Floor"))
+        {
+            sg.floor = 1;
+        }
+
 
         sg.minRoomSize = EditorGUILayout.IntSlider("Min Room Size", sg.minRoomSize, 1, 20);
         sg.maxRoomSize = EditorGUILayout.IntSlider("Max Room Size", sg.maxRoomSize, 1, 20);
