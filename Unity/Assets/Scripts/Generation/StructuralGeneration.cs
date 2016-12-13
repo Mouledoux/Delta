@@ -171,6 +171,7 @@ public class StructuralGeneration : MonoBehaviour
 
     public static bool structureDone;
     public static bool regenerate;
+    private int shuffleCall = 0;                                        //How many times the shuffle method has been called
 
     #endregion
 
@@ -224,7 +225,8 @@ public class StructuralGeneration : MonoBehaviour
 
         if (advFloor)
         {
-            seed = UniversalHelper.Shuffle(seed);
+            Debug.Log("Advancing");
+            seed = UniversalHelper.Shuffle(seed, shuffleCall, out shuffleCall);
             floorIncrement();
             advFloor = false;
             regenerate = true;
@@ -281,7 +283,7 @@ public class StructuralGeneration : MonoBehaviour
         getDefaultPositions(roomPositions, defaultlayout, roomNum, curRoomSizes);
 
         //Shuffle room numbers
-        roomNum = UniversalHelper.Shuffle(roomNum);
+        roomNum = UniversalHelper.Shuffle(roomNum, shuffleCall, out shuffleCall);
 
         //Generate the seed
         GenerateSeed();
@@ -348,13 +350,12 @@ public class StructuralGeneration : MonoBehaviour
     {
         if (seedString != getDefaultSeed())
         {
-            Debug.Log("Not Default Seed");
-            seedStringToSeed();
+            Debug.Log("Seed detected");
         }
 
         else                                        //Otherwise
         {
-            Debug.Log("Default Seed");
+            Debug.Log("Generating Seed");
             for (int i = 0; i < seed.Length; i++)   //While i is < than seed length
             {
                 seed[i] = UniversalHelper.randomGenerator(0, 7);    //Generate a number between 0 and 7. Will be 9 with all transformations
@@ -491,7 +492,7 @@ public class StructuralGeneration : MonoBehaviour
         int[] numOfRooms = Enumerable.Range(0, GameObject.Find("Rooms").transform.childCount).ToArray(); //Get the number of rooms generated
 
         if (numOfRooms.Length >= 4)
-            return UniversalHelper.Shuffle(numOfRooms);
+            return UniversalHelper.Shuffle(numOfRooms, shuffleCall, out shuffleCall);
 
         return numOfRooms;
     }
@@ -1444,7 +1445,7 @@ public class StructuralGeneration : MonoBehaviour
                     iteration++;
                 }
 
-                roomNums = UniversalHelper.Shuffle(roomNums);
+                roomNums = UniversalHelper.Shuffle(roomNums, shuffleCall, out shuffleCall);
 
                 iteration = 0;
                 for (int x = 0; x < roomsPerQuadrant; x++)
@@ -1456,7 +1457,7 @@ public class StructuralGeneration : MonoBehaviour
         }
 
         else
-            UniversalHelper.Shuffle(RoomNumbers);
+            UniversalHelper.Shuffle(RoomNumbers, shuffleCall, out shuffleCall);
 
         return RoomNumbers;
     }
@@ -1969,68 +1970,138 @@ public static class UniversalHelper
     /// </summary>
     /// <param name="numbers"></param>
     /// <returns></returns>
-    public static int[] Shuffle(int[] numbers)
+    public static int[] Shuffle(int[] numbers, int shuffle, out int shuffleCall)
     {
-        //Function takes a set of numbers and Shuffles them using a predictable algorithm
-        //Has to have at least an array length of 4
-        //Numbers are split into 4 groups
-        //Group 1 is exchanged with Group 3
-        //Group 2 is exchanged with Group 4
-        //Arrays are then reversed
-        //If there is more than a single number between groups, the middle numbers are reversed as well
-
-        float divisor = numbers.Length / 4;             //Split number into 4 groups
-        List<List<int>> nums = new List<List<int>>();   //Tracks groups of numbers
+        shuffleCall = shuffle;
+        if (numbers.Length == 24)
+            shuffleCall = shuffle + 1;
+        List<List<int>> groups = new List<List<int>>();
+        List<int> group = new List<int>();
 
         for (int i = 0; i < numbers.Length; i++)
         {
-            if (i % divisor == 0)
+            group.Add(numbers[i]);
+
+            if ((i + 1) % 4 == 0)
             {
-                nums.Add(new List<int>());              //Adds appropriate number of groups
-            }
-
-            nums[nums.Count - 1].Add(numbers[i]);       //Adds numbers to group
-        }
-
-        List<int> temp;         //Stores numbers temporarily
-        temp = nums[2];         //Set temp to Group 3             
-        nums[2] = nums[0];      //Set Group 3 to Group 1
-        nums[2].Reverse();      //Reverse Group 3
-
-        nums[0] = temp;         //Set Group 1 = temp/Group 3
-        nums[0].Reverse();      //Reverse Group 1
-
-        if (divisor > 1)    //If there is more than 1 number in the groups
-        {
-            nums[2].Reverse((nums[2].Count / 2) - 1, (nums[2].Count / 2) + 1);  //Swap the middle numbers for group 3
-            nums[0].Reverse((nums[0].Count / 2) - 1, (nums[0].Count / 2) + 1);  //Swap the middle numbers for group 1
-        }
-
-        temp = nums[3];         //Set temp to Group 4
-        nums[3] = nums[1];      //Set Group 4 = Group 2
-        nums[3].Reverse();      //Reverse Group 4
-
-        nums[1] = temp;         //Set Group 2 = temp/Group 4
-        nums[1].Reverse();      //Reverse Group 2
-
-        if (divisor > 1)    //Same as above
-        {
-            nums[3].Reverse((nums[2].Count / 2) - 1, (nums[2].Count / 2) + 1);
-            nums[1].Reverse((nums[0].Count / 2) - 1, (nums[0].Count / 2) + 1);
-        }
-
-        int increment = 0;                          //Track var numbers position
-
-        for (int i = 0; i < nums.Count; i++)        //Iterate through the list of nums
-        {
-            for (int x = 0; x < nums[i].Count; x++)     //Access the shuffled numbers
-            {
-                numbers[increment] = nums[i][x];            //Set old var numbers = to newly shuffled numbers
-                increment++;                                //Increment to the next number
+                groups.Add(group);
+                group = new List<int>();
             }
         }
 
-        return numbers;     //return shuffle
+        foreach (List<int> g in groups)
+        {
+            if (g.Count < 4)
+            {
+                int count = 0;
+                g.Reverse();
+                int i = 0;
+                for (int x = 0; x < g.Count; x++)
+                {
+                    if (groups.Count < i)
+                    {
+                        int temp = groups[i][0];
+                        groups[i][0] = x;
+                        x = temp;
+                        i++;
+                    }
+
+                    else
+                    {
+                        i = 0;
+                        x--;
+                        count++;
+
+                        if (count > 20)
+                        {
+                            Debug.LogError("Shuffle error");
+                            break;
+                        }
+                    }
+                }
+                continue;
+            }
+
+            if (shuffleCall % 3 == 0)
+            {
+                int temp = g[0];
+                g[0] = g[3];
+                g[3] = temp;
+            }
+
+            else if (shuffleCall % 4 == 0)
+            {
+                int temp = g[1];
+                g[1] = g[2];
+                g[2] = temp;
+            }
+
+            else
+            {
+                int temp = g[0];
+                g[0] = g[1];
+                g[1] = temp;
+
+                temp = g[2];
+                g[2] = g[3];
+                g[3] = temp;
+            }
+
+            if (shuffleCall % 2 != 0)
+            {
+                int temp = g[0];
+                g[0] = g[3];
+                g[3] = g[2];
+                g[2] = g[1];
+                g[1] = temp;
+            }
+
+            else
+            {
+                int temp = g[0];
+                g[0] = g[1];
+                g[1] = g[2];
+                g[2] = g[3];
+                g[3] = temp;
+            }
+
+        }
+
+        if (shuffleCall >= 4)
+        {
+            for (int i = 0; i < groups.Count; i++)
+            {
+                List<int> temp = groups[i];
+
+                try
+                {
+                    groups[i] = groups[i + 1];
+                    groups[i + 1] = temp;
+                }
+
+                catch
+                {
+                    groups[i] = groups[0];
+                    groups[0] = temp;
+                }
+
+            }
+            shuffleCall = 0;
+        }
+
+        int n = 0;
+
+        foreach (List<int> g in groups)
+        {
+            foreach (int number in g)
+            {
+                numbers[n] = number;
+                n++;
+            }
+        }
+
+        return numbers;
+
     }
 
     /// <summary>
