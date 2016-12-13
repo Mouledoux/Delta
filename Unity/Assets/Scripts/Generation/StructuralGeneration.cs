@@ -153,12 +153,15 @@ public class StructuralGeneration : MonoBehaviour
     private List<boundaries> QuadrantBoundaries = new List<boundaries>();     //Tracks furthest points of each quadrant
 
     //Seed and Generation
-    private int[] seed = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };    //stores seed
+    public int seedSize;
+    private int[] seed;
     public string seedString;                                           //Displays seed as a string
     public bool realTimeGen;                                            //Coroutine vs Instant generation
     public float numberofRooms;                                         //Outputs number of rooms (debugging)
     public double floorFactor;
     public int floor = 0;
+    public bool advFloor;
+    public bool loadDungeon;
 
     //Rooms | Halls | Stairs
     public int minRoomSize;                                             //minimum room size
@@ -178,6 +181,14 @@ public class StructuralGeneration : MonoBehaviour
     public float h;     //elevate. Testing purposes
 
     //Checks for inputs for generating new dungeons or clearing old ones
+
+    private void Start()
+    {
+        seed = new int[seedSize];
+        advFloor = false;
+        loadDungeon = false;
+    }
+
     void Update()
     {
         if (Generate)   //If we're generating
@@ -194,8 +205,8 @@ public class StructuralGeneration : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.G) || regenerate)  //Used to generate a new dungeon during runtime
         {
             ClearDungeon();                             //Clear everything
-            seedString = getDefaultSeed();              //Reset the inspector variable
-            seedStringToSeed();                         //Reset the seed
+            //seedString = getDefaultSeed();              //Reset the inspector variable
+            //seedStringToSeed();                         //Reset the seed
             Generate = true;                            //Set generate to true
             regenerate = false;
         }
@@ -206,6 +217,23 @@ public class StructuralGeneration : MonoBehaviour
             GenerateGrid();
             generateCellWalls(cells);               //Generate cell walls
             structureDone = false;
+        }
+
+        if (Input.GetKeyDown(KeyCode.N) && Generate == false)
+            advFloor = true;
+
+        if (advFloor)
+        {
+            seed = UniversalHelper.Shuffle(seed);
+            floorIncrement();
+            advFloor = false;
+            regenerate = true;
+        }
+
+        if (loadDungeon)
+        {
+            regenerate = true;
+            loadDungeon = false;
         }
 
     }
@@ -318,14 +346,16 @@ public class StructuralGeneration : MonoBehaviour
     //Used by Generate Dungeon to generate seed
     private void GenerateSeed()
     {
-        if (seedString != getDefaultSeed())     //If manual seed is input
+        if (seedString != getDefaultSeed())
         {
-            //Do nothing. Seed is already set
+            Debug.Log("Not Default Seed");
+            seedStringToSeed();
         }
 
         else                                        //Otherwise
         {
-            for (int i = 1; i < seed.Length; i++)   //While i is < than seed length
+            Debug.Log("Default Seed");
+            for (int i = 0; i < seed.Length; i++)   //While i is < than seed length
             {
                 seed[i] = UniversalHelper.randomGenerator(0, 7);    //Generate a number between 0 and 7. Will be 9 with all transformations
             }
@@ -338,7 +368,7 @@ public class StructuralGeneration : MonoBehaviour
         out int rotationNum)
     {
         rotationNum = 0;                        //Number of times to rotate
-        for (int i = 1; i < seed.Length; i++)   //While i < than seed length
+        for (int i = 0; i < seed.Length; i++)   //While i < than seed length
         {
             switch (seed[i])
             {
@@ -1711,9 +1741,7 @@ public class StructuralGeneration : MonoBehaviour
     //Takes the string in the inspector, converts it to an int[], and sets seed equal to it.
     public void seedStringToSeed()
     {
-
-        int x = 1;
-        for (int i = floor.ToString().Length; i < seedString.Length; i++)
+        for (int i = 0; i < seedString.Length; i++)
         {
             int test;
 
@@ -1721,8 +1749,7 @@ public class StructuralGeneration : MonoBehaviour
             {
                 try
                 {
-                    seed[x] = test;
-                    x++;
+                    seed[i] = test;
                 }
 
                 catch
@@ -1744,8 +1771,8 @@ public class StructuralGeneration : MonoBehaviour
     //Return the default seed. (Default seed is 10000...where num of zeroes is determined by seed length - 1.
     public string getDefaultSeed()
     {
-        string defaultSeed = floor.ToString();
-        for (int i = 1; i < seed.Length; i++)
+        string defaultSeed = "";
+        for (int i = 0; i < seed.Length; i++)
         {
             defaultSeed += "0";
         }

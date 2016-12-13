@@ -27,22 +27,20 @@ public class GenerationInspector : Editor {
         sg.zQuadrants   = EditorGUILayout.IntSlider("Z Quadrants", sg.zQuadrants, 2, 10);
         sg.floor        = EditorGUILayout.IntSlider("Floor", sg.floor, 1, 100);
 
-        sg.setSeedAt(0, sg.floor);
-
-        if (!Application.isPlaying)
-            sg.roomCycle();
+        sg.roomCycle();
 
         EditorGUILayout.IntField("Number of cells", sg.getCellCount());
         EditorGUILayout.Space();
+        EditorGUILayout.Space();
 
+        sg.seedSize = EditorGUILayout.IntField("Seed size", sg.seedSize);
         index = EditorGUILayout.Popup(index, savedSeeds.ToArray());
 
         if (GUILayout.Button("Use Seed"))
         {
             sg.seedString = savedSeeds[index].ToString();
             sg.seedStringToSeed();
-            StructuralGeneration.ClearDungeon();
-            sg.Generate = true;
+            sg.loadDungeon = true;
         }
 
         if (GUILayout.Button("Clear Seeds"))
@@ -53,16 +51,17 @@ public class GenerationInspector : Editor {
         }
         EditorGUILayout.Space();
 
-        if (!firstGen && sg.seedString == sg.getDefaultSeed())
+        if (Application.isPlaying && sg.Generate == false)
         {
             sg.seedString = "";
             foreach (int s in sg.getCurSeed)
-            {
                 sg.seedString += s.ToString();
-            }
         }
-        sg.seedString = EditorGUILayout.TextField("Seed:", sg.seedString);
-        sg.seedStringToSeed();
+
+        else
+            sg.seedString = "Only shown when running";
+
+        EditorGUILayout.TextField("Seed:", sg.seedString);
 
         if (GUILayout.Button("Save Seed"))
         {
@@ -88,12 +87,10 @@ public class GenerationInspector : Editor {
         sg.minRoomSize = EditorGUILayout.IntSlider("Min Room Size", sg.minRoomSize, 1, 20);
         sg.maxRoomSize = EditorGUILayout.IntSlider("Max Room Size", sg.maxRoomSize, 1, 20);
         float medianRoomSize = ((sg.maxRoomSize - sg.minRoomSize) / 2) + sg.minRoomSize;
-        sg.maxPerQuadrant = Mathf.RoundToInt((sg.getQuadrantSize / 2) / (medianRoomSize * medianRoomSize));
+        sg.maxPerQuadrant = Mathf.RoundToInt((sg.getQuadrantSize / 2.5f) / (medianRoomSize * medianRoomSize));
+        sg.maxPerQuadrant = Mathf.Clamp(sg.maxPerQuadrant, 2, 9);
 
-        if (sg.maxPerQuadrant < 2)
-            Debug.LogError("Dungeon size is too small. May cause unwanted behaviours");
-
-        sg.roomsPerQuadrant = EditorGUILayout.IntSlider("Per Quadrant", sg.roomsPerQuadrant, 2, sg.maxPerQuadrant);
+        EditorGUILayout.IntSlider("Room per Quadrant", sg.roomsPerQuadrant, 2, sg.maxPerQuadrant);
 
         sg.cellSize = EditorGUILayout.Vector3Field("Cell Size", sg.cellSize);
         sg.cellWallHeight = EditorGUILayout.FloatField("Wall Height", sg.cellWallHeight);
