@@ -1111,6 +1111,112 @@ public class StructuralGeneration : MonoBehaviour
         }
     }
 
+    void createPath(Transform from, Transform to)
+    {
+        Vector3 distance = to.transform.position - from.transform.position;
+        bool north = false, south = false, east= false, west = false;
+
+        switch (compareTo(from.position.x, to.position.x))
+        {
+            case 1:
+                west = true;
+                break;
+
+            case -1:
+                east = true;
+                break;
+
+            default:
+                break;
+        }
+
+        switch (compareTo(from.position.z, to.position.z))
+        {
+            case 1:
+                south = true;
+                break;
+
+            case -1:
+                north = true;
+                break;
+
+            case 0:
+                break;
+        }
+
+        Vector3 position = from.position;
+
+
+            int count = 0;
+            while (east && position.x != to.position.x)
+            {
+                position += new Vector3(returnCellSizex, 0, 0);
+                GameObject cell = Instantiate(FLOOR);
+                cell.transform.position = position;
+                count++;
+                if (count > 200)
+                {
+                    Debug.LogError("Create Path fucked up");
+                    break;
+                }
+            }
+
+            while (west && position.x != to.position.x)
+            {
+                position -= new Vector3(returnCellSizex, 0, 0);
+                GameObject cell = Instantiate(FLOOR);
+                cell.transform.position = position;
+                count++;
+                if (count > 200)
+                {
+                    Debug.LogError("Create Path fucked up");
+                    break;
+                }
+            }
+
+            while (north && position.z != to.position.z)
+            {
+                position += new Vector3(0, 0, returnCellSizez);
+                GameObject cell = Instantiate(FLOOR);
+                cell.transform.position = position;
+                count++;
+                if (count > 200)
+                {
+                    Debug.LogError("Create Path fucked up");
+                    break;
+                }
+            }
+
+            while (south && position.z != to.position.z)
+            {
+                position -= new Vector3(0, 0, returnCellSizez);
+                GameObject cell = Instantiate(FLOOR);
+                cell.transform.position = position;
+                count++;
+                if (count > 200)
+                {
+                    Debug.LogError("Create Path fucked up");
+                    break;
+                }
+            }
+
+        if (distance.z > distance.x)
+        {
+
+        }
+    }
+
+    int compareTo(float a, float b)
+    {
+        if (a > b)
+            return 1;
+        else if (b > a)
+            return -1;
+
+        else
+            return 0;
+    }
+
     #endregion
 
     #region Generate Grid
