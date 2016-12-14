@@ -166,6 +166,8 @@ public class StructuralGeneration : MonoBehaviour
     //Rooms | Halls | Stairs
     public int minRoomSize;                                             //minimum room size
     public int maxRoomSize;                                             //maximum room size
+    public int mainRoomSize;
+    public int bossRoomSize;
 
     public int largestRoomCount;                                        //displays the number of cells in largest room
 
@@ -966,6 +968,149 @@ public class StructuralGeneration : MonoBehaviour
             cell.transform.position += new Vector3(0, height, 0);
         }
     }
+
+    void BuildMainRoom()
+    {
+        Vector3 curPosition;
+        Vector3 startPosition;
+        List<GameObject> mainRoom = new List<GameObject>();
+
+        string room = roomDirection();
+        Debug.Log(room);
+        switch (room)
+        {
+            case "north":
+                startPosition = new Vector3(-returnCellSizex * mainRoomSize, 0, gridBoundaries.north + (returnCellSizez * 2));
+                break;
+
+            case "south":
+                startPosition = new Vector3(-returnCellSizex * mainRoomSize, 0, (-returnCellSizez * 2) - (returnCellSizez * mainRoomSize));
+                break;
+
+            case "east":
+                startPosition = new Vector3(gridBoundaries.east + (returnCellSizex * 2), 0, returnCellSizez * (mainRoomSize * 2));
+                break;
+
+            case "west":
+                startPosition = new Vector3(gridBoundaries.west - (returnCellSizex * mainRoomSize), 0, returnCellSizez * mainRoomSize);
+                break;
+
+            default:
+                throw new Exception("Main room has no direction");
+        }
+
+        Debug.Log(startPosition);
+
+        curPosition = startPosition;
+
+        for (int i = 0; i < mainRoomSize; i++)
+        {
+            if (i > 10)
+            {
+                Debug.Log("Somethings wrong. Main Room Size is " + mainRoomSize);
+                break;
+            }
+            for (int x = 0; x < mainRoomSize; x++)
+            {
+                GameObject floor = Instantiate(FLOOR);
+                floor.transform.position = curPosition;
+                floor.transform.localScale = cellSize * 10;
+                floor.transform.name = "Main Room Floor" + i + x;
+                cells.Add(floor);
+                mainRoom.Add(floor);
+                curPosition += new Vector3(returnCellSizex, 0, 0);
+                if (x > 10)
+                {
+                    Debug.Log("Somethings wrong. Main Room Size is " + mainRoomSize);
+                    break;
+                }
+            }
+
+            curPosition = startPosition + new Vector3(0, 0, returnCellSizez * i);
+
+        }
+
+        createWall(mainRoom);
+
+        UniversalHelper.parentObject(mainRoom, "Rooms", "Main Room");
+    }
+
+    void BuildBossRoom()
+    {
+
+    }
+
+    private string roomDirection()
+    {
+        if (floor % 4 == 0)
+        {
+            return "south";
+        }
+
+        else if (floor % 3 == 0)
+        {
+            return "west";
+        }
+
+        else if (floor % 2 == 0)
+        {
+            return "east";
+        }
+
+        else
+            return "north";
+    }
+
+    void createWall(List<GameObject> group, string direction = "room")
+    {
+        boundaries wallBounds = calculateBoundary(group);
+
+        if (direction == "room")
+        {
+            foreach (GameObject cell in group)
+            {
+                float z = cell.transform.position.z;
+                float x = cell.transform.position.x;
+                if (z == wallBounds.north || z == wallBounds.south)
+                {
+                    GameObject wall = Instantiate(WALL);
+                    wall.name = (z == wallBounds.north) ? "north_wall" : "south_wall";
+                    wall.transform.localScale = new Vector3(returnCellSizex, cellWallHeight, cellWallWidth);
+                    wall.transform.position = (z == wallBounds.north) ? 
+                        cell.transform.position + new Vector3(0, 0, 10 * (cellSize.z / 2)) :
+                        cell.transform.position + new Vector3(0, 0, -10 * (cellSize.z / 2));
+
+                    wall.transform.parent = cell.transform;
+                }
+
+                if (x == wallBounds.east || x == wallBounds.west)
+                {
+                    GameObject wall = Instantiate(WALL);
+                    wall.name = (z == wallBounds.east) ? "east_wall" : "west_wall";
+                    wall.transform.localScale = new Vector3(cellWallWidth, cellWallHeight, returnCellSizez);
+                    wall.transform.position = (x == wallBounds.east) ?
+                        cell.transform.position + new Vector3(10 * (cellSize.x / 2), 0, 0) :
+                        cell.transform.position + new Vector3(-10 * (cellSize.x / 2), 0, 0);
+
+                    wall.transform.parent = cell.transform;
+                }
+            }
+        }
+
+        else if (direction == "east" || direction == "west")
+        {
+            foreach (GameObject cell in group)
+            {
+
+            }
+        }
+
+        else if (direction == "north" || direction == "south")
+        {
+
+        }
+    }
+
     #endregion
 
     #region Generate Grid
@@ -1499,24 +1644,6 @@ public class StructuralGeneration : MonoBehaviour
             
             int[] roomsize = new int[] { sizes[roomSizes[i]].sizeX, sizes[roomSizes[i]].sizeZ };
             rooms.Add(CreateRoom(roomPositions[i], roomsize));
-            /*
-            Vector3 returnPos = roomPositions[i];
-            List<GameObject> MergedRooms;
-            List<GameObject> parent = generateRoom(roomPositions[i], roomsize[0], roomsize[1], out returnPos, out MergedRooms);
-            if (MergedRooms.Count != 0)
-            {
-                List<GameObject> newRoom = parent;
-                for (int x = 0; x < MergedRooms.Count; x++)
-                {
-                    foreach (Transform cell in MergedRooms[x].transform)
-                    {
-                        newRoom.Add(cell.gameObject);
-                    }
-                    GameObject.Destroy(MergedRooms[x]);
-                }
-            }
-            */
-            //UniversalHelper.parentObject(parent, "Rooms", "Rooms " + i);
 
             yield return new WaitForSeconds(0.3f * Time.deltaTime);
         }
@@ -1532,8 +1659,9 @@ public class StructuralGeneration : MonoBehaviour
         GenerateHalls(determineHallGen());
         Destroy(GameObject.Find("Cells"));
         yield return new WaitForSeconds(5.0f * Time.deltaTime);
-        RotateGrid(rotationNum);
+        //RotateGrid(rotationNum);
         structureDone = true;                                                   //Set structure done to true
+        BuildMainRoom();
         StopAllCoroutines();
     }
 

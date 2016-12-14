@@ -90,6 +90,8 @@ public class GenerationInspector : Editor {
         sg.maxPerQuadrant = Mathf.RoundToInt((sg.getQuadrantSize / 2.5f) / (medianRoomSize * medianRoomSize));
         sg.maxPerQuadrant = Mathf.Clamp(sg.maxPerQuadrant, 2, 9);
 
+        sg.mainRoomSize = EditorGUILayout.IntSlider("Main Room Size", sg.mainRoomSize, 7, 20);
+
         EditorGUILayout.IntSlider("Room per Quadrant", sg.roomsPerQuadrant, 2, sg.maxPerQuadrant);
 
         sg.cellSize = EditorGUILayout.Vector3Field("Cell Size", sg.cellSize);
