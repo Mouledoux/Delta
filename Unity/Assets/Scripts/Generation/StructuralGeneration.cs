@@ -970,14 +970,14 @@ public class StructuralGeneration : MonoBehaviour
         }
     }
 
-    void BuildMainRoom()
+    void BuildMainRoom(bool main)
     {
         Vector3 curPosition;
         Vector3 startPosition;
         Vector3 entrance;
         List<GameObject> mainRoom = new List<GameObject>();
 
-        string room = roomDirection();
+        string room = roomDirection(main);
         Debug.Log(room);
         switch (room)
         {
@@ -1022,9 +1022,20 @@ public class StructuralGeneration : MonoBehaviour
                 floor.transform.position = curPosition;
                 floor.transform.localScale = cellSize * 10;
                 if (curPosition == entrance)
-                    floor.transform.name = "Main Room Hall";
+                {
+                    if (main)
+                        floor.transform.name = "Main Room Hall";
+                    else
+                        floor.transform.name = "Boss Room Hall";
+                }
+
                 else
-                    floor.transform.name = "Main Room Floor" + i + x;
+                {
+                    if (main)
+                        floor.transform.name = "Main Room Floor" + i + x;
+                    else
+                        floor.transform.name = "Boss Room Floor" + i + x;
+                }
                 cells.Add(floor);
                 mainRoom.Add(floor);
                 curPosition += new Vector3(returnCellSizex, 0, 0);
@@ -1041,33 +1052,47 @@ public class StructuralGeneration : MonoBehaviour
 
         createWall(mainRoom);
 
-        UniversalHelper.parentObject(mainRoom, "Rooms", "Main Room");
+        UniversalHelper.parentObject(mainRoom, "Rooms", main? "Main Room" : "Boss Room");
     }
 
     void BuildBossRoom()
     {
-
+        BuildMainRoom(false);
     }
 
-    private string roomDirection()
+    private string roomDirection(bool MainRoom)
     {
         if (floor % 4 == 0)
         {
-            return "south";
+            if (MainRoom)
+                return "south";
+            else
+                return "north";
         }
 
         else if (floor % 4 == 3)
         {
-            return "west";
+            if (MainRoom)
+                return "west";
+            else
+                return "east";
         }
 
         else if (floor % 4 == 2)
         {
-            return "east";
+            if (MainRoom)
+                return "east";
+            else
+                return "west";
         }
 
         else
-            return "north";
+        {
+            if (MainRoom)
+                return "north";
+            else
+                return "south";
+        }
     }
 
     void createWall(List<GameObject> group, string direction = "room")
@@ -1148,7 +1173,7 @@ public class StructuralGeneration : MonoBehaviour
         }
     }
 
-    void createPath(Transform from, Transform to)
+    void createPath(Transform from, Transform to, bool mainRoom)
     {
         Vector3 distance = to.transform.position - from.transform.position;
         bool north = false, south = false, east = false, west = false;
@@ -1187,13 +1212,13 @@ public class StructuralGeneration : MonoBehaviour
         int count = 0;
         List<GameObject> hall = new List<GameObject>();
 
-        if (roomDirection() == "east" || roomDirection() == "west")
+        if (roomDirection(mainRoom) == "east" || roomDirection(mainRoom) == "west")
         {
             CreateEastPath(to, east, west, ref position, ref count, hall);
             CreateNorthPath(to, north, south, ref position, ref count, hall);
         }
 
-        else if (roomDirection() == "north" || roomDirection() == "south")
+        else if (roomDirection(mainRoom) == "north" || roomDirection(mainRoom) == "south")
         {
             CreateNorthPath(to, north, south, ref position, ref count, hall);
             CreateEastPath(to, east, west, ref position, ref count, hall);
@@ -1215,7 +1240,7 @@ public class StructuralGeneration : MonoBehaviour
         for (int i = 0; i < hall.Count - 1; i++)
             ConnectCell(hall[i], hall[i + 1]);
 
-        UniversalHelper.parentObject(hall, "Main Room Hall", "Halls");
+        UniversalHelper.parentObject(hall, "Halls", mainRoom ? "Main Room Hall" : "Boss Room Hall");
     }
 
     private void CreateEastPath(Transform to, bool east, bool west, ref Vector3 position, ref int count, List<GameObject> hall)
@@ -1946,9 +1971,13 @@ public class StructuralGeneration : MonoBehaviour
         yield return new WaitForSeconds(5.0f * Time.deltaTime);
         //RotateGrid(rotationNum);
         structureDone = true;                                                   //Set structure done to true
-        BuildMainRoom();
+        BuildMainRoom(true);
         GameObject mainHall = GameObject.Find("Main Room Hall");
-        createPath(mainHall.transform, findClosestSpace(mainHall).transform);
+        createPath(mainHall.transform, findClosestSpace(mainHall).transform, true);
+
+        BuildBossRoom();
+        GameObject bossHall = GameObject.Find("Boss Room Hall");
+        createPath(bossHall.transform, findClosestSpace(bossHall).transform, false);
         StopAllCoroutines();
     }
 
@@ -2249,7 +2278,6 @@ public class StructuralGeneration : MonoBehaviour
 
     public static void seedTransformation()
     {
-
 
     }
 }
