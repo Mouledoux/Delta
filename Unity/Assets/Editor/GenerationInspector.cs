@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEditor;
 using System.Collections.Generic;
 using System;
+using UnityEditor.SceneManagement;
 
 [CustomEditor (typeof(StructuralGeneration))]
 public class GenerationInspector : Editor {
@@ -19,6 +20,7 @@ public class GenerationInspector : Editor {
 
         StructuralGeneration sg = (StructuralGeneration)target;
 
+        EditorGUI.BeginChangeCheck();
         sg.Generate     = EditorGUILayout.Toggle("Generate", sg.Generate);
         sg.realTimeGen  = EditorGUILayout.Toggle("Real Time Generation", sg.realTimeGen);
         sg.xCells       = EditorGUILayout.IntSlider("X size", sg.xCells, 9, 60);
@@ -100,6 +102,12 @@ public class GenerationInspector : Editor {
 
         sg.WALL = (GameObject)EditorGUILayout.ObjectField("Wall Prefab", sg.WALL, typeof(GameObject), true);
         sg.FLOOR = (GameObject)EditorGUILayout.ObjectField("Floor Prefab", sg.FLOOR, typeof(GameObject), true);
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            
+        }
     }
 
 }

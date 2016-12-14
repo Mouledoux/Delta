@@ -358,9 +358,10 @@ public class StructuralGeneration : MonoBehaviour
         else                                        //Otherwise
         {
             Debug.Log("Generating Seed");
+            System.Random rand = new System.Random((int)DateTime.Now.Ticks);
             for (int i = 0; i < seed.Length; i++)   //While i is < than seed length
             {
-                seed[i] = UniversalHelper.randomGenerator(0, 7);    //Generate a number between 0 and 7. Will be 9 with all transformations
+                seed[i] = UniversalHelper.randomGenerator(0, 7, rand);    //Generate a number between 0 and 7. Will be 9 with all transformations
             }
         }
 
@@ -504,7 +505,7 @@ public class StructuralGeneration : MonoBehaviour
         for (int i = 0; i < numOfRooms.Length - 1; i++)
         {
             GameObject start = GameObject.Find("Room " + numOfRooms[i]);
-            GameObject end = GameObject.Find("Room " + numOfRooms[i+1]);
+            GameObject end = GameObject.Find("Room " + numOfRooms[i + 1]);
 
             CreateHall(start, end);
         }
@@ -659,7 +660,7 @@ public class StructuralGeneration : MonoBehaviour
                 break;
 
             default:
-             //   Debug.Log("Nothing destroyed");
+                //   Debug.Log("Nothing destroyed");
                 break;
         }
 
@@ -669,13 +670,13 @@ public class StructuralGeneration : MonoBehaviour
                 if (cellOne.transform.Find("north_wall"))            //Destroy cell one's north wall if it exists
                 {
                     Destroy(cellOne.transform.Find("north_wall").gameObject);
-                  //  Debug.Log("destroyed");
+                    //  Debug.Log("destroyed");
                 }
 
                 if (cellTwo.transform.Find("south_wall"))            //Destroy cell two's south wall if it exists
                 {
                     Destroy(cellTwo.transform.Find("south_wall").gameObject);
-               //     Debug.Log("destroyed");
+                    //     Debug.Log("destroyed");
                 }
                 break;
 
@@ -683,15 +684,15 @@ public class StructuralGeneration : MonoBehaviour
                 if (cellOne.transform.Find("south_wall"))            //Destroy cell one's south wall if it exists
                 {
                     Destroy(cellOne.transform.Find("south_wall").gameObject);
-                 //   Debug.Log("destroyed");
+                    //   Debug.Log("destroyed");
                 }
 
                 if (cellTwo.transform.Find("north_wall"))            //Destroy cell two's north wall if it exists
                 {
                     Destroy(cellTwo.transform.Find("north_wall").gameObject);
-                 //   Debug.Log("destroyed");
+                    //   Debug.Log("destroyed");
                 }
-               // Debug.Log("ran s");
+                // Debug.Log("ran s");
                 break;
 
             default:
@@ -973,6 +974,7 @@ public class StructuralGeneration : MonoBehaviour
     {
         Vector3 curPosition;
         Vector3 startPosition;
+        Vector3 entrance;
         List<GameObject> mainRoom = new List<GameObject>();
 
         string room = roomDirection();
@@ -981,29 +983,33 @@ public class StructuralGeneration : MonoBehaviour
         {
             case "north":
                 startPosition = new Vector3(-returnCellSizex * mainRoomSize, 0, gridBoundaries.north + (returnCellSizez * 2));
+                entrance = startPosition + new Vector3(returnCellSizex * (mainRoomSize / 2), 0, 0);
                 break;
 
             case "south":
                 startPosition = new Vector3(-returnCellSizex * mainRoomSize, 0, (-returnCellSizez * 2) - (returnCellSizez * mainRoomSize));
+                entrance = startPosition + new Vector3(returnCellSizex * (mainRoomSize / 2), 0, returnCellSizez * mainRoomSize);
                 break;
 
             case "east":
-                startPosition = new Vector3(gridBoundaries.east + (returnCellSizex * 2), 0, returnCellSizez * (mainRoomSize * 2));
+                startPosition = new Vector3(gridBoundaries.east + (returnCellSizex * 2), 0, returnCellSizez * (mainRoomSize));
+                entrance = startPosition + new Vector3(0, 0, returnCellSizez * (mainRoomSize / 2));
                 break;
 
             case "west":
                 startPosition = new Vector3(gridBoundaries.west - (returnCellSizex * mainRoomSize), 0, returnCellSizez * mainRoomSize);
+                entrance = startPosition + new Vector3(returnCellSizex * (mainRoomSize - 1), 0, returnCellSizez * (mainRoomSize / 2));
                 break;
 
             default:
                 throw new Exception("Main room has no direction");
         }
 
-        Debug.Log(startPosition);
+        Debug.Log("Entrance: " + entrance);
 
         curPosition = startPosition;
 
-        for (int i = 0; i < mainRoomSize; i++)
+        for (int i = 0; i <= mainRoomSize; i++)
         {
             if (i > 10)
             {
@@ -1015,7 +1021,10 @@ public class StructuralGeneration : MonoBehaviour
                 GameObject floor = Instantiate(FLOOR);
                 floor.transform.position = curPosition;
                 floor.transform.localScale = cellSize * 10;
-                floor.transform.name = "Main Room Floor" + i + x;
+                if (curPosition == entrance)
+                    floor.transform.name = "Main Room Hall";
+                else
+                    floor.transform.name = "Main Room Floor" + i + x;
                 cells.Add(floor);
                 mainRoom.Add(floor);
                 curPosition += new Vector3(returnCellSizex, 0, 0);
@@ -1026,7 +1035,7 @@ public class StructuralGeneration : MonoBehaviour
                 }
             }
 
-            curPosition = startPosition + new Vector3(0, 0, returnCellSizez * i);
+            curPosition = startPosition + new Vector3(0, 0, returnCellSizez * (i + 1));
 
         }
 
@@ -1047,12 +1056,12 @@ public class StructuralGeneration : MonoBehaviour
             return "south";
         }
 
-        else if (floor % 3 == 0)
+        else if (floor % 4 == 3)
         {
             return "west";
         }
 
-        else if (floor % 2 == 0)
+        else if (floor % 4 == 2)
         {
             return "east";
         }
@@ -1069,6 +1078,8 @@ public class StructuralGeneration : MonoBehaviour
         {
             foreach (GameObject cell in group)
             {
+                if (cell.name == "Main Room Hall")
+                    continue;
                 float z = cell.transform.position.z;
                 float x = cell.transform.position.x;
                 if (z == wallBounds.north || z == wallBounds.south)
@@ -1076,9 +1087,9 @@ public class StructuralGeneration : MonoBehaviour
                     GameObject wall = Instantiate(WALL);
                     wall.name = (z == wallBounds.north) ? "north_wall" : "south_wall";
                     wall.transform.localScale = new Vector3(returnCellSizex, cellWallHeight, cellWallWidth);
-                    wall.transform.position = (z == wallBounds.north) ? 
-                        cell.transform.position + new Vector3(0, 0, 10 * (cellSize.z / 2)) :
-                        cell.transform.position + new Vector3(0, 0, -10 * (cellSize.z / 2));
+                    wall.transform.position = (z == wallBounds.north) ?
+                        cell.transform.position + new Vector3(0, wall.transform.localScale.y / 2, 10 * (cellSize.z / 2)) :
+                        cell.transform.position + new Vector3(0, wall.transform.localScale.y / 2, -10 * (cellSize.z / 2));
 
                     wall.transform.parent = cell.transform;
                 }
@@ -1089,8 +1100,8 @@ public class StructuralGeneration : MonoBehaviour
                     wall.name = (z == wallBounds.east) ? "east_wall" : "west_wall";
                     wall.transform.localScale = new Vector3(cellWallWidth, cellWallHeight, returnCellSizez);
                     wall.transform.position = (x == wallBounds.east) ?
-                        cell.transform.position + new Vector3(10 * (cellSize.x / 2), 0, 0) :
-                        cell.transform.position + new Vector3(-10 * (cellSize.x / 2), 0, 0);
+                        cell.transform.position + new Vector3(10 * (cellSize.x / 2), wall.transform.localScale.y / 2, 0) :
+                        cell.transform.position + new Vector3(-10 * (cellSize.x / 2), wall.transform.localScale.y / 2, 0);
 
                     wall.transform.parent = cell.transform;
                 }
@@ -1101,22 +1112,48 @@ public class StructuralGeneration : MonoBehaviour
         {
             foreach (GameObject cell in group)
             {
+                GameObject wall = Instantiate(WALL);
+                GameObject wall2 = Instantiate(WALL);
 
+                wall.name = "north_wall";
+                wall.transform.localScale = new Vector3(returnCellSizex, cellWallHeight, cellWallWidth);
+                wall.transform.position = cell.transform.position + new Vector3(0, wall.transform.localScale.y / 2, 10 * (cellSize.z / 2));
+
+                wall2.name = "west_wall";
+                wall2.transform.localScale = new Vector3(returnCellSizex, cellWallHeight, cellWallWidth);
+                wall2.transform.position = cell.transform.position + new Vector3(0, wall.transform.localScale.y / 2, -10 * (cellSize.z / 2));
+
+                wall.transform.parent = cell.transform;
+                wall2.transform.parent = cell.transform;
             }
         }
 
         else if (direction == "north" || direction == "south")
         {
+            foreach (GameObject cell in group)
+            {
+                GameObject wall = Instantiate(WALL);
+                GameObject wall2 = Instantiate(WALL);
+                wall.name = "east_wall";
+                wall.transform.localScale = new Vector3(cellWallWidth, cellWallHeight, returnCellSizez);
+                wall.transform.position = cell.transform.position + new Vector3(10 * (cellSize.x / 2), wall.transform.localScale.y / 2, 0);
 
+                wall2.name = "west_wall";
+                wall2.transform.localScale = new Vector3(cellWallWidth, cellWallHeight, returnCellSizez);
+                wall2.transform.position = cell.transform.position + new Vector3(-10 * (cellSize.x / 2), wall.transform.localScale.y / 2, 0);
+
+                wall.transform.parent = cell.transform;
+                wall2.transform.parent = cell.transform;
+            }
         }
     }
 
     void createPath(Transform from, Transform to)
     {
         Vector3 distance = to.transform.position - from.transform.position;
-        bool north = false, south = false, east= false, west = false;
+        bool north = false, south = false, east = false, west = false;
 
-        switch (compareTo(from.position.x, to.position.x))
+        switch (UniversalHelper.compareTo(from.position.x, to.position.x))
         {
             case 1:
                 west = true;
@@ -1130,7 +1167,7 @@ public class StructuralGeneration : MonoBehaviour
                 break;
         }
 
-        switch (compareTo(from.position.z, to.position.z))
+        switch (UniversalHelper.compareTo(from.position.z, to.position.z))
         {
             case 1:
                 south = true;
@@ -1147,74 +1184,190 @@ public class StructuralGeneration : MonoBehaviour
         Vector3 position = from.position;
 
 
-            int count = 0;
-            while (east && position.x != to.position.x)
-            {
-                position += new Vector3(returnCellSizex, 0, 0);
-                GameObject cell = Instantiate(FLOOR);
-                cell.transform.position = position;
-                count++;
-                if (count > 200)
-                {
-                    Debug.LogError("Create Path fucked up");
-                    break;
-                }
-            }
+        int count = 0;
+        List<GameObject> hall = new List<GameObject>();
 
-            while (west && position.x != to.position.x)
-            {
-                position -= new Vector3(returnCellSizex, 0, 0);
-                GameObject cell = Instantiate(FLOOR);
-                cell.transform.position = position;
-                count++;
-                if (count > 200)
-                {
-                    Debug.LogError("Create Path fucked up");
-                    break;
-                }
-            }
-
-            while (north && position.z != to.position.z)
-            {
-                position += new Vector3(0, 0, returnCellSizez);
-                GameObject cell = Instantiate(FLOOR);
-                cell.transform.position = position;
-                count++;
-                if (count > 200)
-                {
-                    Debug.LogError("Create Path fucked up");
-                    break;
-                }
-            }
-
-            while (south && position.z != to.position.z)
-            {
-                position -= new Vector3(0, 0, returnCellSizez);
-                GameObject cell = Instantiate(FLOOR);
-                cell.transform.position = position;
-                count++;
-                if (count > 200)
-                {
-                    Debug.LogError("Create Path fucked up");
-                    break;
-                }
-            }
-
-        if (distance.z > distance.x)
+        if (roomDirection() == "east" || roomDirection() == "west")
         {
+            CreateEastPath(to, east, west, ref position, ref count, hall);
+            CreateNorthPath(to, north, south, ref position, ref count, hall);
+        }
 
+        else if (roomDirection() == "north" || roomDirection() == "south")
+        {
+            CreateNorthPath(to, north, south, ref position, ref count, hall);
+            CreateEastPath(to, east, west, ref position, ref count, hall);
+        }
+
+        else
+        {
+            CreateEastPath(to, east, west, ref position, ref count, hall);
+            CreateNorthPath(to, north, south, ref position, ref count, hall);
+        }
+
+        GameObject lastCell = hall[hall.Count - 1];
+        hall.Remove(lastCell);
+        generateCellWalls(hall);
+        hall.Add(lastCell);
+
+        hall.Insert(0, from.gameObject);
+
+        for (int i = 0; i < hall.Count - 1; i++)
+            ConnectCell(hall[i], hall[i + 1]);
+
+        UniversalHelper.parentObject(hall, "Main Room Hall", "Halls");
+    }
+
+    private void CreateEastPath(Transform to, bool east, bool west, ref Vector3 position, ref int count, List<GameObject> hall)
+    {
+        while (east && position.x != to.position.x)
+        {
+            position += new Vector3(returnCellSizex, 0, 0);
+            if (findCell(position))
+            {
+                hall.Add(findCell(position));
+                break;
+            }
+            GameObject cell = Instantiate(FLOOR);
+            cell.transform.position = position;
+            cell.transform.localScale = cellSize * 10;
+            cell.name = "Main Hall " + hall.Count;
+            hall.Add(cell);
+            cells.Add(cell);
+            count++;
+            if (count > 200)
+            {
+                Debug.LogError("Create Path fucked up");
+                break;
+            }
+        }
+
+        while (west && position.x != to.position.x)
+        {
+            position -= new Vector3(returnCellSizex, 0, 0);
+            if (findCell(position))
+            {
+                hall.Add(findCell(position));
+                break;
+            }
+            GameObject cell = Instantiate(FLOOR);
+            cell.transform.position = position;
+            cell.transform.localScale = cellSize * 10;
+            cell.name = "Main Hall " + hall.Count;
+            hall.Add(cell);
+            cells.Add(cell);
+            count++;
+            if (count > 200)
+            {
+                Debug.LogError("Create Path fucked up");
+                break;
+            }
         }
     }
 
-    int compareTo(float a, float b)
+    private void CreateNorthPath(Transform to, bool north, bool south, ref Vector3 position, ref int count, List<GameObject> hall)
     {
-        if (a > b)
-            return 1;
-        else if (b > a)
-            return -1;
+        while (north && position.z != to.position.z)
+        {
+            position += new Vector3(0, 0, returnCellSizez);
+            if (findCell(position))
+            {
+                hall.Add(findCell(position));
+                break;
+            }
+            GameObject cell = Instantiate(FLOOR);
+            cell.transform.position = position;
+            cell.transform.localScale = cellSize * 10;
+            cell.name = "Main Hall " + hall.Count;
+            hall.Add(cell);
+            cells.Add(cell);
+            count++;
+            if (count > 200)
+            {
+                Debug.LogError("Create Path fucked up");
+                break;
+            }
+        }
 
-        else
-            return 0;
+        while (south && position.z != to.position.z)
+        {
+            position -= new Vector3(0, 0, returnCellSizez);
+            if (findCell(position))
+            {
+                hall.Add(findCell(position));
+                break;
+            }
+            GameObject cell = Instantiate(FLOOR);
+            cell.transform.position = position;
+            cell.transform.localScale = cellSize * 10;
+            cell.name = "Main Hall " + hall.Count;
+            hall.Add(cell);
+            cells.Add(cell);
+            count++;
+            if (count > 200)
+            {
+                Debug.LogError("Create Path fucked up");
+                break;
+            }
+        }
+    }
+
+    GameObject findClosestSpace(GameObject cell)
+    {
+        Vector3 curPostion = cell.transform.position;
+        Vector3 xMove = new Vector3(returnCellSizex, 0, 0);
+        Vector3 zMove = new Vector3(0, 0, returnCellSizez);
+        Vector3 xzMove = new Vector3(returnCellSizex, 0, returnCellSizez);
+        Vector3 xzIMove = new Vector3(-returnCellSizex, 0, returnCellSizez);
+
+        bool space = false;
+
+        Debug.Log("Cells around: " + curPostion);
+
+        for (int i = 1; !space; i++)
+        {
+            List<Vector3> positions = new List<Vector3>();
+
+            positions.Add(curPostion + (xMove * i));
+            positions.Add(curPostion - (xMove * i));
+            positions.Add(curPostion + (zMove * i));
+            positions.Add(curPostion - (zMove * i));
+
+            positions.Add(curPostion + (xzMove * i));
+            positions.Add(curPostion - (xzMove * i));
+            positions.Add(curPostion + (xzIMove * i));
+            positions.Add(curPostion - (xzIMove * i));
+
+            Debug.Log("Looking for cell");
+            for (int x = 0; x < positions.Count; x++)
+            {
+                GameObject obj = findCell(positions[x]);
+
+                if (obj != null && obj.transform.parent != cell.transform.parent)
+                {
+                    Debug.Log("Found cell: " + obj.transform.position);
+                    return obj;
+                }
+
+                if (x > 200)
+                {
+                    Debug.LogError("Infinite loop detected (x)");
+                    break;
+                }
+            }
+
+            Debug.Log("Expanding search");
+
+            if (i > 200)
+            {
+                Debug.LogError("Infinite loop detected(i)");
+                break;
+            }
+        }
+
+        Debug.LogError("Did not find an object");
+        return null;
+
     }
 
     #endregion
@@ -1343,12 +1496,12 @@ public class StructuralGeneration : MonoBehaviour
 
                 for (int z = 0; z < zCells; z++)
                 {
-                    
+
                     currentPos = startPosition + new Vector3((xCells * returnCellSizex * xQ) + returnCellSizex, 0, ((zCells * returnCellSizez * zQ)) + (returnCellSizez * z));
 
                     for (int x = 0; x < xCells; x++)
                     {
-                        currentPos += new Vector3(returnCellSizex,0,0);                
+                        currentPos += new Vector3(returnCellSizex, 0, 0);
                         GameObject cell = Instantiate(FLOOR);
                         cell.transform.position = currentPos;  //bring cell to current position
                         cell.transform.localScale = cellSize * 10;
@@ -1425,7 +1578,7 @@ public class StructuralGeneration : MonoBehaviour
             for (int v = 0; v < roomSizex; v++) //Colums
             {
                 //get name of cell's parent at the current position
-                GameObject nameTest = findCell(curPosition).transform.parent.gameObject;  
+                GameObject nameTest = findCell(curPosition).transform.parent.gameObject;
 
                 if (nameTest.name.Contains("Room"))
                 {
@@ -1443,7 +1596,7 @@ public class StructuralGeneration : MonoBehaviour
 
                     else
                         MergedRooms.Add(nameTest);
-                    
+
                 }
 
                 cellsInRoom.Add(findCell(curPosition));                     //Add cell to List of gameobjects of room
@@ -1598,17 +1751,43 @@ public class StructuralGeneration : MonoBehaviour
 
     private GameObject findCell(Vector3 cellPosition)
     {
+        List<GameObject> removeCells = new List<GameObject>();
         //Function returns the cell gameobject of the position given
-        cellPosition = confineCell(cellPosition);
         for (int i = 0; i < cells.Count; i++)   //iterate through cells
         {
-            if (cells[i].transform.position == cellPosition)    //if a position matches the one given
+            if (i > 2000)
             {
-                return cells[i];                          //return it
+                Debug.LogError("Something broke");
+                break;
+            }
+            try
+            {
+                if (cells[i].transform.position == cellPosition)    //if a position matches the one given
+                {
+                    return cells[i];                          //return it
+                }
+            }
+
+            catch (Exception e)
+            {
+                removeCells.Add(cells[i]);
+                continue;
             }
         }
 
-        throw new Exception("Could not find cell at position: " + cellPosition);
+        int count = 0;
+        foreach (GameObject x in removeCells)
+        {
+            count++;
+            cells.Remove(x);
+            if (count > 300)
+            {
+                Debug.LogError("Infinite loop detected");
+                break;
+            }
+        }
+
+        return null;
     }
 
     private Vector3 confineRoom(Vector3 roomPosition, int xCheck, int zCheck, boundaries boundary)
@@ -1616,7 +1795,7 @@ public class StructuralGeneration : MonoBehaviour
         //Function confines a point of a room within the parameters given
 
         while (roomPosition.x + xCheck > boundary.east)
-                roomPosition.x -= returnCellSizex;
+            roomPosition.x -= returnCellSizex;
 
         while (roomPosition.x - xCheck < boundary.west)
             roomPosition.x += returnCellSizex;
@@ -1747,7 +1926,7 @@ public class StructuralGeneration : MonoBehaviour
 
         for (int i = 0; i < roomPositions.Count; i++)
         {
-            
+
             int[] roomsize = new int[] { sizes[roomSizes[i]].sizeX, sizes[roomSizes[i]].sizeZ };
             rooms.Add(CreateRoom(roomPositions[i], roomsize));
 
@@ -1768,6 +1947,8 @@ public class StructuralGeneration : MonoBehaviour
         //RotateGrid(rotationNum);
         structureDone = true;                                                   //Set structure done to true
         BuildMainRoom();
+        GameObject mainHall = GameObject.Find("Main Room Hall");
+        createPath(mainHall.transform, findClosestSpace(mainHall).transform);
         StopAllCoroutines();
     }
 
@@ -1895,7 +2076,7 @@ public class StructuralGeneration : MonoBehaviour
     {
 
         List<RoomSizes> roomSizes = new List<RoomSizes>();      //Create a new list of the room sizes class
-        for (int i = minRoomSize; i <= maxRoomSize; i++)        
+        for (int i = minRoomSize; i <= maxRoomSize; i++)
         {
             for (int x = minRoomSize; x <= maxRoomSize; x++)
             {
@@ -1920,7 +2101,7 @@ public class StructuralGeneration : MonoBehaviour
         }
 
         throw new Exception("Could not find quadrant for cell at position " + position);
-            
+
     }
 
     //This function takes two cells and determines their location in relation to each other
@@ -1951,7 +2132,8 @@ public class StructuralGeneration : MonoBehaviour
 
         else
         {
-            int decide = UniversalHelper.randomGenerator(0, 10);
+            System.Random rand = new System.Random((int)DateTime.Now.Ticks);
+            int decide = UniversalHelper.randomGenerator(0, 10, rand);
 
             if (decide < 5)
             {
@@ -2067,8 +2249,8 @@ public class StructuralGeneration : MonoBehaviour
 
     public static void seedTransformation()
     {
-        
-        
+
+
     }
 }
 
@@ -2344,17 +2526,15 @@ public static class UniversalHelper
     /// <param name="minValue"></param>
     /// <param name="maxValue"></param>
     /// <returns></returns>
-    public static int randomGenerator(int minValue, int maxValue)
+    public static int randomGenerator(int minValue, int maxValue, System.Random rand)
     {
-        System.Random rand = new System.Random(Guid.NewGuid().GetHashCode());
-
         int result = rand.Next(minValue, (maxValue + 1));
 
         return result;
     }
 
     /// <summary>
-    /// Determines the directions needed to get from object one to object one. 
+    /// Determines the directions needed to get from object one to object two. 
     /// Returns array of length two. First value is x. Second value is z.
     /// u = undefined. n s e w = north south east west
     /// </summary>
@@ -2401,6 +2581,17 @@ public static class UniversalHelper
             direction[1] = 'u';
         }
         return direction;
+    }
+
+    public static int compareTo(float a, float b)
+    {
+        if (a > b)
+            return 1;
+        else if (b > a)
+            return -1;
+
+        else
+            return 0;
     }
 
 
