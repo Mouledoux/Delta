@@ -40,8 +40,7 @@ public class StructuralGeneration : MonoBehaviour
                 - Rooms are placed in these positions first (using a shuffle to random things up), and then transformed.
 
             Step 3: Execute transformations and exchanges based on numbers 0-9 to shift, scale, and switch rooms
-            The seed is currently an int array with length 10.
-            The first number is the current floor.
+            The seed is currently an int array with length 24.
             Floors have an effect on the seed in a variety of ways:
             1. Grid size
             2. Rooms per quadrant
@@ -118,8 +117,8 @@ public class StructuralGeneration : MonoBehaviour
      * Generate rooms
      * Generate Seed
      * Generate Dungeon during runtime
-     * Generae hallway (un-automated)
-     * 
+     * Generae hallway (automated)
+     * Generate main rooms
      * 
      * 
      * 
@@ -1458,6 +1457,7 @@ public class StructuralGeneration : MonoBehaviour
         {
             //moves wall so that the base rests on top of the plane
             wall[x].transform.position = cellPosition + new Vector3(0.0f, wall[x].transform.localScale.y / 2, 0.0f);
+            wall[x].AddComponent<TextureTiler>();
         }
 
         wall[0].transform.position += new Vector3(0.0f, 0.0f, nsCellWallMovePosition); //Move north wall to front of cell
@@ -1531,6 +1531,7 @@ public class StructuralGeneration : MonoBehaviour
                         cell.transform.position = currentPos;  //bring cell to current position
                         cell.transform.localScale = cellSize * 10;
                         cell.name = "cell " + cells.Count + " Z" + zQ + "X" + xQ;
+                        cell.AddComponent<TextureTiler>();
                         cells.Add(cell);                                //add cell to cells List
                         Quadrant.Add(cell);
                     }

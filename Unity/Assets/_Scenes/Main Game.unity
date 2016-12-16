@@ -609,7 +609,7 @@ MonoBehaviour:
   firstGen: 0
   xCells: 11
   zCells: 11
-  xQuadrants: 2
+  xQuadrants: 3
   zQuadrants: 2
   roomsPerQuadrant: 2
   maxPerQuadrant: 2
