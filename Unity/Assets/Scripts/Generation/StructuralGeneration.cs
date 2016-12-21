@@ -977,7 +977,6 @@ public class StructuralGeneration : MonoBehaviour
         List<GameObject> mainRoom = new List<GameObject>();
 
         string room = roomDirection(main);
-        Debug.Log(room);
         switch (room)
         {
             case "north":
@@ -1003,8 +1002,6 @@ public class StructuralGeneration : MonoBehaviour
             default:
                 throw new Exception("Main room has no direction");
         }
-
-        Debug.Log("Entrance: " + entrance);
 
         curPosition = startPosition;
 
@@ -1346,8 +1343,6 @@ public class StructuralGeneration : MonoBehaviour
 
         bool space = false;
 
-        Debug.Log("Cells around: " + curPostion);
-
         for (int i = 1; !space; i++)
         {
             List<Vector3> positions = new List<Vector3>();
@@ -1362,14 +1357,12 @@ public class StructuralGeneration : MonoBehaviour
             positions.Add(curPostion + (xzIMove * i));
             positions.Add(curPostion - (xzIMove * i));
 
-            Debug.Log("Looking for cell");
             for (int x = 0; x < positions.Count; x++)
             {
                 GameObject obj = findCell(positions[x]);
 
                 if (obj != null && obj.transform.parent != cell.transform.parent)
                 {
-                    Debug.Log("Found cell: " + obj.transform.position);
                     return obj;
                 }
 
@@ -1380,7 +1373,6 @@ public class StructuralGeneration : MonoBehaviour
                 }
             }
 
-            Debug.Log("Expanding search");
 
             if (i > 200)
             {
@@ -1806,7 +1798,7 @@ public class StructuralGeneration : MonoBehaviour
         {
             count++;
             cells.Remove(x);
-            if (count > 300)
+            if (count > 500)
             {
                 Debug.LogError("Infinite loop detected");
                 break;
