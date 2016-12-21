@@ -14,30 +14,32 @@ public static class UniversalHelper
     /// <param name="child"></param>
     /// <param name="parentName"></param>
     /// <param name="subParentName"></param>
-    public static void parentObject(List<GameObject> child, string parentName, string subParentName = "")
+    public static bool parentObject(List<GameObject> child, string parentName, string subParentName = "")
     {
+        Vector3 position = child[0].transform.position;
+        GameObject parent = GetObject(parentName, position);                //Get the parent if it exists, else create it
+
         if (child.Count > 1) //If there is an object to be parented
         {
-            if (!string.IsNullOrEmpty(subParentName)) //If subParentName has a value
+            if (!string.IsNullOrEmpty(subParentName))                   //If subParentName has a value
             {
-                GameObject subParent = GetObject(parentName);               //Get the subParent if it exists else create it
-                subParent.transform.position = child[0].transform.position; //Set position of sub parent to child object
+                GameObject subParent = GetObject(subParentName, position);  //Get the subParent if it exists else create it
 
                 addChild(child, subParent);                                 //Add the children to the sub parent
-                child = new List<GameObject>();                             //Create a new list
-                child.Add(subParent);                                       //Add the sub parent as a child
+                subParent.transform.parent = parent.transform;              //Add children to parent
             }
 
-            GameObject parent = GetObject(parentName);                      //Get the parent if it exists, else create it
-            parent.transform.position = child[0].transform.position;        //Set position of parent to child object
-
-            addChild(child, parent);                                        //Add the children to the parent
+            else                                                        //Otherwise
+                addChild(child, parent);                                        //Add the children to the parent
         }
 
         else    //Otherwise, output to the log that there are no children
         {
             Debug.LogError("No child objects to parent");
+            return false;
         }
+
+        return true;
     }
 
     /// <summary>
@@ -45,12 +47,13 @@ public static class UniversalHelper
     /// </summary>
     /// <param name="objName"></param>
     /// <returns></returns>
-    public static GameObject GetObject(string objName)
+    public static GameObject GetObject(string objName, Vector3 position)
     {
         GameObject parent = GameObject.Find(objName);
         if (!parent)
         {
             parent = new GameObject(objName);
+            parent.transform.position = position;
         }
 
         return parent;
